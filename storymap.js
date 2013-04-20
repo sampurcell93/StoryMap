@@ -43,11 +43,20 @@ $(document).ready(function() {
 		});
 	}
 	function getData() {
-		var content = " yolo";
-		var clfsws = new XMLHttpRequest();
-        clfsws.open("POST", "http://api.opencalais.com/enlighten/rest/", true);
-        clfsws.onreadystatechange = function() { console.log("here")};
-        clfsws.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        clfsws.send("licenseID=c3wjfrkfmrsft3r5wgxm5skr&content=" + encodeURIComponent(content) + '&paramsXML=' + encodeURIComponent('<c:params xmlns:c="http://s.opencalais.com/1/pred/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><c:processingDirectives c:contentType="text/txt" c:outputFormat="text/gnosis" c:discardMetadata=";"></c:processingDirectives><c:userDirectives c:allowDistribution="true" c:allowSearch="true" c:externalID="calaisbridge" c:submitter="calaisbridge"></c:userDirectives><c:externalMetadata c:caller="GnosisFirefox"/></c:params>'));
+		var content = "yolo";
+		$.get("http://api.opencalais.com/enlighten/rest/",
+		{
+			content: encodeURIComponent(content),
+			licenseId: encodeURIComponent('7m48vqma8cc9g9gxmbq3n42r'),
+			paramsXML: encodeURIComponent('<c:params xmlns:c="http://s.opencalais.com/1/pred/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">' +
+        			'<c:processingDirectives c:contentType="text/html" c:outputFormat="application/json" c:discardMetadata=";">' +
+        			'</c:processingDirectives>' +
+        			// '<c:userDirectives c:allowDistribution="true" c:allowSearch="true" c:externalID="calaisbridge" c:submitter="newsmap">' + 
+        			// '</c:userDirectives>' +
+        			// '<c:externalMetadata c:caller="GnosisFirefox"/>' +
+        		'</c:params>')
+		}, function(data) {
+			console.log(data);
+		})
 	}
 })

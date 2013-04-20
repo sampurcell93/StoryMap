@@ -21,7 +21,7 @@
       <div id="map-canvas"></div>
     </div>
     <ul class='sidenav'>
-      <li>Your Stories</li>
+      <li>Your Maps</li>
       <li></li>
       <li></li>
       <li></li>
