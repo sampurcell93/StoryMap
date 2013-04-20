@@ -15,7 +15,7 @@
   <body>
     <div class='wrap'>
       <div id='search'>
-        <input placeholder='Search for a news story to map.' type='text' name='news-term' id='news-search' />
+        <input placeholder='Search for a news story to map.' type='text' name='news-term' id='news-search' value='London, England' />
         <button class='go' id='go'>Search <span class='icon s9'>v</span> </button>
       </div>
       <div id="map-canvas"></div>

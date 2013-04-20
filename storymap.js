@@ -11,10 +11,12 @@ $(document).ready(function() {
         this.mapOptions = mapOptions;
         this.map = map;
 	};	
-	Map.prototype.plotStories = function(stories) {
-		console.log(stories.responseData);
-
+	Map.prototype.plotStory = function(story) {
+		var pt = new google.maps.LatLng(story.latitude,story.longitude);
+		var marker = new google.maps.Marker({position: pt, title: story.title});
+		marker.setMap(this.map);
 	}
+
 	Map = new Map();
 	var $search = $("#news-search");
 	var $go = $("#go");
@@ -29,7 +31,6 @@ $(document).ready(function() {
 
 	$go.on("click", function() {
 		getNews(0);
-		getData();
 	})
 
 	function getNews(start) {
@@ -37,26 +38,40 @@ $(document).ready(function() {
 			{
 				q: $search.val(),
 				start: start
-			},
-		function(data) {
-			Map.plotStories(JSON.parse(data));
-		});
+			}, function(data) {	
+				var json = JSON.parse(data);
+				console.log(json);
+				for (var i in json.responseData.results)
+					getData(json.responseData.results[i]);
+			});
 	}
-	function getData() {
-		var content = "yolo";
-		$.get("http://api.opencalais.com/enlighten/rest/",
+	function getData(content) {
+		var json;
+		console.log("getting data");
+		var context = content.titleNoFormatting + content.content;
+		$.get("./calais.php",
 		{
-			content: encodeURIComponent(content),
-			licenseId: encodeURIComponent('7m48vqma8cc9g9gxmbq3n42r'),
-			paramsXML: encodeURIComponent('<c:params xmlns:c="http://s.opencalais.com/1/pred/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">' +
-        			'<c:processingDirectives c:contentType="text/html" c:outputFormat="application/json" c:discardMetadata=";">' +
-        			'</c:processingDirectives>' +
-        			// '<c:userDirectives c:allowDistribution="true" c:allowSearch="true" c:externalID="calaisbridge" c:submitter="newsmap">' + 
-        			// '</c:userDirectives>' +
-        			// '<c:externalMetadata c:caller="GnosisFirefox"/>' +
-        		'</c:params>')
+			content: context
 		}, function(data) {
-			console.log(data);
+			json = JSON.parse(data);
+			console.log(json);
+			for (var el in json) {
+				if (json[el].hasOwnProperty("resolutions")){
+					content.latitude = json[el].resolutions[0].latitude;
+					content.longitude = json[el].resolutions[0].longitude;
+					Map.plotStory(content);
+				}
+			}
+		})
+		return content;
+	}
+	function makeUIDialog(message) {
+		$(document.body).append("<div class='ui-dialog'>" + message + "</div>").addClass("active-message");
+		$(".ui-dialog").hide().fadeIn("fast", function() {
+			$(this).delay(8000).fadeOut(800, function() { 
+				$(this).remove();
+				$(document.body).removeClass("active-message");
+			});
 		})
 	}
 })
