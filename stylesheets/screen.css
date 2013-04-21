@@ -2,7 +2,7 @@
  * In this file you should write your main styles. (or centralize your imports)
  * Import this file using the following HTML or equivalent:
  * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
-/* line 17, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 17, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -24,45 +24,45 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../Users/sampurcell/.rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 116, ../../../../../../Users/spurce02/.rvm/gems/ruby-1.9.3-p362/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
@@ -146,8 +146,18 @@ h3 {
   padding: 5px;
   margin: 0 8px 8px;
 }
+/* line 80, ../sass/screen.scss */
+h3 a {
+  color: #74ac3d;
+}
 
-/* line 81, ../sass/screen.scss */
+/* line 85, ../sass/screen.scss */
+p {
+  line-height: 1.5;
+  color: #414141;
+}
+
+/* line 90, ../sass/screen.scss */
 input {
   display: inline-block;
   border: 1px solid #ccc;
@@ -167,7 +177,7 @@ input {
   -o-border-radius: 2px;
   border-radius: 2px;
 }
-/* line 94, ../sass/screen.scss */
+/* line 103, ../sass/screen.scss */
 input:focus {
   border-color: #aaa;
 }
@@ -192,7 +202,7 @@ input:focus:-ms-input-placeholder {
   color: #74ac3d;
 }
 
-/* line 100, ../sass/screen.scss */
+/* line 109, ../sass/screen.scss */
 .wrap {
   display: block;
   width: 80%;
@@ -204,7 +214,7 @@ input:focus:-ms-input-placeholder {
   left: 20%;
 }
 
-/* line 111, ../sass/screen.scss */
+/* line 120, ../sass/screen.scss */
 .sidenav {
   float: left;
   width: 18%;
@@ -215,7 +225,7 @@ input:focus:-ms-input-placeholder {
   background: #f9f9f9;
   background: rgba(255, 255, 255, 0.95);
 }
-/* line 121, ../sass/screen.scss */
+/* line 130, ../sass/screen.scss */
 .sidenav li {
   display: block;
   height: 40px;
@@ -236,29 +246,29 @@ input:focus:-ms-input-placeholder {
   *zoom: 1;
   z-index: -1;
 }
-/* line 138, ../sass/screen.scss */
+/* line 147, ../sass/screen.scss */
 .sidenav li:hover {
   background: #fff;
 }
-/* line 139, ../sass/screen.scss */
+/* line 148, ../sass/screen.scss */
 .sidenav li:first-child {
   border-top: none;
 }
 
-/* line 143, ../sass/screen.scss */
+/* line 152, ../sass/screen.scss */
 #search {
   width: 100%;
   padding: 10px;
   height: 70px;
 }
 
-/* line 149, ../sass/screen.scss */
+/* line 158, ../sass/screen.scss */
 .icon {
   font-family: 'icons';
   margin: 5px;
 }
 
-/* line 154, ../sass/screen.scss */
+/* line 163, ../sass/screen.scss */
 button.go {
   display: inline-block;
   margin: 0 -6px 0;
@@ -293,17 +303,17 @@ button.go {
   font-weight: 300;
   vertical-align: -2px;
 }
-/* line 174, ../sass/screen.scss */
+/* line 183, ../sass/screen.scss */
 button.go:hover {
   color: #fff;
   background: #578e37;
 }
-/* line 178, ../sass/screen.scss */
+/* line 187, ../sass/screen.scss */
 button.go:active {
   background: #517F35;
 }
 
-/* line 183, ../sass/screen.scss */
+/* line 192, ../sass/screen.scss */
 .ui-dialog {
   display: block;
   width: 500px;
@@ -324,7 +334,7 @@ button.go:active {
   top: 50px;
   z-index: 10000;
 }
-/* line 197, ../sass/screen.scss */
+/* line 206, ../sass/screen.scss */
 .ui-dialog.small {
   width: auto;
 }

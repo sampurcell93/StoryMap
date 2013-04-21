@@ -30,9 +30,9 @@ class CalaisPHPIf {
 			return "Non-empty content is required";
 		}
 	
-		$data = "licenseID=".urlencode($this->apiKey);
-		$data .= "&paramsXML=".urlencode($this->paramsXML);
-		$data .= "&content=".urlencode($content); 
+		$data = "licenseID=" . urlencode($this->apiKey);
+		$data .= "&paramsXML=" . urlencode($this->paramsXML);
+		$data .= "&content=" . urlencode($content); 
 		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $this->url);
@@ -54,11 +54,11 @@ class CalaisPHPIf {
 
 		$ret = "<c:params xmlns:c=\"http://s.opencalais.com/1/pred/\" " . 
 			"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"> " .
-			"<c:processingDirectives c:contentType=\"".$this->contentType."\" " .
+			"<c:processingDirectives c:contentType=\"".$this->contentType . "\" " .
 			"c:outputFormat=\"application/json\"></c:processingDirectives> " .
 			"<c:userDirectives c:allowDistribution=\"false\" " .
 			"c:allowSearch=\"false\" c:externalID=\" \" " .
-			"c:submitter=\"Calais PHP Demo\"></c:userDirectives> " .
+			"c:submitter=\"Story Map\"></c:userDirectives> " .
 			"<c:externalMetadata><rdf:Description><c:caller>Story Map</c:caller></rdf:Description></c:externalMetadata></c:params>";
 		
 		return $ret;
@@ -76,5 +76,12 @@ class CalaisPHPIf {
 
 	$c = new CalaisPHPIf();
 	$s = $c->callEnlighten($string_to_analyze);
-	echo $s;
+	$a = json_decode($s);
+	// unset($a->doc->meta);
+	// unset($a->doc->info->id);
+	// unset($a->doc->info->docId);
+	// unset($a->doc->info->externalMetadata);
+	$s = json_encode($a);
+	echo utf8_encode($s);
+	// echo '{"yolo":"sam"}';
 ?>

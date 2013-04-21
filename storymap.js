@@ -21,7 +21,6 @@ $(document).ready(function() {
 		var pt = new google.maps.LatLng(parseInt(story.latitude) + xOff,parseInt(story.longitude) + yOff);
 		var display_string = "<h3><a target='_blank' href='" + story.unescapedUrl + "'>" + story.title + "</a></h3>" + "<p>" + story.content + "</p>";
 		var marker = new google.maps.Marker({position: pt, title: story.title});
-		// console.log(marker);
 		this.markers.push(marker);
 		marker.setMap(this.map);
 		var that = this;
@@ -74,6 +73,7 @@ $(document).ready(function() {
 		{
 			content: context
 		}, function(data) {
+			console.log(data);
 			json = JSON.parse(data);
 			console.log(json);
 			for (var el in json) {
