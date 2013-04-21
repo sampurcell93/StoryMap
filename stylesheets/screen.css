@@ -102,7 +102,7 @@ body {
   position: relative;
   font-size: 14px;
   font-family: sans-serif;
-  background: url("../images/plaid.png");
+  background: url("../images/dark_matter.png");
 }
 /* line 45, ../sass/screen.scss */
 body.active-message:before {
@@ -132,16 +132,22 @@ body:before {
   -o-border-radius: 3px;
   border-radius: 3px;
   border: 1px solid #ccc;
-  height: 100%;
+  height: 700px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.9);
   margin: 10px;
 }
 
-/* line 71, ../sass/screen.scss */
-.fixed {
-  position: fixed;
+/* line 73, ../sass/screen.scss */
+h3 {
+  font-size: 1.3rem;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  padding: 5px;
+  margin: 0 8px 8px;
 }
 
-/* line 75, ../sass/screen.scss */
+/* line 81, ../sass/screen.scss */
 input {
   display: inline-block;
   border: 1px solid #ccc;
@@ -161,7 +167,7 @@ input {
   -o-border-radius: 2px;
   border-radius: 2px;
 }
-/* line 88, ../sass/screen.scss */
+/* line 94, ../sass/screen.scss */
 input:focus {
   border-color: #aaa;
 }
@@ -186,7 +192,7 @@ input:focus:-ms-input-placeholder {
   color: #74ac3d;
 }
 
-/* line 94, ../sass/screen.scss */
+/* line 100, ../sass/screen.scss */
 .wrap {
   display: block;
   width: 80%;
@@ -198,7 +204,7 @@ input:focus:-ms-input-placeholder {
   left: 20%;
 }
 
-/* line 105, ../sass/screen.scss */
+/* line 111, ../sass/screen.scss */
 .sidenav {
   float: left;
   width: 18%;
@@ -207,9 +213,9 @@ input:focus:-ms-input-placeholder {
   margin-top: 80px;
   margin-left: 10px;
   background: #f9f9f9;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
 }
-/* line 115, ../sass/screen.scss */
+/* line 121, ../sass/screen.scss */
 .sidenav li {
   display: block;
   height: 40px;
@@ -217,37 +223,42 @@ input:focus:-ms-input-placeholder {
   padding-left: 10px;
   font-family: sans-serif;
   border-top: 1px solid #ccc;
-  width: 86%;
+  border-bottom: 1px solid #fff;
+  -webkit-box-shadow: 0px 1px 4px #cccccc;
+  -moz-box-shadow: 0px 1px 4px #cccccc;
+  box-shadow: 0px 1px 4px #cccccc;
+  width: 93%;
   margin: 0 auto;
   color: #445454;
   font-size: 1.4em;
   cursor: pointer;
   overflow: hidden;
   *zoom: 1;
+  z-index: -1;
 }
-/* line 129, ../sass/screen.scss */
+/* line 138, ../sass/screen.scss */
 .sidenav li:hover {
   background: #fff;
 }
-/* line 130, ../sass/screen.scss */
+/* line 139, ../sass/screen.scss */
 .sidenav li:first-child {
   border-top: none;
 }
 
-/* line 134, ../sass/screen.scss */
+/* line 143, ../sass/screen.scss */
 #search {
   width: 100%;
   padding: 10px;
   height: 70px;
 }
 
-/* line 140, ../sass/screen.scss */
+/* line 149, ../sass/screen.scss */
 .icon {
   font-family: 'icons';
   margin: 5px;
 }
 
-/* line 145, ../sass/screen.scss */
+/* line 154, ../sass/screen.scss */
 button.go {
   display: inline-block;
   margin: 0 -6px 0;
@@ -282,17 +293,17 @@ button.go {
   font-weight: 300;
   vertical-align: -2px;
 }
-/* line 165, ../sass/screen.scss */
+/* line 174, ../sass/screen.scss */
 button.go:hover {
   color: #fff;
   background: #578e37;
 }
-/* line 169, ../sass/screen.scss */
+/* line 178, ../sass/screen.scss */
 button.go:active {
   background: #517F35;
 }
 
-/* line 174, ../sass/screen.scss */
+/* line 183, ../sass/screen.scss */
 .ui-dialog {
   display: block;
   width: 500px;
@@ -313,7 +324,7 @@ button.go:active {
   top: 50px;
   z-index: 10000;
 }
-/* line 188, ../sass/screen.scss */
+/* line 197, ../sass/screen.scss */
 .ui-dialog.small {
   width: auto;
 }

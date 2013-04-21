@@ -10,11 +10,25 @@ $(document).ready(function() {
         	mapOptions);
         this.mapOptions = mapOptions;
         this.map = map;
+        this.markers = [];
+		this.infowindow = new google.maps.InfoWindow();
+
 	};	
 	Map.prototype.plotStory = function(story) {
-		var pt = new google.maps.LatLng(story.latitude,story.longitude);
+		var xOff = Math.random() * 0.1;
+		var yOff = Math.random() * 0.1;
+		console.log(story);
+		var pt = new google.maps.LatLng(parseInt(story.latitude) + xOff,parseInt(story.longitude) + yOff);
+		var display_string = "<h3><a target='_blank' href='" + story.unescapedUrl + "'>" + story.title + "</a></h3>" + "<p>" + story.content + "</p>";
 		var marker = new google.maps.Marker({position: pt, title: story.title});
+		// console.log(marker);
+		this.markers.push(marker);
 		marker.setMap(this.map);
+		var that = this;
+		google.maps.event.addListener(marker, 'click', function() {
+			that.infowindow.setContent(display_string);	
+			that.infowindow.open(that.map, this);
+		});
 	}
 
 	Map = new Map();
@@ -30,7 +44,12 @@ $(document).ready(function() {
 	});
 
 	$go.on("click", function() {
-		getNews(0);
+		for (var m in Map.markers) {
+			Map.markers[m].setMap(null);
+		}
+		 for (var i = 0; i <= 80; i+=4)
+			getNews(i);
+			
 	})
 
 	function getNews(start) {
@@ -40,9 +59,11 @@ $(document).ready(function() {
 				start: start
 			}, function(data) {	
 				var json = JSON.parse(data);
-				console.log(json);
+				if (json == null) return;
 				for (var i in json.responseData.results)
 					getData(json.responseData.results[i]);
+			}).fail(function(){
+				console.log("failed request");
 			});
 	}
 	function getData(content) {
@@ -57,9 +78,11 @@ $(document).ready(function() {
 			console.log(json);
 			for (var el in json) {
 				if (json[el].hasOwnProperty("resolutions")){
+					console.log("has location!");
 					content.latitude = json[el].resolutions[0].latitude;
 					content.longitude = json[el].resolutions[0].longitude;
 					Map.plotStory(content);
+					return;
 				}
 			}
 		})

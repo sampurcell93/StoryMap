@@ -1,6 +1,6 @@
 <?php
 	$q = urlencode($_GET['q']);
-	$start = urlencode($_GET['start']);
+	$start = urlencode(intval($_GET['start']));
 	function pull($url) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -12,5 +12,3 @@
 	}
 	$body = pull( "https://ajax.googleapis.com/ajax/services/search/news?" . "v=1.0&start=" . $start . "&q=" . $q);
 	echo $body;
-	// $json = json_decode($body);
-	// $totalpages = count($json->responseData->cursor->pages);
