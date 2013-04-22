@@ -1,5 +1,6 @@
 $(document).ready(function() {
-
+	$("#date-slider").slider();
+	var stories = [];
 	function Map() {
 		var mapOptions = {
         	center: new google.maps.LatLng(0,0),
@@ -17,7 +18,7 @@ $(document).ready(function() {
 	Map.prototype.plotStory = function(story) {
 		var xOff = Math.random() * 0.1;
 		var yOff = Math.random() * 0.1;
-		console.log(story);
+		// console.log(story);
 		var pt = new google.maps.LatLng(parseInt(story.latitude) + xOff,parseInt(story.longitude) + yOff);
 		var display_string = "<h3><a target='_blank' href='" + story.unescapedUrl + "'>" + story.title + "</a></h3>" + "<p>" + story.content + "</p>";
 		var marker = new google.maps.Marker({position: pt, title: story.title});
@@ -40,13 +41,15 @@ $(document).ready(function() {
 			return;
 		}
 		$(this).data("start_index", $(this).data("start_index") + 1);
+		console.log(stories);
 	});
 
 	$go.on("click", function() {
 		for (var m in Map.markers) {
 			Map.markers[m].setMap(null);
 		}
-		 for (var i = 0; i <= 80; i+=4)
+		end = false;
+		for (var i = 0; i <= 12 && !end; i+=4)
 			getNews(i);
 			
 	})
@@ -57,12 +60,14 @@ $(document).ready(function() {
 				q: $search.val(),
 				start: start
 			}, function(data) {	
+				console.log(data);
 				var json = JSON.parse(data);
-				if (json == null) return;
-				for (var i in json.responseData.results)
-					getData(json.responseData.results[i]);
-			}).fail(function(){
-				console.log("failed request");
+				if (json.responseDetails == "out of range start"){
+					end = true;
+					return;
+				}
+				for (var i = 0; i < json.responseData.results.length; i++ )
+						getData(json.responseData.results[i]);
 			});
 	}
 	function getData(content) {
@@ -73,19 +78,20 @@ $(document).ready(function() {
 		{
 			content: context
 		}, function(data) {
-			console.log(data);
 			json = JSON.parse(data);
-			console.log(json);
+			if (json == null)return;
+		
 			for (var el in json) {
 				if (json[el].hasOwnProperty("resolutions")){
 					console.log("has location!");
 					content.latitude = json[el].resolutions[0].latitude;
 					content.longitude = json[el].resolutions[0].longitude;
+					stories.push(content);
 					Map.plotStory(content);
 					return;
 				}
 			}
-		})
+		});
 		return content;
 	}
 	function makeUIDialog(message) {

@@ -152,7 +152,6 @@ input {
 #search {
 	width: 100%;
 	padding: 10px;
-	height: 70px;
 }
 
 .icon {
@@ -206,6 +205,10 @@ button.go {
 	&.small {
 		width: auto;
 	}
+}
+
+.slider {
+	display: block;
 }
 
 @font-face {
