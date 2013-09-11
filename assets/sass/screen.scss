@@ -1,0 +1,220 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
+
+@import "compass/reset";
+@import "compass/css3";
+@import "compass/utilities/general/clearfix";
+
+@mixin placeholder($c: #999) {
+    &::-webkit-input-placeholder { /* WebKit browsers */
+        color:    #{$c};
+    }   
+    &:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        color:    #{$c};
+    }   
+    &::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color:    #{$c};
+    }   
+    &:-ms-input-placeholder { /* Internet Explorer 10+ */
+        color:    #{$c}; 
+	}   
+}
+
+$os: 'Oswald', sans-serif;
+
+.fr { float: right; }
+.fl {float: left;}
+.s9 { font-size: .9em; }
+
+* { 
+	margin: 0;
+	padding: 0;
+	@include box-sizing(border-box);
+}
+
+html { height: 100% }
+body { 
+	height: 100%;
+	position: relative;
+	font-size: 14px;
+	font-family: sans-serif;
+	background: url("../images/dark_matter.png");
+
+	&.active-message:before {
+		display: block;
+		pointer-events: auto;
+	}
+
+	&:before {
+		position: fixed;
+		top: 0;
+		left: 0;
+		content: "";
+		display: block;
+		width: 100%;
+		height: 100%;
+		background: rgba(0,0,0,.7);
+		display: none;
+		z-index: 9999;
+	}
+}
+#map-canvas { 
+	display: block;
+	@include border-radius(3px);
+	border: 1px solid #ccc;
+	height: 700px;
+	padding: 15px;
+	background: rgba(255,255,255,.9);
+	margin: 10px;
+}
+
+h3 { 
+	font-size: 1.3rem;
+	text-align: center;
+	border-bottom: 1px solid #ddd;
+	padding: 5px;
+	margin: 0 8px 8px;
+
+	a{
+		color: #74ac3d;
+	}
+}
+
+p { 
+	line-height: 1.5;
+	color: #414141;
+}
+
+input {
+	display: inline-block;
+	border: 1px solid #ccc;
+	outline: none;
+	height: 40px;
+	width: 80%;
+	margin: 10px auto;
+	line-height: 30px;
+	font-size: 1.4em;
+	padding: 0 10px;
+	@include box-shadow(inset 0px 1px 3px #ddd);
+	@include border-radius(2px);
+
+	&:focus {
+		@include placeholder(#74ac3d);
+		border-color: #aaa;
+	}
+}
+
+.wrap {
+	display: block;
+	width: 80%;
+	max-width: 1700px;
+	margin: 0 10px 0 0;
+	min-height: 100%;
+	height: 100%;
+	position: absolute;
+	left: 20%;
+}
+
+.sidenav {
+	float: left;	
+	width: 18%;
+	border: 1px solid #ccc;
+	display: block;
+	margin-top: 80px;
+	margin-left: 10px;
+	background: #f9f9f9;
+	background: rgba(255,255,255,.95);
+
+	li {
+		display: block;
+		height: 40px;
+		line-height: 45px;
+		padding-left: 10px;
+		font-family: sans-serif;
+		border-top: 1px solid #ccc;
+		border-bottom: 1px solid #fff;
+		@include box-shadow(0px 1px 4px #ccc);
+		width: 93%;
+		margin: 0 auto;
+		color: #445454;
+		font-size: 1.4em;
+		cursor: pointer;
+		@include clearfix();
+		z-index: -1;
+
+		&:hover {background: #fff; }
+		&:first-child {border-top: none; }
+	}
+}
+
+#search {
+	width: 100%;
+	padding: 10px;
+}
+
+.icon {
+	font-family: 'icons';
+	margin: 5px;
+}
+
+button.go {
+	display: inline-block;
+	margin: 0 -6px 0;
+	padding: 0 10px;
+	height: 40px;
+	border: 1px solid #888;
+	font-size: 1.4em;
+	background-color: rgb(116,172,61); // Old browsers
+	@include border-radius(0px 2px 2px 0);
+	@include box-shadow(inset 0px 0px 0px 1px rgba(255,255,255,.4));
+	@include filter-gradient(#74ac3d, #578e37, vertical); // IE6-9
+	@include background-image(linear-gradient(top,  rgba(116,172,61,1) 0%,rgba(87,142,55,1) 100%));
+	@include transition(color .2s ease-in-out);
+	color: #f9f9f9;
+	text-shadow: 0px 1px 4px #313131;
+	cursor: pointer;
+	font-family: $os;
+	font-weight:300;
+	vertical-align: -2px;
+
+	&:hover {
+		color: #fff;
+		background: #578e37;
+	}
+	&:active {
+		background: #517F35;
+	}
+}
+
+.ui-dialog {
+	display: block;
+	width: 500px;
+	@include border-radius(2px);
+	@include box-shadow(inset 0px 0px 0px 1px #fff, 0px 0px 10px #ccc);
+	background: #f9f9f9;
+	background: rgba(255,255,255,.85);
+	padding: 10px;
+	position: absolute;
+	left: 50%;
+	margin-left: -250px;
+	top: 50px;
+	z-index: 10000;
+
+	&.small {
+		width: auto;
+	}
+}
+
+.slider {
+	display: block;
+}
+
+@font-face {
+
+  font-family: 'icons';
+  src: url("../icomoon/fonts/icomoon.eot") format("eot"), 
+ 	 url("../icomoon/fonts/icomoon.woff")  format("woff"),
+  	 url("../icomoon/fonts/icomoon.ttf")   format("truetype");
+}
