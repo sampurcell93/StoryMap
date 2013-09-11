@@ -12,4 +12,17 @@ _Stylesheets_: _Do not edit the.css files. Ever._ Look into installing [Compass]
 
 _Javascript_: Same thing - _NEVER_ edit the .js files in /js. Only edit the coffee files in /coffee. In order to compile them, you'll need to download [Coffeescript](http://coffeescript.org/). The syntax is close to javascript, so the curve should be fairly shallow. To set up a watcher for the coffee, run "coffee -o js -cw coffee" from the base dir. We'll worry about concatenation and minimization later. 
 
+_Conventions_: Keeping with the best practices of the day, it will make everyone's life easier to adhere to some coding conventions.
+
+## Coffeescript 
+
+1. Comment everything. Seriously. Use "#" for commenting. For long comments use "###"
+2. USE 4 SPACES FOR INDENTATION, NOT TAB. DO DO DO. This will save you so much time with the compiler. Figure out how to do it in your editor of choice.
+
+## SCSS
+
+1. Make modules. If you find yourself writing SCSS that is all kinda unified but not really in any previously defined category, make a new file in assets/sass like "_filename.scss" and import it. It'll help organization immensely.
+2. Includes go at the top of the block.
+
+
 Stay thirsty, my friends.
