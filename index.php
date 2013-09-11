@@ -10,9 +10,17 @@
   </head>
   <body>
     <header>
-      <button class='go fr' id='go'>Search <span class='s9 icon-search'></span> </button>  
-      <input placeholder='Search for a news story to map.' type='text' name='news-term' class='fr' id='news-search' value='Invasive Species' />
-      <div class="clear"></div>
+      <div class="fr w4" style='border: 1px solid red;'>
+        <button class='go fr' id='go'>Search <span class='s9 icon-search'></span> </button>  
+        <input placeholder='Search the news' type='text' name='news-term' class='fr' id='news-search' value='Invasive Species' />
+      </div>
+      <ul class='fr w6'>
+        <li>Saved</li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+
     </header>
     
     <!-- <div id="date-slider" class='slider'></div> -->

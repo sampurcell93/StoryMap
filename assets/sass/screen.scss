@@ -66,28 +66,35 @@ body {
 }
 
 header {
-	margin: 10px;
+	@include border-radius(2px 2px 0 0);
+	@include clearfix();
+	border-top: 1px solid #444;
+	margin: 10px 10px 0;
+	background: #222;
+	padding: 0 10px;
 
 	button {
-		height: 40px;
-		margin: 10px 0;
-		@include border-radius(0px 6px 6px 0px);
+		@include border-radius(0 4px 4px 0);
+		border: 1px solid #555;
+		line-height: 38px;
+		margin-left: 1%;
+		width: 19%
 	}
 
 	input {
-		@include border-radius(6px 0 0 6px);
-		width: 50%;
+		@include border-radius(4px 0 0 4px);
+		width: 80%;
 	}
 }
 
 .map-canvas { 
+	@include border-radius(0 0 3px 3px);
 	display: block;
-	@include border-radius(3px);
 	border: 1px solid #ccc;
 	height: 500px;
 	padding: 15px;
 	background: rgba(255,255,255,.9);
-	margin: 10px;
+	margin:  0 10px 10px;
 }
 
 h3 { 
@@ -108,6 +115,7 @@ p {
 }
 
 input {
+	@include border-radius(2px);
 	display: block;
 	border: 1px solid #ccc;
 	outline: none;
@@ -117,8 +125,6 @@ input {
 	line-height: 30px;
 	font-size: 1.4em;
 	padding: 0 10px;
-	@include box-shadow(inset 0px 1px 3px #ddd);
-	@include border-radius(2px);
 
 	&:focus {
 		@include placeholder(#74ac3d);
@@ -126,70 +132,18 @@ input {
 	}
 }
 
-.wrap {
-	display: block;
-	width: 80%;
-	max-width: 1700px;
-	margin: 0 10px 0 0;
-	min-height: 100%;
-	height: 100%;
-	position: absolute;
-	left: 20%;
-}
-
-.sidenav {
-	float: left;	
-	width: 18%;
-	border: 1px solid #ccc;
-	display: block;
-	margin-top: 80px;
-	margin-left: 10px;
-	background: #f9f9f9;
-	background: rgba(255,255,255,.95);
-
-	li {
-		display: block;
-		height: 40px;
-		line-height: 45px;
-		padding-left: 10px;
-		font-family: sans-serif;
-		border-top: 1px solid #ccc;
-		border-bottom: 1px solid #fff;
-		@include box-shadow(0px 1px 4px #ccc);
-		width: 93%;
-		margin: 0 auto;
-		color: #445454;
-		font-size: 1.4em;
-		cursor: pointer;
-		@include clearfix();
-		z-index: -1;
-
-		&:hover {background: #fff; }
-		&:first-child {border-top: none; }
-	}
-}
-
-#search {
-	width: 100%;
-	padding: 10px;
-}
-
-.icon {
-	font-family: 'icons';
-	margin: 5px;
-}
 
 button {
-	display: inline-block;
-	padding: 0 10px;	margin: 10px 0;
-	border: 1px solid #888;
-	font-size: 1.4em;
 	background-color: rgb(116,172,61); // Old browsers
 	@include border-radius(0px 2px 2px 0);
-	@include box-shadow(inset 0px 0px 0px 1px rgba(255,255,255,.4));
 	@include filter-gradient(#74ac3d, #578e37, vertical); // IE6-9
 	@include background-image(linear-gradient(top,  rgba(116,172,61,1) 0%,rgba(87,142,55,1) 100%));
 	@include transition(color .2s ease-in-out);
+	display: inline-block;
+	padding: 0 10px;	
+	margin: 10px 0;
+	border: 1px solid #444;
+	font-size: 1.4em;
 	color: #f9f9f9;
 	text-shadow: 0px 1px 4px #313131;
 	cursor: pointer;
@@ -203,35 +157,4 @@ button {
 	&:active {
 		background: #517F35;
 	}
-}
-
-.ui-dialog {
-	display: block;
-	width: 500px;
-	@include border-radius(2px);
-	@include box-shadow(inset 0px 0px 0px 1px #fff, 0px 0px 10px #ccc);
-	background: #f9f9f9;
-	background: rgba(255,255,255,.85);
-	padding: 10px;
-	position: absolute;
-	left: 50%;
-	margin-left: -250px;
-	top: 50px;
-	z-index: 10000;
-
-	&.small {
-		width: auto;
-	}
-}
-
-.slider {
-	display: block;
-}
-
-@font-face {
-
-  font-family: 'icons';
-  src: url("../icomoon/fonts/icomoon.eot") format("eot"), 
- 	 url("../icomoon/fonts/icomoon.woff")  format("woff"),
-  	 url("../icomoon/fonts/icomoon.ttf")   format("truetype");
 }
