@@ -6,6 +6,9 @@
 @import "compass/reset";
 @import "compass/css3";
 @import "compass/utilities/general/clearfix";
+@import "build";
+@import "overlays";
+
 
 @mixin placeholder($c: #999) {
     &::-webkit-input-placeholder { /* WebKit browsers */
@@ -41,30 +44,47 @@ body {
 	font-size: 14px;
 	font-family: sans-serif;
 	background: url("../images/dark_matter.png");
+	padding: 20px;
 
-	&.active-message:before {
-		display: block;
-		pointer-events: auto;
+    &:after {
+        content: "";
+        position: fixed;
+        display: none;
+        left: 0;
+        top: 0px;
+        width: 100%; 
+        height: 100%;
+        background: rgba(0,0,0,.5);
+        z-index: 9911;
+    }
+
+    &.active-modal { overflow: hidden; }
+
+    &.active-modal::after {
+        display: block;
+    }
+}
+
+header {
+	margin: 10px;
+
+	button {
+		height: 40px;
+		margin: 10px 0;
+		@include border-radius(0px 6px 6px 0px);
 	}
 
-	&:before {
-		position: fixed;
-		top: 0;
-		left: 0;
-		content: "";
-		display: block;
-		width: 100%;
-		height: 100%;
-		background: rgba(0,0,0,.7);
-		display: none;
-		z-index: 9999;
+	input {
+		@include border-radius(6px 0 0 6px);
+		width: 50%;
 	}
 }
-#map-canvas { 
+
+.map-canvas { 
 	display: block;
 	@include border-radius(3px);
 	border: 1px solid #ccc;
-	height: 700px;
+	height: 500px;
 	padding: 15px;
 	background: rgba(255,255,255,.9);
 	margin: 10px;
@@ -88,11 +108,11 @@ p {
 }
 
 input {
-	display: inline-block;
+	display: block;
 	border: 1px solid #ccc;
 	outline: none;
 	height: 40px;
-	width: 80%;
+	width: 100%;
 	margin: 10px auto;
 	line-height: 30px;
 	font-size: 1.4em;
@@ -159,11 +179,9 @@ input {
 	margin: 5px;
 }
 
-button.go {
+button {
 	display: inline-block;
-	margin: 0 -6px 0;
-	padding: 0 10px;
-	height: 40px;
+	padding: 0 10px;	margin: 10px 0;
 	border: 1px solid #888;
 	font-size: 1.4em;
 	background-color: rgb(116,172,61); // Old browsers
@@ -177,7 +195,6 @@ button.go {
 	cursor: pointer;
 	font-family: $os;
 	font-weight:300;
-	vertical-align: -2px;
 
 	&:hover {
 		color: #fff;
