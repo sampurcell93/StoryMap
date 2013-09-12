@@ -3,10 +3,13 @@ $ ->
     window.cc = (arg) ->
         console.log arg
 
+    window.models = {}
+    window.collections = {}
+
     ### Data Models ###
-    Article = Backbone.Model.extend()
-    Articles = Backbone.Collection.extend
-        model: Article
+    window.models.Article = Backbone.Model.extend()
+    window.collections.Articles = Backbone.Collection.extend
+        model: models.Article
         initialize: (opts) ->
             # If the collection is the child of a news map, save a reference to the map
             if opts? and opts.parent_map then @parent_map = opts.parent_map
@@ -14,65 +17,67 @@ $ ->
 
     # Model for a single instance of a map, including all of the settings for the GMap,
     # the markers, and a collection of articles
-    StoryMap = Backbone.Model.extend
+    window.models.StoryMap = Backbone.Model.extend
         defaults: ->
             markers: []
-            map: new GoogleMap @
-            articles: new Articles parent_map: @
+            articles: new collections.Articles parent_map: @
         # A function that issues a request to a curl script, retrieving google news stories
-        getGoogleNews = (val, start) ->
-          # cc "./getnews.php?q=" + val + "&start=" + start
-          $.get "./getnews.php",
-            q: val || $search.val()
-            start: start
-          , (data) ->
-            # parse the json
-            json = JSON.parse(data)
-            if json.responseDetails is "out of range start"
-              end = true
-              return false
-            # Get location data from OpenCalais for each story item
-            for i in [0...json.responseData.results.length]
-              getCalaisData json.responseData.results[i]
+        getGoogleNews: (val, start) ->
+            if !val? then return false
+            self = @
+            # cc "./getnews.php?q=" + val + "&start=" + start
+            $.get "./getnews.php",
+                q: val.toLowerCase()
+                start: start
+            , (data) ->
+                # parse the json
+                json = JSON.parse(data)
+                cc json
+                if json.responseDetails is "out of range start"
+                  return false
+                # Get location data from OpenCalais for each story item
+                for i in [0...json.responseData.results.length]
+                  self.getCalaisData json.responseData.results[i]
             true
 
-        getCalaisData = (content) ->
-          console.log "getting data"
-          # Pass the title and the story body into calais
-          context = content.titleNoFormatting + content.content
-          $.get "./calais.php",
-            content: context
-          , (data) ->
-            # parse the response object
-            json = JSON.parse(data)
-            unless json? then return
-            console.log(json.doc.info.docDate)
-            # Check each property of the returned calais object
-            for el of json
-              # If it contains a "resolutions" key, it has latitude and longitude
-              if json[el].hasOwnProperty("resolutions")
-                content.latitude = json[el].resolutions[0].latitude
-                content.longitude = json[el].resolutions[0].longitude
-                # It's a valid story - push it
-                stories.push content
-                # Plot the story en el mapa
-                StoryMap.plotStory content
+        getCalaisData: (content) ->
+            self = @
+            console.log "getting data"
+            # Pass the title and the story body into calais
+            context = content.titleNoFormatting + content.content
+            $.get "./calais.php",
+                content: context
+            , (data) ->
+                # parse the response object
+                json = JSON.parse(data)
+                unless json? then return
+                console.log(json.doc.info.docDate)
+                # Check each property of the returned calais object
+                for el of json
+                  # If it contains a "resolutions" key, it has latitude and longitude
+                  if json[el].hasOwnProperty("resolutions")
+                    content.latitude = json[el].resolutions[0].latitude
+                    content.longitude = json[el].resolutions[0].longitude
+                    # It's a valid story - push it
+                    self.get("articles").push content
+                    # Plot the story en el mapa
+                    self.get("map").plotStory content
                 return
-          content
+            content
 
     # The global collection of all maps for a user, 
     # retrieved at runtime by the "Fetch" method, below
-    Maps = Backbone.Collection.extend
+    window.collections.Maps = Backbone.Collection.extend
         url: 'maps.php'
-        model: StoryMap
+        model: models.StoryMap
 
     # Instantiate new collection of all maps
-    AllMaps = new Maps()
+    window.AllMaps = new collections.Maps()
     # Get all existing maps from server
-    AllMaps.fetch 
+    window.AllMaps.fetch 
         success: (collection, response) ->
             if collection.length is 0
-                collection.add new StoryMap()
+                collection.add new models.StoryMap()
             else 
                 cc "Now we want to go to the route for all saved maps"
 
@@ -80,18 +85,22 @@ $ ->
             cc response
 
     ### Router ###
-    Workspace = Backbone.Router.extend
+    window.Workspace = Backbone.Router.extend
         routes:
             "saved": "saved"
             "settings": "settings"
             "play": "play"
+            "map/:index/(:subview)": "goto"
+        goto: ->
+            cc arguments
         saved: ->
             cc "showing all maps"
+            cc Backbone.history.fragment
         settings: ->
             cc "showing settings"
         play: ->
             cc "playing timeline animation"
 
-    app = new Workspace()
+    window.app = new window.Workspace()
 
     Backbone.history.start()

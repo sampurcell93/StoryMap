@@ -1690,8 +1690,13 @@ ul.control-panel li a:before {
   padding: 0 6px;
 }
 
+/* line 193, ../sass/screen.scss */
+.timeline-slider {
+  margin: 10px 0;
+}
+
 @media screen and (max-width: 960px) {
-  /* line 194, ../sass/screen.scss */
+  /* line 198, ../sass/screen.scss */
   header button .icon-search {
     display: none;
   }
