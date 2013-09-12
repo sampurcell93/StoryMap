@@ -19,8 +19,13 @@ $ ->
     # the markers, and a collection of articles
     window.models.StoryMap = Backbone.Model.extend
         defaults: ->
-            markers: []
-            articles: new collections.Articles parent_map: @
+            articles = new collections.Articles
+            articles.parent_map = @
+            {
+                markers: []
+                articles: articles
+            }
+
         # A function that issues a request to a curl script, retrieving google news stories
         getGoogleNews: (val, start) ->
             if !val? then return false
@@ -51,17 +56,19 @@ $ ->
                 # parse the response object
                 json = JSON.parse(data)
                 unless json? then return
-                console.log(json.doc.info.docDate)
                 # Check each property of the returned calais object
                 for el of json
                   # If it contains a "resolutions" key, it has latitude and longitude
                   if json[el].hasOwnProperty("resolutions")
                     content.latitude = json[el].resolutions[0].latitude
                     content.longitude = json[el].resolutions[0].longitude
+                    # Set the date in order to make the range slider
+                    content.date = new Date json.doc.info.docDate
                     # It's a valid story - push it
                     self.get("articles").push content
                     # Plot the story en el mapa
                     self.get("map").plotStory content
+                self.trigger("updateDateRange")
                 return
             content
 
@@ -82,7 +89,6 @@ $ ->
                 cc "Now we want to go to the route for all saved maps"
 
         error: (collection, response) ->
-            cc response
 
     ### Router ###
     window.Workspace = Backbone.Router.extend

@@ -15,7 +15,6 @@ window.GoogleMap = ( model ) ->
     center: new google.maps.LatLng(0, 0)
     zoom: 2
     mapTypeId: google.maps.MapTypeId.ROADMAP
-  cc document.getElementById("map-canvas")
   map = new google.maps.Map(document.getElementById("map-canvas"), @mapOptions)
   @map = map
   @markers = []

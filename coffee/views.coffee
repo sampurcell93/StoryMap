@@ -10,17 +10,51 @@ $ ->
     initialize: ->
       _.bindAll @, "render"
       # Two way model view binding
+
       @model.instance = @
+      @listenTo @model,
+        "updateDateRange": @updateDateRange
+      @updateDateRange()
     render: ->
       @$el.html( _.template @template, @model.toJSON() )
-      cc @$el.html()
       @
     # Now that the view is in the DOM, do stuff to child elements
     afterAppend: ->
       # Instantiate a new google map
       @model.set "map", new window.GoogleMap @model
+      # A function to update the display value of the range
+      update_val = (e, ui) ->
+          handle = $ ui.handle
+          pos = handle.index() - 1
+          range  =  ui.values
+          display = $("<div/>").addClass("handle-display-value").text(range[pos])
+          handle.find("div").remove().end().append display
       # Make a jquery ui slider element
-      @$(".timeline-slider").slider()
+      @$timeline = @$(".timeline-slider")
+      @$timeline.slider
+        range: true
+        values: [0, 100]
+        start: update_val
+        change: update_val
+        slide: update_val
+    updateDateRange: ->
+      cc "updating date range"
+      articles = @model.get "articles"
+      # We want to find the earliest date
+      if articles.length > 0
+        min = articles.at(0)
+        max = articles.last()
+        # Simple min function
+        _.each articles.models, (article) ->
+          date = article.get("date")
+          if date < min.get "date"
+            min = article
+          else if date > max.get "date"
+            max = article
+        cc Math.abs max.get "date"
+        cc Math.abs min.get "date"
+        @$timeline.slider("option", min: min.get("date"), max: max.get("date"))
+
     events:
       "click .go": ->
         cc @model 

@@ -9,16 +9,59 @@
       template: $("#map-instance").html(),
       initialize: function() {
         _.bindAll(this, "render");
-        return this.model.instance = this;
+        this.model.instance = this;
+        this.listenTo(this.model, {
+          "updateDateRange": this.updateDateRange
+        });
+        return this.updateDateRange();
       },
       render: function() {
         this.$el.html(_.template(this.template, this.model.toJSON()));
-        cc(this.$el.html());
         return this;
       },
       afterAppend: function() {
+        var update_val;
         this.model.set("map", new window.GoogleMap(this.model));
-        return this.$(".timeline-slider").slider();
+        update_val = function(e, ui) {
+          var display, handle, pos, range;
+          handle = $(ui.handle);
+          pos = handle.index() - 1;
+          range = ui.values;
+          display = $("<div/>").addClass("handle-display-value").text(range[pos]);
+          return handle.find("div").remove().end().append(display);
+        };
+        this.$timeline = this.$(".timeline-slider");
+        return this.$timeline.slider({
+          range: true,
+          values: [0, 100],
+          start: update_val,
+          change: update_val,
+          slide: update_val
+        });
+      },
+      updateDateRange: function() {
+        var articles, max, min;
+        cc("updating date range");
+        articles = this.model.get("articles");
+        if (articles.length > 0) {
+          min = articles.at(0);
+          max = articles.last();
+          _.each(articles.models, function(article) {
+            var date;
+            date = article.get("date");
+            if (date < min.get("date")) {
+              return min = article;
+            } else if (date > max.get("date")) {
+              return max = article;
+            }
+          });
+          cc(Math.abs(max.get("date")));
+          cc(Math.abs(min.get("date")));
+          return this.$timeline.slider("option", {
+            min: min.get("date"),
+            max: max.get("date")
+          });
+        }
       },
       events: {
         "click .go": function() {

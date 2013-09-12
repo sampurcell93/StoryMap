@@ -3,6 +3,7 @@
  * Import this file using the following HTML or equivalent:
  * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
 
+@import "jqueryui";
 @import "compass/reset";
 @import "compass/css3";
 @import "compass/utilities/general/clearfix";
@@ -192,6 +193,17 @@ ul.control-panel{
 
 .timeline-slider {
 	margin: 10px 0;
+
+	.handle-display-value {
+		position: absolute;
+		top: -30px;
+		left: 0;
+		background: #222;
+		background: rgba(0,0,0,.6);
+		padding: 5px 10px;
+		color: #f9f9f9;
+		@include border-radius(3px);
+	}
 }
 
 @media screen and (max-width: 960px) {

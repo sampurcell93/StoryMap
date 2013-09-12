@@ -22,7 +22,6 @@
       zoom: 2,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
-    cc(document.getElementById("map-canvas"));
     map = new google.maps.Map(document.getElementById("map-canvas"), this.mapOptions);
     this.map = map;
     this.markers = [];

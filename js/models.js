@@ -20,11 +20,12 @@
     });
     window.models.StoryMap = Backbone.Model.extend({
       defaults: function() {
+        var articles;
+        articles = new collections.Articles;
+        articles.parent_map = this;
         return {
           markers: [],
-          articles: new collections.Articles({
-            parent_map: this
-          })
+          articles: articles
         };
       },
       getGoogleNews: function(val, start) {
@@ -64,15 +65,16 @@
           if (json == null) {
             return;
           }
-          console.log(json.doc.info.docDate);
           for (el in json) {
             if (json[el].hasOwnProperty("resolutions")) {
               content.latitude = json[el].resolutions[0].latitude;
               content.longitude = json[el].resolutions[0].longitude;
+              content.date = new Date(json.doc.info.docDate);
               self.get("articles").push(content);
               self.get("map").plotStory(content);
             }
           }
+          self.trigger("updateDateRange");
         });
         return content;
       }
@@ -90,9 +92,7 @@
           return cc("Now we want to go to the route for all saved maps");
         }
       },
-      error: function(collection, response) {
-        return cc(response);
-      }
+      error: function(collection, response) {}
     });
     /* Router*/
 

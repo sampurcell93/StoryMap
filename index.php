@@ -6,7 +6,6 @@
     <link href='http://fonts.googleapis.com/css?family=Lato:300,400|Open+Sans:400,300' rel='stylesheet' type='text/css'>
     <link rel='stylesheet' media='screen' href='assets/stylesheets/screen.css' />
     <link rel='stylesheet' media='screen' href='assets/icomoon/style.css' />
-    <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
   </head>
   <body>
     <div class="container large map-instance-list">
