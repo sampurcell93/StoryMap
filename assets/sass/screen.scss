@@ -6,6 +6,7 @@
 @import "compass/reset";
 @import "compass/css3";
 @import "compass/utilities/general/clearfix";
+@import "grid";
 @import "build";
 @import "overlays";
 
@@ -25,8 +26,6 @@
 	}   
 }
 
-$os: 'Oswald', sans-serif;
-
 .fr { float: right; }
 .fl {float: left;}
 .s9 { font-size: .9em; }
@@ -41,10 +40,10 @@ html { height: 100% }
 body { 
 	height: 100%;
 	position: relative;
+	padding: 20px 0;
 	font-size: 14px;
 	font-family: sans-serif;
 	background: url("../images/dark_matter.png");
-	padding: 20px;
 
     &:after {
         content: "";
@@ -69,16 +68,22 @@ header {
 	@include border-radius(2px 2px 0 0);
 	@include clearfix();
 	border-top: 1px solid #444;
-	margin: 10px 10px 0;
 	background: #222;
-	padding: 0 10px;
+	min-height: 60px;
 
 	button {
 		@include border-radius(0 4px 4px 0);
 		border: 1px solid #555;
 		line-height: 38px;
 		margin-left: 1%;
-		width: 19%
+		width: 19%;
+		font-family: $lato;
+		font-weight: 300;
+
+		i {
+			padding-left: 7px;
+			vertical-align: -2px;
+		}
 	}
 
 	input {
@@ -94,7 +99,6 @@ header {
 	height: 500px;
 	padding: 15px;
 	background: rgba(255,255,255,.9);
-	margin:  0 10px 10px;
 }
 
 h3 { 
@@ -147,7 +151,7 @@ button {
 	color: #f9f9f9;
 	text-shadow: 0px 1px 4px #313131;
 	cursor: pointer;
-	font-family: $os;
+	font-family: $lato;
 	font-weight:300;
 
 	&:hover {
@@ -157,4 +161,35 @@ button {
 	&:active {
 		background: #517F35;
 	}
+}
+
+ul.control-panel{
+	margin-right: 30px;
+	height: 100%;
+	padding: 0;
+
+	li {
+		display: inline-block;
+		width: 31.5%;
+		margin: 0 .5%;
+		a {
+			line-height: 58px;
+			display: block;
+			text-align: center;
+			font-family: $open-sans;
+			font-size: 1.3em;
+			background: #eee;
+
+			&:before { 
+				display: inline-block;
+				font-family: 'icomoon';
+				vertical-align: -3px;
+				padding: 0 6px;
+			}
+		}
+	}
+}
+
+@media screen and (max-width: 960px) {
+	header button .icon-search { display: none; }
 }

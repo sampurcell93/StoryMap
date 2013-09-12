@@ -1,1 +1,1 @@
-<?php echo '[{"success": "true"}]'; ?>
+<?php echo '[]'; ?>
