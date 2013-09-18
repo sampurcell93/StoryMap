@@ -19,7 +19,7 @@ window.GoogleMap = ( model ) ->
   @map = map
   @markers = []
   @infowindow = new google.maps.InfoWindow()
-  if model? then @model = model else @model = null
+  if model? then @model = model
   @
 
 window.GoogleMap::plotStory = (story) ->

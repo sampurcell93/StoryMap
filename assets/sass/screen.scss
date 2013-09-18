@@ -204,6 +204,11 @@ ul.control-panel{
 		color: #f9f9f9;
 		@include border-radius(3px);
 	}
+
+	.ui-slider-range {
+		border: 1px solid #74ac3d;
+		background: #aaa;
+	}
 }
 
 @media screen and (max-width: 960px) {

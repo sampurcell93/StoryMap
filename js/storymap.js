@@ -28,8 +28,6 @@
     this.infowindow = new google.maps.InfoWindow();
     if (model != null) {
       this.model = model;
-    } else {
-      this.model = null;
     }
     return this;
   };

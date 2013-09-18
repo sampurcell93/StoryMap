@@ -27,7 +27,7 @@ $ ->
           handle = $ ui.handle
           pos = handle.index() - 1
           range  =  ui.values
-          display = $("<div/>").addClass("handle-display-value").text(range[pos])
+          display = $("<div/>").addClass("handle-display-value").text( handle.data("date") || range[pos])
           handle.find("div").remove().end().append display
       # Make a jquery ui slider element
       @$timeline = @$(".timeline-slider")
@@ -47,13 +47,16 @@ $ ->
         # Simple min function
         _.each articles.models, (article) ->
           date = article.get("date")
-          if date < min.get "date"
-            min = article
-          else if date > max.get "date"
-            max = article
-        cc Math.abs max.get "date"
-        cc Math.abs min.get "date"
-        @$timeline.slider("option", min: min.get("date"), max: max.get("date"))
+          if date < min.get "date" then min = article
+          else if date > max.get "date" then max = article
+        mindate = (min.get "date")
+        maxdate = (max.get "date")
+        cc mindate 
+        $timeline = @$timeline
+        $timeline.slider("values", 0, mindate)
+        $timeline.slider("values", 1, maxdate)
+        $timeline.slider("option", min: mindate, max: maxdate)
+
 
     events:
       "click .go": ->
@@ -89,16 +92,4 @@ $ ->
 
   AllMapsView = new window.views.MapInstanceList({collection: AllMaps})
   # AllMaps.add new models.StoryMap()
-
-  # cache the search bar
-  $search = $("#news-search")
-  # cache go button
-  $go = $("#go")
-
-  $search.focus().on "keydown", (e) ->
-    if e.keyCode is 13 or e.which is 13
-      $go.trigger "click"
-      return
-    $(this).data "start_index", $(this).data("start_index") + 1
-
   window.app.navigate("/map/0", true)

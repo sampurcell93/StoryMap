@@ -3923,9 +3923,14 @@ ul.control-panel li a:before {
   -o-border-radius: 3px;
   border-radius: 3px;
 }
+/* line 208, ../sass/screen.scss */
+.timeline-slider .ui-slider-range {
+  border: 1px solid #74ac3d;
+  background: #aaa;
+}
 
 @media screen and (max-width: 960px) {
-  /* line 210, ../sass/screen.scss */
+  /* line 215, ../sass/screen.scss */
   header button .icon-search {
     display: none;
   }
