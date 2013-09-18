@@ -23,11 +23,12 @@
         var update_val;
         this.model.set("map", new window.GoogleMap(this.model));
         update_val = function(e, ui) {
-          var display, handle, pos, range;
+          var cleaned, display, handle, pos, range;
           handle = $(ui.handle);
           pos = handle.index() - 1;
           range = ui.values;
-          display = $("<div/>").addClass("handle-display-value").text(handle.data("date") || range[pos]);
+          cleaned = new Date(range[pos]).cleanFormat();
+          display = $("<div/>").addClass("handle-display-value").text(cleaned);
           return handle.find("div").remove().end().append(display);
         };
         this.$timeline = this.$(".timeline-slider");
@@ -40,7 +41,7 @@
         });
       },
       updateDateRange: function() {
-        var $timeline, articles, max, maxdate, min, mindate;
+        var $timeline, articles, handles, max, maxdate, min, mindate;
         cc("updating date range");
         articles = this.model.get("articles");
         if (articles.length > 0) {
@@ -57,8 +58,12 @@
           });
           mindate = min.get("date");
           maxdate = max.get("date");
-          cc(mindate);
           $timeline = this.$timeline;
+          handles = $timeline.find(".ui-slider-handle");
+          handles.first().data("display-date", mindate.cleanFormat());
+          handles.last().data("display-date", maxdate.cleanFormat());
+          mindate = mindate.getTime();
+          maxdate = maxdate.getTime();
           $timeline.slider("values", 0, mindate);
           $timeline.slider("values", 1, maxdate);
           return $timeline.slider("option", {
@@ -69,14 +74,7 @@
       },
       events: {
         "click .go": function() {
-          var start, _i, _results;
-          cc(this.model);
-          _results = [];
-          for (start = _i = 0; _i <= 12; start = _i += 4) {
-            cc(start);
-            _results.push(this.model.getGoogleNews(this.$(".news-search").val(), start));
-          }
-          return _results;
+          return this.model.getGoogleNews(this.$(".news-search").val(), 0);
         },
         "click [data-route]": function(e) {
           var $t, current_route, route;

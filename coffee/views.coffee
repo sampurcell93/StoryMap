@@ -72,8 +72,7 @@ $ ->
 
     events:
       "click .go": ->
-        for start in [0..12] by 4
-          @model.getGoogleNews @$(".news-search").val(), start
+          @model.getGoogleNews @$(".news-search").val(), 0
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"

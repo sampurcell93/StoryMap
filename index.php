@@ -32,6 +32,7 @@
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoS1bfOyPBTbYH1GhtD4xRs9XrT17nGwg&sensor=true"></script>
     <script type='text/javascript' src='js/underscore.js'></script>
     <script type='text/javascript' src='js/backbone.js'></script>
+    <script type='text/javascript' src='js/general.js'></script>
     <script type='text/javascript' src='js/models.js'></script>
     <script type='text/javascript' src='js/storymap.js'></script>
     <script type='text/javascript' src='js/views.js'></script>

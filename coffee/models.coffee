@@ -43,6 +43,8 @@ $ ->
                 # Get location data from OpenCalais for each story item
                 for i in [0...json.responseData.results.length]
                   self.getCalaisData json.responseData.results[i]
+                # Once we've parsed this data, move onto the next set of data
+                self.getGoogleNews val, start + 8
             true
 
         getCalaisData: (content) ->

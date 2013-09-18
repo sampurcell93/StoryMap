@@ -38,17 +38,16 @@
           q: val.toLowerCase(),
           start: start
         }, function(data) {
-          var i, json, _i, _ref, _results;
+          var i, json, _i, _ref;
           json = JSON.parse(data);
           cc(json);
           if (json.responseDetails === "out of range start") {
             return false;
           }
-          _results = [];
           for (i = _i = 0, _ref = json.responseData.results.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            _results.push(self.getCalaisData(json.responseData.results[i]));
+            self.getCalaisData(json.responseData.results[i]);
           }
-          return _results;
+          return self.getGoogleNews(val, start + 8);
         });
         return true;
       },
@@ -70,7 +69,7 @@
               content.latitude = json[el].resolutions[0].latitude;
               content.longitude = json[el].resolutions[0].longitude;
               content.date = new Date(json.doc.info.docDate);
-              self.get("articles").push(content);
+              self.get("articles").add(new models.Article(content));
               self.get("map").plotStory(content);
             }
           }
