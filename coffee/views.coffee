@@ -27,7 +27,10 @@ $ ->
           handle = $ ui.handle
           pos = handle.index() - 1
           range  =  ui.values
-          display = $("<div/>").addClass("handle-display-value").text( handle.data("date") || range[pos])
+          # Convert the slider's current value to a readable string
+          cleaned = new Date(range[pos]).cleanFormat()
+          # Display said string
+          display = $("<div/>").addClass("handle-display-value").text cleaned 
           handle.find("div").remove().end().append display
       # Make a jquery ui slider element
       @$timeline = @$(".timeline-slider")
@@ -49,10 +52,19 @@ $ ->
           date = article.get("date")
           if date < min.get "date" then min = article
           else if date > max.get "date" then max = article
+        # Isolate the ate of the articles
         mindate = (min.get "date")
         maxdate = (max.get "date")
-        cc mindate 
+        # cache the timeline obj
         $timeline = @$timeline
+        # get handles and set their display data to clean dates
+        handles = $timeline.find(".ui-slider-handle")
+        handles.first().data("display-date", mindate.cleanFormat())
+        handles.last().data("display-date", maxdate.cleanFormat())
+        # Get the pure millisecond versions of the dates
+        mindate = mindate.getTime()
+        maxdate = maxdate.getTime()
+        # Set the slider values to each end of the spectrum and update the min and max
         $timeline.slider("values", 0, mindate)
         $timeline.slider("values", 1, maxdate)
         $timeline.slider("option", min: mindate, max: maxdate)
@@ -60,9 +72,7 @@ $ ->
 
     events:
       "click .go": ->
-        cc @model 
         for start in [0..12] by 4
-          cc start
           @model.getGoogleNews @$(".news-search").val(), start
       "click [data-route]": (e) ->
         $t = $ e.currentTarget

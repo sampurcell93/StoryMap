@@ -65,7 +65,7 @@ $ ->
                     # Set the date in order to make the range slider
                     content.date = new Date json.doc.info.docDate
                     # It's a valid story - push it
-                    self.get("articles").push content
+                    self.get("articles").add new models.Article(content)
                     # Plot the story en el mapa
                     self.get("map").plotStory content
                 self.trigger("updateDateRange")
