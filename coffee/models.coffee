@@ -25,54 +25,74 @@ $ ->
                 markers: []
                 articles: articles
             }
-
+        initialize: ->
+            _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews"
         # A function that issues a request to a curl script, retrieving google news stories
-        getGoogleNews: (val, start) ->
-            if !val? then return false
+        getGoogleNews: (query, start, done) ->
+            if !query? then return false
             self = @
             # cc "./getnews.php?q=" + val + "&start=" + start
-            $.get "./getnews.php",
-                q: val.toLowerCase()
+            $.get "./get_google_news.php",
+                q: query.toLowerCase()
                 start: start
             , (data) ->
                 # parse the json
                 json = JSON.parse(data)
-                cc json
+                # Once google news is exhausted, execute yhoo
                 if json.responseDetails is "out of range start"
-                  return false
+                    if done? 
+                        done query, 0, null
+                    return false
                 # Get location data from OpenCalais for each story item
-                for i in [0...json.responseData.results.length]
-                  self.getCalaisData json.responseData.results[i]
-                # Once we've parsed this data, move onto the next set of data
-                self.getGoogleNews val, start + 8
+                _.each json.responseData.results, (story) ->
+                    self.getCalaisData  story, story.titleNoFormatting + story.content, self.formCalaisAndPlot
+                self.getGoogleNews query, start + 8, done
             true
-
-        getCalaisData: (content) ->
+        formCalaisAndPlot: (fullstory, calaisjson, i) ->
+            calaisObj = _.extend {}, fullstory
+            calaisObj.latitude = calaisjson[i].resolutions[0].latitude
+            calaisObj.longitude = calaisjson[i].resolutions[0].longitude
+            # Set the date in order to make the range slider
+            calaisObj.date = new Date calaisjson.doc.info.docDate
+            # It's a valid story - push it
+            @get("articles").add new models.Article(calaisObj)
+            # Plot the story en el mapa
+            @get("map").plotStory calaisObj
+            @trigger("updateDateRange")
+        getYahooNews: (query, start, done) ->
+            cc "Getting Yahoo " + query + " " + start
+            if !query? then return false
+            self = @
+            $.get "./get_yahoo_news.php",
+                q: query.toLowerCase()
+                start: start
+            , (data) ->
+                response = JSON.parse(data)
+                if response? and response.bossresponse? and response.bossresponse.news?
+                    stories = response.bossresponse.news.results
+                else if done? then done query, 0 , null
+                _.each stories, (story) ->
+                    self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
+                cc start
+                if start <= 1000
+                    self.getYahooNews query, start + 50, done
+                else if done? then done query, 0, null
+        getCalaisData: (story, story_string, callback) ->
             self = @
             console.log "getting data"
             # Pass the title and the story body into calais
-            context = content.titleNoFormatting + content.content
             $.get "./calais.php",
-                content: context
+                content: story_string
             , (data) ->
                 # parse the response object
-                json = JSON.parse(data)
-                unless json? then return
+                calaisjson = JSON.parse(data)
+                unless calaisjson? then return
                 # Check each property of the returned calais object
-                for el of json
+                for i of calaisjson
                   # If it contains a "resolutions" key, it has latitude and longitude
-                  if json[el].hasOwnProperty("resolutions")
-                    content.latitude = json[el].resolutions[0].latitude
-                    content.longitude = json[el].resolutions[0].longitude
-                    # Set the date in order to make the range slider
-                    content.date = new Date json.doc.info.docDate
-                    # It's a valid story - push it
-                    self.get("articles").add new models.Article(content)
-                    # Plot the story en el mapa
-                    self.get("map").plotStory content
-                self.trigger("updateDateRange")
+                  if calaisjson[i].hasOwnProperty("resolutions") then callback(story, calaisjson, i)
                 return
-            content
+            @
 
     # The global collection of all maps for a user, 
     # retrieved at runtime by the "Fetch" method, below

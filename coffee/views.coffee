@@ -72,7 +72,7 @@ $ ->
 
     events:
       "click .go": ->
-          @model.getGoogleNews @$(".news-search").val(), 0
+          @model.getGoogleNews @$(".news-search").val(), 0, @model.getYahooNews
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"
