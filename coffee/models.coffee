@@ -26,10 +26,10 @@ $ ->
                 articles: articles
             }
         initialize: ->
-            _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews"
+            _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews", "filterByDate"
         # A function that issues a request to a curl script, retrieving google news stories
         getGoogleNews: (query, start, done) ->
-            # done = null
+            done = null
             if !query? then return false
             self = @
             $.get "./get_google_news.php",
@@ -48,17 +48,6 @@ $ ->
                     self.getCalaisData  story, story.titleNoFormatting + story.content, self.formCalaisAndPlot
                 self.getGoogleNews query, start + 8, done
             true
-        formCalaisAndPlot: (fullstory, calaisjson, i) ->
-            calaisObj = _.extend {}, fullstory
-            calaisObj.latitude = calaisjson[i].resolutions[0].latitude
-            calaisObj.longitude = calaisjson[i].resolutions[0].longitude
-            # Set the date in order to make the range slider
-            calaisObj.date = new Date calaisjson.doc.info.docDate
-            # It's a valid story - push it
-            @get("articles").add article = new models.Article(calaisObj)
-            # Plot the story en el mapa
-            @get("map").plotStory article
-            @trigger("updateDateRange")
         getYahooNews: (query, start, done) ->
             cc "Getting Yahoo " + query + " " + start
             if !query? then return false
@@ -95,12 +84,28 @@ $ ->
                   if calaisjson[i].hasOwnProperty("resolutions") then callback(story, calaisjson, i)
                 return
             @
+        formCalaisAndPlot: (fullstory, calaisjson, i) ->
+            calaisObj = _.extend {}, fullstory
+            calaisObj.latitude = calaisjson[i].resolutions[0].latitude
+            calaisObj.longitude = calaisjson[i].resolutions[0].longitude
+            # Set the date in order to make the range slider
+            calaisObj.date = new Date calaisjson.doc.info.docDate
+            # It's a valid story - push it
+            @get("articles").add article = new models.Article(calaisObj)
+            # Plot the story en el mapa
+            @get("map").plotStory article
+            @trigger("updateDateRange")
         filterByDate: (lodate, hidate) ->
-            outofbounds = _.reject @get("articles").models, (article) ->
+            self = @
+            _.filter @get("articles").models, (article) ->
                 date = article.get("date").getTime()
-                # cc date
-                # if date <= hidate and date >= lodate
-                    # article.get("marker").setMap null
+                map = self.get("map").map
+                marker = article.get("marker")
+                if date > hidate or date < lodate
+                    marker.setMap null
+                else #if !map.getBounds().contains(marker.getPosition())
+                    marker.setMap map , () -> cc "hello"
+                cc !map.getBounds().contains(marker.getPosition())
 
             # cc outofbounds
 

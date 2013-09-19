@@ -42,6 +42,7 @@
     display_string = "<h3><a target='_blank' href='" + story.unescapedUrl + "'>" + story.title + "</a></h3>" + "<p>" + story.content + "</p>";
     marker = new google.maps.Marker({
       position: pt,
+      animation: google.maps.Animation.DROP,
       title: story.title
     });
     this.markers.push(marker);

@@ -37,13 +37,11 @@
         return this.$timeline.slider({
           range: true,
           values: [0, 100],
-          start: update_val,
-          change: update_val,
           slide: update_val
         });
       },
       updateDateRange: function() {
-        var $timeline, articles, handles, max, maxdate, min, mindate;
+        var $timeline, articles, handles, max, maxdate, min, mindate, oneday;
         cc("updating date range");
         articles = this.model.get("articles");
         if (articles.length > 0) {
@@ -66,6 +64,7 @@
           handles.last().data("display-date", maxdate.cleanFormat());
           mindate = mindate.getTime();
           maxdate = maxdate.getTime();
+          oneday = 86400000;
           $timeline.slider("values", 0, mindate);
           $timeline.slider("values", 1, maxdate);
           return $timeline.slider("option", {

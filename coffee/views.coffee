@@ -38,8 +38,6 @@ $ ->
       @$timeline.slider
         range: true
         values: [0, 100]
-        start: update_val
-        change: update_val
         slide: update_val
     updateDateRange: ->
       cc "updating date range"
@@ -65,6 +63,10 @@ $ ->
         # Get the pure millisecond versions of the dates
         mindate = mindate.getTime()
         maxdate = maxdate.getTime()
+        # Seconds in a day
+        oneday = 86400000
+        # mindate -= oneday
+        # maxdate += oneday
         # Set the slider values to each end of the spectrum and update the min and max
         $timeline.slider("values", 0, mindate)
         $timeline.slider("values", 1, maxdate)

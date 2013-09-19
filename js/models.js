@@ -29,10 +29,11 @@
         };
       },
       initialize: function() {
-        return _.bindAll(this, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews");
+        return _.bindAll(this, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews", "filterByDate");
       },
       getGoogleNews: function(query, start, done) {
         var self;
+        done = null;
         if (query == null) {
           return false;
         }
@@ -55,16 +56,6 @@
           return self.getGoogleNews(query, start + 8, done);
         });
         return true;
-      },
-      formCalaisAndPlot: function(fullstory, calaisjson, i) {
-        var article, calaisObj;
-        calaisObj = _.extend({}, fullstory);
-        calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
-        calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
-        calaisObj.date = new Date(calaisjson.doc.info.docDate);
-        this.get("articles").add(article = new models.Article(calaisObj));
-        this.get("map").plotStory(article);
-        return this.trigger("updateDateRange");
       },
       getYahooNews: function(query, start, done) {
         var self;
@@ -116,11 +107,32 @@
         });
         return this;
       },
+      formCalaisAndPlot: function(fullstory, calaisjson, i) {
+        var article, calaisObj;
+        calaisObj = _.extend({}, fullstory);
+        calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
+        calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
+        calaisObj.date = new Date(calaisjson.doc.info.docDate);
+        this.get("articles").add(article = new models.Article(calaisObj));
+        this.get("map").plotStory(article);
+        return this.trigger("updateDateRange");
+      },
       filterByDate: function(lodate, hidate) {
-        var outofbounds;
-        return outofbounds = _.reject(this.get("articles").models, function(article) {
-          var date;
-          return date = article.get("date").getTime();
+        var self;
+        self = this;
+        return _.filter(this.get("articles").models, function(article) {
+          var date, map, marker;
+          date = article.get("date").getTime();
+          map = self.get("map").map;
+          marker = article.get("marker");
+          if (date > hidate || date < lodate) {
+            marker.setMap(null);
+          } else {
+            marker.setMap(map, function() {
+              return cc("hello");
+            });
+          }
+          return cc(!map.getBounds().contains(marker.getPosition()));
         });
       }
     });
