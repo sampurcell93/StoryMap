@@ -33,7 +33,6 @@
       },
       getGoogleNews: function(query, start, done) {
         var self;
-        done = null;
         if (query == null) {
           return false;
         }
@@ -58,13 +57,13 @@
         return true;
       },
       formCalaisAndPlot: function(fullstory, calaisjson, i) {
-        var calaisObj;
+        var article, calaisObj;
         calaisObj = _.extend({}, fullstory);
         calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
         calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
         calaisObj.date = new Date(calaisjson.doc.info.docDate);
-        this.get("articles").add(new models.Article(calaisObj));
-        this.get("map").plotStory(calaisObj);
+        this.get("articles").add(article = new models.Article(calaisObj));
+        this.get("map").plotStory(article);
         return this.trigger("updateDateRange");
       },
       getYahooNews: function(query, start, done) {
@@ -119,13 +118,10 @@
       },
       filterByDate: function(lodate, hidate) {
         var outofbounds;
-        outofbounds = _.reject(this.get("articles").models, function(article) {
+        return outofbounds = _.reject(this.get("articles").models, function(article) {
           var date;
-          date = article.get("date").getTime();
-          cc(date);
-          return date <= hidate && date >= lodate;
+          return date = article.get("date").getTime();
         });
-        return cc(outofbounds);
       }
     });
     window.collections.Maps = Backbone.Collection.extend({

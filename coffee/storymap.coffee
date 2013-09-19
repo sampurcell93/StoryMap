@@ -1,4 +1,6 @@
 # launch modals
+# args: content for the modal, as an array of content
+# rets the modal jquery obj
 window.launchModal =  (content) ->
   modal = $("<div />").addClass("modal")
   if $.isArray(content)
@@ -13,6 +15,8 @@ window.launchModal =  (content) ->
   modal
 
 # Define the map object
+# args: optional model
+# rets: themap obj
 window.GoogleMap = ( model ) ->
   # Set default map options
   @mapOptions =
@@ -30,7 +34,11 @@ window.GoogleMap = ( model ) ->
   @
 
 # Plot a single story on the map
+# args: an article model
+# rets: map obj
 window.GoogleMap::plotStory = (story) ->
+  articleModel = story
+  story = story.toJSON()
   # Give slight offsets to make sure stories in same location are not overlapped
   xOff = Math.random() * 0.1
   yOff = Math.random() * 0.1
@@ -45,10 +53,11 @@ window.GoogleMap::plotStory = (story) ->
   # Push the marker to tha array
   @markers.push marker
   marker.setMap @map
+  articleModel.set "marker", marker
   that = @
   # On click, show data
   google.maps.event.addListener marker, "click", ->
     cc that.model
     that.infowindow.setContent display_string
     that.infowindow.open that.map, @
-
+  @

@@ -33,7 +33,9 @@
   };
 
   window.GoogleMap.prototype.plotStory = function(story) {
-    var display_string, marker, pt, that, xOff, yOff;
+    var articleModel, display_string, marker, pt, that, xOff, yOff;
+    articleModel = story;
+    story = story.toJSON();
     xOff = Math.random() * 0.1;
     yOff = Math.random() * 0.1;
     pt = new google.maps.LatLng(parseInt(story.latitude) + xOff, parseInt(story.longitude) + yOff);
@@ -44,12 +46,14 @@
     });
     this.markers.push(marker);
     marker.setMap(this.map);
+    articleModel.set("marker", marker);
     that = this;
-    return google.maps.event.addListener(marker, "click", function() {
+    google.maps.event.addListener(marker, "click", function() {
       cc(that.model);
       that.infowindow.setContent(display_string);
       return that.infowindow.open(that.map, this);
     });
+    return this;
   };
 
 }).call(this);

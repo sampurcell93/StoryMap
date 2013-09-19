@@ -29,10 +29,9 @@ $ ->
             _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews"
         # A function that issues a request to a curl script, retrieving google news stories
         getGoogleNews: (query, start, done) ->
-            done = null
+            # done = null
             if !query? then return false
             self = @
-            # cc "./getnews.php?q=" + val + "&start=" + start
             $.get "./get_google_news.php",
                 q: query.toLowerCase()
                 start: start
@@ -56,9 +55,9 @@ $ ->
             # Set the date in order to make the range slider
             calaisObj.date = new Date calaisjson.doc.info.docDate
             # It's a valid story - push it
-            @get("articles").add new models.Article(calaisObj)
+            @get("articles").add article = new models.Article(calaisObj)
             # Plot the story en el mapa
-            @get("map").plotStory calaisObj
+            @get("map").plotStory article
             @trigger("updateDateRange")
         getYahooNews: (query, start, done) ->
             cc "Getting Yahoo " + query + " " + start
@@ -99,9 +98,11 @@ $ ->
         filterByDate: (lodate, hidate) ->
             outofbounds = _.reject @get("articles").models, (article) ->
                 date = article.get("date").getTime()
-                cc date
-                date <= hidate and date >= lodate
-            cc outofbounds
+                # cc date
+                # if date <= hidate and date >= lodate
+                    # article.get("marker").setMap null
+
+            # cc outofbounds
 
 
     # The global collection of all maps for a user, 
