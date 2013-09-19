@@ -18,7 +18,7 @@
           </ul>
           <div class="columns eight offset-one search-bar">
             <button class='go fr'>Search <i class='s9 icon-search'></i> </button>  
-            <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' value='London' />
+            <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' value='Colony Collapse Disorder' />
           </div>
         </header>
         <div class='map-canvas' id='map-canvas'></div>

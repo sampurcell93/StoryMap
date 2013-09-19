@@ -8,7 +8,7 @@
       tagName: 'section',
       template: $("#map-instance").html(),
       initialize: function() {
-        _.bindAll(this, "render");
+        _.bindAll(this, "render", "afterAppend", "updateDateRange");
         this.model.instance = this;
         this.listenTo(this.model, {
           "updateDateRange": this.updateDateRange
@@ -20,7 +20,8 @@
         return this;
       },
       afterAppend: function() {
-        var update_val;
+        var self, update_val;
+        self = this;
         this.model.set("map", new window.GoogleMap(this.model));
         update_val = function(e, ui) {
           var cleaned, display, handle, pos, range;
@@ -29,7 +30,8 @@
           range = ui.values;
           cleaned = new Date(range[pos]).cleanFormat();
           display = $("<div/>").addClass("handle-display-value").text(cleaned);
-          return handle.find("div").remove().end().append(display);
+          handle.find("div").remove().end().append(display);
+          return self.model.filterByDate(ui.values[0], ui.values[1]);
         };
         this.$timeline = this.$(".timeline-slider");
         return this.$timeline.slider({
@@ -74,7 +76,7 @@
       },
       events: {
         "click .go": function() {
-          return this.model.getGoogleNews(this.$(".news-search").val(), 0);
+          return this.model.getGoogleNews(this.$(".news-search").val(), 0, this.model.getYahooNews);
         },
         "click [data-route]": function(e) {
           var $t, current_route, route;

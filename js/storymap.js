@@ -11,24 +11,24 @@
       modal.html(content);
     }
     modal.prepend("<i class='close-modal icon-untitled-7'></i>");
+    modal.find(".close-modal").on("click", function() {
+      $(document.body).removeClass("active-modal");
+      return modal.remove();
+    });
     $(document.body).addClass("active-modal").append(modal);
     return modal;
   };
 
   window.GoogleMap = function(model) {
-    var map;
     this.mapOptions = {
       center: new google.maps.LatLng(0, 0),
       zoom: 2,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
-    map = new google.maps.Map(document.getElementById("map-canvas"), this.mapOptions);
-    this.map = map;
-    this.markers = [];
+    this.map = new google.maps.Map(document.getElementById("map-canvas"), this.mapOptions);
     this.infowindow = new google.maps.InfoWindow();
-    if (model != null) {
-      this.model = model;
-    }
+    this.model = model || null;
+    this.markers = model.get("markers") || [];
     return this;
   };
 
@@ -46,6 +46,7 @@
     marker.setMap(this.map);
     that = this;
     return google.maps.event.addListener(marker, "click", function() {
+      cc(that.model);
       that.infowindow.setContent(display_string);
       return that.infowindow.open(that.map, this);
     });

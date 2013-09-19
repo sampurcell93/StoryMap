@@ -8,9 +8,8 @@ $ ->
     tagName: 'section'
     template: $("#map-instance").html()
     initialize: ->
-      _.bindAll @, "render"
+      _.bindAll @, "render", "afterAppend", "updateDateRange"
       # Two way model view binding
-
       @model.instance = @
       @listenTo @model,
         "updateDateRange": @updateDateRange
@@ -20,6 +19,7 @@ $ ->
       @
     # Now that the view is in the DOM, do stuff to child elements
     afterAppend: ->
+      self = @
       # Instantiate a new google map
       @model.set "map", new window.GoogleMap @model
       # A function to update the display value of the range
@@ -32,6 +32,7 @@ $ ->
           # Display said string
           display = $("<div/>").addClass("handle-display-value").text cleaned 
           handle.find("div").remove().end().append display
+          self.model.filterByDate(ui.values[0], ui.values[1])
       # Make a jquery ui slider element
       @$timeline = @$(".timeline-slider")
       @$timeline.slider
@@ -53,8 +54,8 @@ $ ->
           if date < min.get "date" then min = article
           else if date > max.get "date" then max = article
         # Isolate the ate of the articles
-        mindate = (min.get "date")
-        maxdate = (max.get "date")
+        mindate = min.get "date"
+        maxdate = max.get "date"
         # cache the timeline obj
         $timeline = @$timeline
         # get handles and set their display data to clean dates

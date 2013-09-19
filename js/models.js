@@ -28,54 +28,104 @@
           articles: articles
         };
       },
-      getGoogleNews: function(val, start) {
+      initialize: function() {
+        return _.bindAll(this, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews");
+      },
+      getGoogleNews: function(query, start, done) {
         var self;
-        if (val == null) {
+        done = null;
+        if (query == null) {
           return false;
         }
         self = this;
-        $.get("./getnews.php", {
-          q: val.toLowerCase(),
+        $.get("./get_google_news.php", {
+          q: query.toLowerCase(),
           start: start
         }, function(data) {
-          var i, json, _i, _ref;
+          var json;
           json = JSON.parse(data);
-          cc(json);
           if (json.responseDetails === "out of range start") {
+            if (done != null) {
+              done(query, 0, null);
+            }
             return false;
           }
-          for (i = _i = 0, _ref = json.responseData.results.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            self.getCalaisData(json.responseData.results[i]);
-          }
-          return self.getGoogleNews(val, start + 8);
+          _.each(json.responseData.results, function(story) {
+            return self.getCalaisData(story, story.titleNoFormatting + story.content, self.formCalaisAndPlot);
+          });
+          return self.getGoogleNews(query, start + 8, done);
         });
         return true;
       },
-      getCalaisData: function(content) {
-        var context, self;
+      formCalaisAndPlot: function(fullstory, calaisjson, i) {
+        var calaisObj;
+        calaisObj = _.extend({}, fullstory);
+        calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
+        calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
+        calaisObj.date = new Date(calaisjson.doc.info.docDate);
+        this.get("articles").add(new models.Article(calaisObj));
+        this.get("map").plotStory(calaisObj);
+        return this.trigger("updateDateRange");
+      },
+      getYahooNews: function(query, start, done) {
+        var self;
+        cc("Getting Yahoo " + query + " " + start);
+        if (query == null) {
+          return false;
+        }
+        self = this;
+        return $.get("./get_yahoo_news.php", {
+          q: query.toLowerCase(),
+          start: start
+        }, function(data) {
+          var response, stories;
+          response = JSON.parse(data);
+          cc(response.bossresponse);
+          if ((response != null) && (response.bossresponse != null) && (response.bossresponse.news != null)) {
+            stories = response.bossresponse.news.results;
+          } else if (done != null) {
+            done(query, 0, null);
+          }
+          _.each(stories, function(story) {
+            return self.getCalaisData(story, story.title + story.abstract, self.formCalaisAndPlot);
+          });
+          cc(start);
+          if (start <= 1000) {
+            return self.getYahooNews(query, start + 50, done);
+          } else if (done != null) {
+            return done(query, 0, null);
+          }
+        });
+      },
+      getCalaisData: function(story, story_string, callback) {
+        var self;
         self = this;
         console.log("getting data");
-        context = content.titleNoFormatting + content.content;
         $.get("./calais.php", {
-          content: context
+          content: story_string
         }, function(data) {
-          var el, json;
-          json = JSON.parse(data);
-          if (json == null) {
+          var calaisjson, i;
+          calaisjson = JSON.parse(data);
+          if (calaisjson == null) {
             return;
           }
-          for (el in json) {
-            if (json[el].hasOwnProperty("resolutions")) {
-              content.latitude = json[el].resolutions[0].latitude;
-              content.longitude = json[el].resolutions[0].longitude;
-              content.date = new Date(json.doc.info.docDate);
-              self.get("articles").add(new models.Article(content));
-              self.get("map").plotStory(content);
+          for (i in calaisjson) {
+            if (calaisjson[i].hasOwnProperty("resolutions")) {
+              callback(story, calaisjson, i);
             }
           }
-          self.trigger("updateDateRange");
         });
-        return content;
+        return this;
+      },
+      filterByDate: function(lodate, hidate) {
+        var outofbounds;
+        outofbounds = _.reject(this.get("articles").models, function(article) {
+          var date;
+          date = article.get("date").getTime();
+          cc(date);
+          return date <= hidate && date >= lodate;
+        });
+        return cc(outofbounds);
       }
     });
     window.collections.Maps = Backbone.Collection.extend({

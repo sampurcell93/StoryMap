@@ -29,6 +29,7 @@ $ ->
             _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews"
         # A function that issues a request to a curl script, retrieving google news stories
         getGoogleNews: (query, start, done) ->
+            done = null
             if !query? then return false
             self = @
             # cc "./getnews.php?q=" + val + "&start=" + start
@@ -68,12 +69,14 @@ $ ->
                 start: start
             , (data) ->
                 response = JSON.parse(data)
+                cc response.bossresponse
                 if response? and response.bossresponse? and response.bossresponse.news?
                     stories = response.bossresponse.news.results
                 else if done? then done query, 0 , null
                 _.each stories, (story) ->
                     self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
                 cc start
+                # 1000 is the length of results returned by Yahoo, so once we hit that, execute any callback for new data
                 if start <= 1000
                     self.getYahooNews query, start + 50, done
                 else if done? then done query, 0, null
@@ -93,6 +96,13 @@ $ ->
                   if calaisjson[i].hasOwnProperty("resolutions") then callback(story, calaisjson, i)
                 return
             @
+        filterByDate: (lodate, hidate) ->
+            outofbounds = _.reject @get("articles").models, (article) ->
+                date = article.get("date").getTime()
+                cc date
+                date <= hidate and date >= lodate
+            cc outofbounds
+
 
     # The global collection of all maps for a user, 
     # retrieved at runtime by the "Fetch" method, below
