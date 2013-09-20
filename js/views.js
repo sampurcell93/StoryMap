@@ -11,7 +11,8 @@
         _.bindAll(this, "render", "afterAppend", "updateDateRange");
         this.model.instance = this;
         this.listenTo(this.model, {
-          "updateDateRange": this.updateDateRange
+          "updateDateRange": this.updateDateRange,
+          "playTimeline": this.playTimeline
         });
         return this.updateDateRange();
       },
@@ -86,6 +87,17 @@
             trigger: true
           });
         }
+      },
+      playTimeline: function() {
+        var $timeline, val, values, _i, _ref, _ref1;
+        $timeline = this.$timeline;
+        values = $timeline.slider("values");
+        console.log("INITIALS: ", values);
+        for (val = _i = _ref = values[0], _ref1 = values[1] + 86400000; _i < _ref1; val = _i += 86400000) {
+          console.log("INTER:", val);
+          $timeline.slider("values", 0, val);
+        }
+        return console.log("FINAL:", $timeline.slider("values", 0));
       }
     });
     window.views.MapInstanceList = Backbone.View.extend({

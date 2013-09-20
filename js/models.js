@@ -171,10 +171,14 @@
         return cc("showing settings");
       },
       play: function() {
-        return cc("playing timeline animation");
+        cc("playing timeline animation");
+        if (AllMaps.length > 0) {
+          return AllMaps.at(0).trigger("playTimeline");
+        }
       }
     });
     window.app = new window.Workspace();
+    window.app.navigate("hello", true);
     return Backbone.history.start();
   });
 

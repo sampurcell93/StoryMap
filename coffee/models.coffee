@@ -144,7 +144,9 @@ $ ->
             cc "showing settings"
         play: ->
             cc "playing timeline animation"
+            if AllMaps.length > 0
+                AllMaps.at(0).trigger "playTimeline"
 
     window.app = new window.Workspace()
-
+    window.app.navigate "hello", true
     Backbone.history.start()

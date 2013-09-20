@@ -13,6 +13,7 @@ $ ->
       @model.instance = @
       @listenTo @model,
         "updateDateRange": @updateDateRange
+        "playTimeline": @playTimeline
       @updateDateRange()
     render: ->
       @$el.html( _.template @template, @model.toJSON() )
@@ -71,8 +72,6 @@ $ ->
         $timeline.slider("values", 0, mindate)
         $timeline.slider("values", 1, maxdate)
         $timeline.slider("option", min: mindate, max: maxdate)
-
-
     events:
       "click .go": ->
           @model.getGoogleNews @$(".news-search").val(), 0, @model.getYahooNews
@@ -81,6 +80,17 @@ $ ->
         route = $t.data "route"
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
+    playTimeline: ->
+      $timeline = @$timeline
+      values = $timeline.slider "values"
+      console.log "INITIALS: ", values
+      # One day at a time
+      for val in [values[0]...values[1] + 86400000] by 86400000
+        $timeline.slider("values", 0, val)
+        setTimeout ()->
+          
+        , 300
+      console.log "FINAL:", $timeline.slider("values", 0)
   # The view for all instances of saved maps, a list of tabs perhaps
   window.views.MapInstanceList = Backbone.View.extend
     el: ".map-instance-list"
