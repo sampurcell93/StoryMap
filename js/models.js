@@ -53,7 +53,7 @@
           _.each(json.responseData.results, function(story) {
             return self.getCalaisData(story, story.titleNoFormatting + story.content, self.formCalaisAndPlot);
           });
-          return self.getGoogleNews(query, start + 8, done);
+          return self.getGoogleNews(query, start + 32, done);
         });
         return true;
       },
@@ -126,13 +126,10 @@
           map = self.get("map").map;
           marker = article.get("marker");
           if (date > hidate || date < lodate) {
-            marker.setMap(null);
-          } else {
-            marker.setMap(map, function() {
-              return cc("hello");
-            });
+            return marker.setMap(null);
+          } else if (marker.getMap() === null) {
+            return marker.setMap(map);
           }
-          return cc(!map.getBounds().contains(marker.getPosition()));
         });
       }
     });

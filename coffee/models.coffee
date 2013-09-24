@@ -46,7 +46,7 @@ $ ->
                 # Get location data from OpenCalais for each story item
                 _.each json.responseData.results, (story) ->
                     self.getCalaisData  story, story.titleNoFormatting + story.content, self.formCalaisAndPlot
-                self.getGoogleNews query, start + 8, done
+                self.getGoogleNews query, start + 32, done
             true
         getYahooNews: (query, start, done) ->
             cc "Getting Yahoo " + query + " " + start
@@ -103,9 +103,8 @@ $ ->
                 marker = article.get("marker")
                 if date > hidate or date < lodate
                     marker.setMap null
-                else #if !map.getBounds().contains(marker.getPosition())
-                    marker.setMap map , () -> cc "hello"
-                cc !map.getBounds().contains(marker.getPosition())
+                else if marker.getMap() is null
+                    marker.setMap map
 
             # cc outofbounds
 

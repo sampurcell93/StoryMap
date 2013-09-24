@@ -8,7 +8,7 @@ $ ->
     tagName: 'section'
     template: $("#map-instance").html()
     initialize: ->
-      _.bindAll @, "render", "afterAppend", "updateDateRange"
+      _.bindAll @, "render", "afterAppend", "updateDateRange", "incrementValue"
       # Two way model view binding
       @model.instance = @
       @listenTo @model,
@@ -39,7 +39,9 @@ $ ->
       @$timeline.slider
         range: true
         values: [0, 100]
+        step: 10000
         slide: update_val
+        change: update_val
     updateDateRange: ->
       cc "updating date range"
       articles = @model.get "articles"
@@ -83,14 +85,20 @@ $ ->
     playTimeline: ->
       $timeline = @$timeline
       values = $timeline.slider "values"
-      console.log "INITIALS: ", values
-      # One day at a time
-      for val in [values[0]...values[1] + 86400000] by 86400000
-        $timeline.slider("values", 0, val)
-        setTimeout ()->
-          
-        , 300
-      console.log "FINAL:", $timeline.slider("values", 0)
+      lo = values[0]
+      hi = values[1]
+      increment = Math.floor(Math.abs (hi - lo)/100)
+      @incrementValue values[0], values[1] + 86400000, increment 
+    # Recursive function animates slider to auto play!
+    incrementValue: (lo, hi, increment) ->
+      self = @
+      window.setTimeout ->
+        newlo = lo + increment
+        if lo <= hi
+          self.$timeline.slider("values", 0, newlo)
+          self.incrementValue newlo, hi, increment
+      , 40
+
   # The view for all instances of saved maps, a list of tabs perhaps
   window.views.MapInstanceList = Backbone.View.extend
     el: ".map-instance-list"

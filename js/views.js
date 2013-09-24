@@ -8,7 +8,7 @@
       tagName: 'section',
       template: $("#map-instance").html(),
       initialize: function() {
-        _.bindAll(this, "render", "afterAppend", "updateDateRange");
+        _.bindAll(this, "render", "afterAppend", "updateDateRange", "incrementValue");
         this.model.instance = this;
         this.listenTo(this.model, {
           "updateDateRange": this.updateDateRange,
@@ -38,7 +38,9 @@
         return this.$timeline.slider({
           range: true,
           values: [0, 100],
-          slide: update_val
+          step: 10000,
+          slide: update_val,
+          change: update_val
         });
       },
       updateDateRange: function() {
@@ -89,15 +91,25 @@
         }
       },
       playTimeline: function() {
-        var $timeline, val, values, _i, _ref, _ref1;
+        var $timeline, hi, increment, lo, values;
         $timeline = this.$timeline;
         values = $timeline.slider("values");
-        console.log("INITIALS: ", values);
-        for (val = _i = _ref = values[0], _ref1 = values[1] + 86400000; _i < _ref1; val = _i += 86400000) {
-          console.log("INTER:", val);
-          $timeline.slider("values", 0, val);
-        }
-        return console.log("FINAL:", $timeline.slider("values", 0));
+        lo = values[0];
+        hi = values[1];
+        increment = Math.floor(Math.abs((hi - lo) / 100));
+        return this.incrementValue(values[0], values[1] + 86400000, increment);
+      },
+      incrementValue: function(lo, hi, increment) {
+        var self;
+        self = this;
+        return window.setTimeout(function() {
+          var newlo;
+          newlo = lo + increment;
+          if (lo <= hi) {
+            self.$timeline.slider("values", 0, newlo);
+            return self.incrementValue(newlo, hi, increment);
+          }
+        }, 40);
       }
     });
     window.views.MapInstanceList = Backbone.View.extend({

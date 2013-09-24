@@ -197,12 +197,26 @@ ul.control-panel{
 	.handle-display-value {
 		position: absolute;
 		top: -30px;
-		left: 0;
 		background: #222;
 		background: rgba(0,0,0,.6);
-		padding: 5px 10px;
+		padding: 3px 5px;
+		border: 2px solid #f9f9f9;
 		color: #f9f9f9;
+		width: 140px;
+		line-height: 1.6;
+		text-align: center;
+		font-size: .9em;
+
 		@include border-radius(3px);
+	}
+
+	.ui-slider-handle {
+		&:focus { outline: none; }
+		&:last-of-type {
+			.handle-display-value {
+				right: 0;
+			}
+		}
 	}
 
 	.ui-slider-range {
