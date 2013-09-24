@@ -27,9 +27,14 @@ $ ->
             }
         initialize: ->
             _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews", "filterByDate"
-        # A function that issues a request to a curl script, retrieving google news stories
+        # desc: Issues a request to a curl script, retrieving google news stories
+        # args: the query, the start index of to search (0-56), and the done callback
+        # rets: this
+        # A note on infinitely chained callback sequences - 
+        # say we want to call google news, then yahoo, then reuters, then al jazeera:
+        # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
         getGoogleNews: (query, start, done) ->
-            done = null
+            # done = null
             if !query? then return false
             self = @
             $.get "./get_google_news.php",
@@ -47,7 +52,7 @@ $ ->
                 _.each json.responseData.results, (story) ->
                     self.getCalaisData  story, story.titleNoFormatting + story.content, self.formCalaisAndPlot
                 self.getGoogleNews query, start + 32, done
-            true
+            @
         getYahooNews: (query, start, done) ->
             cc "Getting Yahoo " + query + " " + start
             if !query? then return false
@@ -60,14 +65,19 @@ $ ->
                 cc response.bossresponse
                 if response? and response.bossresponse? and response.bossresponse.news?
                     stories = response.bossresponse.news.results
-                else if done? then done query, 0 , null
-                _.each stories, (story) ->
-                    self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
-                cc start
-                # 1000 is the length of results returned by Yahoo, so once we hit that, execute any callback for new data
-                if start <= 1000
-                    self.getYahooNews query, start + 50, done
-                else if done? then done query, 0, null
+                # unless there are no stories, plot the stories
+                unless !stories?
+                    _.each stories, (story) ->
+                        self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
+                    cc start
+                    # 1000 is the length of results returned by Yahoo, so once we hit that, execute any callback for new data
+                    if start <= 1000
+                        self.getYahooNews query, start + 50, done
+                    else if done? then done query, 0, null
+                    return
+                # if there were no stories and there is a callback, execute it.
+                if done? then done query, 0 , null
+            @
         getCalaisData: (story, story_string, callback) ->
             self = @
             console.log "getting data"
@@ -95,6 +105,7 @@ $ ->
             # Plot the story en el mapa
             @get("map").plotStory article
             @trigger("updateDateRange")
+            @
         filterByDate: (lodate, hidate) ->
             self = @
             _.filter @get("articles").models, (article) ->
@@ -105,7 +116,7 @@ $ ->
                     marker.setMap null
                 else if marker.getMap() is null
                     marker.setMap map
-
+            @
             # cc outofbounds
 
 
@@ -132,7 +143,6 @@ $ ->
         routes:
             "saved": "saved"
             "settings": "settings"
-            "play": "play"
             "map/:index/(:subview)": "goto"
         goto: ->
             cc arguments
@@ -141,10 +151,6 @@ $ ->
             cc Backbone.history.fragment
         settings: ->
             cc "showing settings"
-        play: ->
-            cc "playing timeline animation"
-            if AllMaps.length > 0
-                AllMaps.at(0).trigger "playTimeline"
 
     window.app = new window.Workspace()
     window.app.navigate "hello", true

@@ -96,7 +96,6 @@ header {
 .map-canvas { 
 	@include border-radius(0 0 3px 3px);
 	display: block;
-	border: 1px solid #ccc;
 	height: 500px;
 	padding: 15px;
 	background: rgba(255,255,255,.9);
@@ -117,6 +116,14 @@ h3 {
 p { 
 	line-height: 1.5;
 	color: #414141;
+}
+
+.message {
+	background: #f9f9f9;
+	font-size: 1.1em;
+	margin: 10px auto;
+	@include border-radius(3px);
+	border: 1px solid #ddd;
 }
 
 input {

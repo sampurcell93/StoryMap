@@ -1,19 +1,3 @@
-# launch modals
-# args: content for the modal, as an array of content
-# rets the modal jquery obj
-window.launchModal =  (content) ->
-  modal = $("<div />").addClass("modal")
-  if $.isArray(content)
-      _.each content, (item) ->
-          modal.append(item)
-  else modal.html(content)
-  modal.prepend("<i class='close-modal icon-untitled-7'></i>")
-  modal.find(".close-modal").on "click", ->
-    $(document.body).removeClass("active-modal")
-    modal.remove()
-  $(document.body).addClass("active-modal").append(modal)
-  modal
-
 # Define the map object
 # args: optional model
 # rets: themap obj

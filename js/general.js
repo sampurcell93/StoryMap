@@ -4,15 +4,44 @@
     Number.prototype.monthToString = function() {
       var months;
       months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      return months[this.valueOf()] || "Not a valid month";
+      return months[this.valueOf()] || "Invalid";
     };
     Number.prototype.dayToString = function() {
       var days;
       days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      return days[this.valueOf() || "Not a valid day"];
+      return days[this.valueOf()] || "Invalid";
     };
-    return Date.prototype.cleanFormat = function() {
-      return this.getDate() + "/" + this.getMonth() + "/" + this.getFullYear();
+    Date.prototype.cleanFormat = function() {
+      return this.getDate() + "/" + parseInt(this.getMonth() + 1) + "/" + this.getFullYear();
+    };
+    window.launchModal = function(content, options) {
+      var defaults, modal;
+      defaults = {
+        close: true
+      };
+      options = _.extend(defaults, options);
+      modal = $("<div />").addClass("modal");
+      if ($.isArray(content)) {
+        _.each(content, function(item) {
+          return modal.append(item);
+        });
+      } else {
+        modal.html(content);
+      }
+      if (options.close !== false) {
+        modal.prepend("<i class='close-modal icon-untitled-7'></i>");
+        modal.find(".close-modal").on("click", function() {
+          $(document.body).removeClass("active-modal");
+          return modal.remove();
+        });
+      }
+      $(document.body).addClass("active-modal").append(modal);
+      return modal;
+    };
+    return window.destroyModal = function() {
+      return $(".modal").fadeOut("fast", function() {
+        return $(document.body).removeClass("active-modal");
+      });
     };
   });
 

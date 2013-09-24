@@ -13,19 +13,19 @@
         <header>
           <ul class="columns four control-panel">
             <li><a class='icon-th-large' data-route='#saved'>Saved</a></li>
-            <li><a class='icon-play' data-route='#play'>Timeline</a></li>
+            <li><a class='icon-play js-play-timeline'  >Timeline</a></li>
             <li><a class='icon-settings' data-route='#settings'>Settings</a></li>
           </ul>
           <div class="columns eight offset-one search-bar">
             <button class='go fr'>Search <i class='s9 icon-search'></i> </button>  
-            <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' value='Bat fungus' />
+            <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' value='Colony Collapse' />
           </div>
         </header>
         <div class='map-canvas' id='map-canvas'></div>
         <div class="timeline-slider" ></div> 
       </script>
     </div> <!-- end large container -->
-
+    <?php include("./messages.php"); ?>
     <script src="https://www.google.com/jsapi"></script>
     <script type='text/javascript' src='js/jquery.js'></script>
     <script type='text/javascript' src='js/jqueryui.js'></script>

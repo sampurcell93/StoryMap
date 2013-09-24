@@ -12,7 +12,7 @@
         this.model.instance = this;
         this.listenTo(this.model, {
           "updateDateRange": this.updateDateRange,
-          "playTimeline": this.playTimeline
+          "loading": this.createLoadingOverlay
         });
         return this.updateDateRange();
       },
@@ -78,7 +78,14 @@
       },
       events: {
         "click .go": function() {
-          return this.model.getGoogleNews(this.$(".news-search").val(), 0, this.model.getYahooNews);
+          var self;
+          self = this;
+          this.model.trigger("loading");
+          return this.model.getGoogleNews(this.$(".news-search").val(), 0, function(query, start, done) {
+            return self.model.getYahooNews(query, start, function(query, start, done) {
+              return window.destroyModal();
+            });
+          });
         },
         "click [data-route]": function(e) {
           var $t, current_route, route;
@@ -88,6 +95,9 @@
           return window.app.navigate(route, {
             trigger: true
           });
+        },
+        "click .js-play-timeline": function(e) {
+          return this.playTimeline();
         }
       },
       playTimeline: function() {
@@ -96,7 +106,7 @@
         values = $timeline.slider("values");
         lo = values[0];
         hi = values[1];
-        increment = Math.floor(Math.abs((hi - lo) / 100));
+        increment = Math.floor(Math.abs((hi - lo) / 1000));
         return this.incrementValue(values[0], values[1] + 86400000, increment);
       },
       incrementValue: function(lo, hi, increment) {
@@ -104,12 +114,22 @@
         self = this;
         return window.setTimeout(function() {
           var newlo;
-          newlo = lo + increment;
           if (lo <= hi) {
-            self.$timeline.slider("values", 0, newlo);
+            cc("lo: " + lo);
+            cc("hi: " + hi);
+            newlo = lo + increment;
+            self.$timeline.slider("values", 1, newlo);
             return self.incrementValue(newlo, hi, increment);
           }
-        }, 40);
+        }, 4);
+      },
+      createLoadingOverlay: function() {
+        var content, loader;
+        loader = $("<img/>").addClass("loader").attr("src", "assets/images/loader.gif");
+        content = _.template($("#main-loading-message").html(), {});
+        return window.launchModal($("<div/>").append(content).append(loader), {
+          close: false
+        });
       }
     });
     window.views.MapInstanceList = Backbone.View.extend({
