@@ -97,7 +97,9 @@
           });
         },
         "click .js-play-timeline": function(e) {
-          return this.playTimeline();
+          if (this.playingTimeline !== true) {
+            return this.playTimeline();
+          }
         }
       },
       playTimeline: function() {
@@ -106,6 +108,7 @@
         values = $timeline.slider("values");
         lo = values[0];
         hi = values[1];
+        this.playingTimeline = true;
         increment = Math.floor(Math.abs((hi - lo) / 1000));
         return this.incrementValue(values[0], values[1] + 86400000, increment);
       },
@@ -120,6 +123,8 @@
             newlo = lo + increment;
             self.$timeline.slider("values", 1, newlo);
             return self.incrementValue(newlo, hi, increment);
+          } else {
+            return self.playingTimeline = false;
           }
         }, 4);
       },

@@ -2,7 +2,19 @@
 
 $open-sans: 'Open Sans', sans-serif;
 $lato: "Lato", sans-serif;
-
+.clearfix:after {
+     visibility: hidden;
+     display: block;
+     font-size: 0;
+     content: " ";
+     clear: both;
+     height: 0;
+     }
+.clearfix { display: inline-block; }
+/* start commented backslash hack \*/
+* html .clearfix { height: 1%; }
+.clearfix { display: block; }
+/* close commented backslash hack */
 .center { text-align: center; }
 .relative { position: relative; display: block; }
 .absolute { position: absolute;}

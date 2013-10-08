@@ -2,8 +2,8 @@
 (function() {
   window.GoogleMap = function(model) {
     this.mapOptions = {
-      center: new google.maps.LatLng(0, 0),
-      zoom: 2,
+      center: new google.maps.LatLng(35, -62),
+      zoom: 3,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     this.map = new google.maps.Map(document.getElementById("map-canvas"), this.mapOptions);

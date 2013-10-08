@@ -8,25 +8,26 @@
     <link rel='stylesheet' media='screen' href='assets/icomoon/style.css' />
   </head>
   <body>
-    <div class="container large map-instance-list">
+    <div class="map-instance-list">
       <script type='text/template' id='map-instance'>
         <header>
-          <ul class="columns four control-panel">
+          <ul class="w4 fl control-panel ">
             <li><a class='icon-th-large' data-route='#saved'>Saved</a></li>
             <li><a class='icon-play js-play-timeline'  >Timeline</a></li>
             <li><a class='icon-settings' data-route='#settings'>Settings</a></li>
           </ul>
-          <div class="columns eight offset-one search-bar">
+          <div class="fr w5  search-bar">
             <button class='go fr'>Search <i class='s9 icon-search'></i> </button>  
             <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' value='Colony Collapse' />
           </div>
         </header>
         <div class='map-canvas' id='map-canvas'></div>
-        <div class="timeline-slider" ></div> 
+        <footer>
+          <div class="timeline-slider" ></div> 
+        </footer>
       </script>
     </div> <!-- end large container -->
     <?php include("./messages.php"); ?>
-    <script src="https://www.google.com/jsapi"></script>
     <script type='text/javascript' src='js/jquery.js'></script>
     <script type='text/javascript' src='js/jqueryui.js'></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoS1bfOyPBTbYH1GhtD4xRs9XrT17nGwg&sensor=true"></script>

@@ -34,7 +34,6 @@ $ ->
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
         getGoogleNews: (query, start, done) ->
-            # done = null
             if !query? then return false
             self = @
             $.get "./get_google_news.php",
@@ -85,6 +84,7 @@ $ ->
             $.get "./calais.php",
                 content: story_string
             , (data) ->
+                cc "returning from calais"
                 # parse the response object
                 calaisjson = JSON.parse(data)
                 unless calaisjson? then return

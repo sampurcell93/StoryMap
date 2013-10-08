@@ -87,12 +87,14 @@ $ ->
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
       "click .js-play-timeline": (e) ->
-        @playTimeline()
+        unless @playingTimeline is true
+          @playTimeline()
     playTimeline: ->
       $timeline = @$timeline
       values = $timeline.slider "values"
       lo = values[0]
       hi = values[1]
+      @playingTimeline = true
       # get the increment value
       increment = Math.floor(Math.abs (hi - lo)/1000)
       # start the tree
@@ -107,6 +109,8 @@ $ ->
           newlo = lo + increment
           self.$timeline.slider("values", 1, newlo)
           self.incrementValue newlo, hi, increment
+        else
+          self.playingTimeline = false
       , 4
     # Args: none
     # Rets: this

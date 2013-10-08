@@ -99,6 +99,7 @@
           content: story_string
         }, function(data) {
           var calaisjson, i;
+          cc("returning from calais");
           calaisjson = JSON.parse(data);
           if (calaisjson == null) {
             return;

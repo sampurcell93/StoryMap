@@ -4,8 +4,8 @@
 window.GoogleMap = ( model ) ->
   # Set default map options
   @mapOptions =
-    center: new google.maps.LatLng(0, 0)
-    zoom: 2
+    center: new google.maps.LatLng(35, -62)
+    zoom: 3
     mapTypeId: google.maps.MapTypeId.ROADMAP
   # get map object - needs fix
   @map = new google.maps.Map(document.getElementById("map-canvas"), @mapOptions)
