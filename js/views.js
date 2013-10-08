@@ -157,6 +157,27 @@
         return this;
       }
     });
+    window.views.MapMarker = Backbone.View.extend({
+      tagName: 'div',
+      template: $("#storymarker").html(),
+      render: function() {
+        var pt, xOff, yOff;
+        this.$el.html(_.template(this.template, this.model.toJSON()));
+        this.xoff = xOff = Math.random() * 0.1;
+        this.yoff = yOff = Math.random() * 0.1;
+        pt = new google.maps.LatLng(parseInt(this.model.get("latitude")) + xOff, parseInt(this.model.get("longitude")) + yOff);
+        this.marker = new google.maps.Marker({
+          position: pt,
+          animation: google.maps.Animation.DROP,
+          title: this.model.get("title")
+        });
+        return this;
+      }
+    });
+    window.views.TimelineMarker = Backbone.View.extend({
+      tagName: 'div',
+      className: '.timeline-marker'
+    });
     AllMapsView = new window.views.MapInstanceList({
       collection: AllMaps
     });

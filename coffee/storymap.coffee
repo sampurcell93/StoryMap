@@ -22,19 +22,10 @@ window.GoogleMap = ( model ) ->
 # rets: map obj
 window.GoogleMap::plotStory = (story) ->
   articleModel = story
-  story = story.toJSON()
-  # Give slight offsets to make sure stories in same location are not overlapped
-  xOff = Math.random() * 0.1
-  yOff = Math.random() * 0.1
-  # Make the new point
-  pt = new google.maps.LatLng(parseInt(story.latitude) + xOff, parseInt(story.longitude) + yOff)
   # A simple display string
-  display_string = "<h3><a target='_blank' href='" + story.unescapedUrl + "'>" + story.title + "</a></h3>" + "<p>" + story.content + "</p>"
-  marker = new google.maps.Marker(
-    position: pt
-    animation: google.maps.Animation.DROP
-    title: story.title
-  )
+  marker = new views.MapMarker model: story
+  marker = marker.render().marker
+  display = marker.el
   # Push the marker to tha array
   @markers.push marker
   marker.setMap @map
@@ -43,6 +34,6 @@ window.GoogleMap::plotStory = (story) ->
   # On click, show data
   google.maps.event.addListener marker, "click", ->
     cc that.model
-    that.infowindow.setContent display_string
+    that.infowindow.setContent display
     that.infowindow.open that.map, @
   @

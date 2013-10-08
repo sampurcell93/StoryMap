@@ -18,15 +18,23 @@
           </ul>
           <div class="fr w5  search-bar">
             <button class='go fr'>Search <i class='s9 icon-search'></i> </button>  
-            <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' value='Colony Collapse' />
+            <input placeholder='Search the news' type='text' name='news-term' class='fr news-search' />
           </div>
         </header>
         <div class='map-canvas' id='map-canvas'></div>
         <footer>
           <div class="timeline-slider" ></div> 
+          <div class='timeline-marker'></div>
         </footer>
       </script>
     </div> <!-- end large container -->
+    <script type="text/template" id='storymarker'>
+      <% var u = "undefined" %>
+      <h3>
+        <a target='_blank' href='" + <%= typeof unescapedUrl !== u ? unescapedUrl : "" %> + "'><%= title %></a>
+      </h3>
+      <p><%= typeof content !== u ? content : "Sorry, we don't have a snippet here" %></p>
+    </script>
     <?php include("./messages.php"); ?>
     <script type='text/javascript' src='js/jquery.js'></script>
     <script type='text/javascript' src='js/jqueryui.js'></script>
@@ -35,7 +43,7 @@
     <script type='text/javascript' src='js/backbone.js'></script>
     <script type='text/javascript' src='js/general.js'></script>
     <script type='text/javascript' src='js/models.js'></script>
-    <script type='text/javascript' src='js/storymap.js'></script>
     <script type='text/javascript' src='js/views.js'></script>
+    <script type='text/javascript' src='js/storymap.js'></script>
   </body>
 </html>

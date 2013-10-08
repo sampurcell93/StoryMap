@@ -95,6 +95,7 @@ $ ->
                 return
             @
         formCalaisAndPlot: (fullstory, calaisjson, i) ->
+            cc fullstory
             calaisObj = _.extend {}, fullstory
             calaisObj.latitude = calaisjson[i].resolutions[0].latitude
             calaisObj.longitude = calaisjson[i].resolutions[0].longitude

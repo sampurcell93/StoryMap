@@ -140,6 +140,28 @@ $ ->
       instance.siblings().hide()
       @
 
+  window.views.MapMarker = Backbone.View.extend
+    tagName: 'div'
+    template: $("#storymarker").html()
+    render: ->
+      @$el.html(_.template @template, @model.toJSON())
+      # Give slight offsets to make sure stories in same location are not overlapped
+      @xoff = xOff = Math.random() * 0.1
+      @yoff = yOff = Math.random() * 0.1
+      # Make the new point
+      pt = new google.maps.LatLng(parseInt(@model.get("latitude")) + xOff, parseInt(@model.get("longitude")) + yOff)
+      @marker = new google.maps.Marker
+        position: pt
+        animation: google.maps.Animation.DROP
+        title: @model.get "title"
+      @
+  
+
+  window.views.TimelineMarker = Backbone.View.extend
+    tagName: 'div'
+    className: '.timeline-marker'
+
+
 
   AllMapsView = new window.views.MapInstanceList({collection: AllMaps})
   # AllMaps.add new models.StoryMap()
