@@ -8,6 +8,7 @@
     <link rel='stylesheet' media='screen' href='assets/icomoon/style.css' />
   </head>
   <body>
+    PWD
     <div class="map-instance-list">
       <script type='text/template' id='map-instance'>
         <header>
