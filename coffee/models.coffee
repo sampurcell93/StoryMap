@@ -1,7 +1,4 @@
 $ ->
-    # Quick logging
-    window.cc = (arg) ->
-        console.log arg
 
     window.models = {}
     window.collections = {}
@@ -13,7 +10,22 @@ $ ->
         initialize: (opts) ->
             # If the collection is the child of a news map, save a reference to the map
             if opts? and opts.parent_map then @parent_map = opts.parent_map
+            @_byTitle = {}
             @
+        filterByDate: (lodate, hidate) ->
+            self = @
+            inrange = []
+            outrange = []
+            # console.log @get("articles").models
+            _.each @models, (article) ->
+                date = article.get("date").getTime()
+                marker = article.get("marker")
+                if marker?
+                    if date < hidate and date > lodate
+                        inrange.push marker
+                    else
+                        outrange.push marker
+            {inrange: inrange, outrange: outrange}
 
     # Model for a single instance of a map, including all of the settings for the GMap,
     # the markers, and a collection of articles
@@ -26,7 +38,7 @@ $ ->
                 articles: articles
             }
         initialize: ->
-            _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews", "filterByDate"
+            _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews"
         # desc: Issues a request to a curl script, retrieving google news stories
         # args: the query, the start index of to search (0-56), and the done callback
         # rets: this
@@ -53,7 +65,7 @@ $ ->
                 self.getGoogleNews query, start + 32, done
             @
         getYahooNews: (query, start, done) ->
-            cc "Getting Yahoo " + query + " " + start
+            # cc "Getting Yahoo " + query + " " + start
             if !query? then return false
             self = @
             $.get "./get_yahoo_news.php",
@@ -61,7 +73,7 @@ $ ->
                 start: start
             , (data) ->
                 response = JSON.parse(data)
-                cc response.bossresponse
+                # cc response.bossresponse
                 if response? and response.bossresponse? and response.bossresponse.news?
                     stories = response.bossresponse.news.results
                 # unless there are no stories, plot the stories
@@ -70,7 +82,7 @@ $ ->
                         self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
                     cc start
                     # 1000 is the length of results returned by Yahoo, so once we hit that, execute any callback for new data
-                    if start <= 1000
+                    if start < 0
                         self.getYahooNews query, start + 50, done
                     else if done? then done query, 0, null
                     return
@@ -91,11 +103,12 @@ $ ->
                 # Check each property of the returned calais object
                 for i of calaisjson
                   # If it contains a "resolutions" key, it has latitude and longitude
-                  if calaisjson[i].hasOwnProperty("resolutions") then callback(story, calaisjson, i)
+                  if calaisjson[i].hasOwnProperty("resolutions")
+                    callback(story, calaisjson, i)
+                    break
                 return
             @
         formCalaisAndPlot: (fullstory, calaisjson, i) ->
-            cc fullstory
             calaisObj = _.extend {}, fullstory
             calaisObj.latitude = calaisjson[i].resolutions[0].latitude
             calaisObj.longitude = calaisjson[i].resolutions[0].longitude
@@ -105,21 +118,7 @@ $ ->
             @get("articles").add article = new models.Article(calaisObj)
             # Plot the story en el mapa
             @get("map").plotStory article
-            @trigger("updateDateRange")
             @
-        filterByDate: (lodate, hidate) ->
-            self = @
-            _.filter @get("articles").models, (article) ->
-                date = article.get("date").getTime()
-                map = self.get("map").map
-                marker = article.get("marker")
-                if date > hidate or date < lodate
-                    marker.setMap null
-                else if marker.getMap() is null
-                    marker.setMap map
-            @
-            # cc outofbounds
-
 
     # The global collection of all maps for a user, 
     # retrieved at runtime by the "Fetch" method, below
@@ -138,21 +137,3 @@ $ ->
                 cc "Now we want to go to the route for all saved maps"
 
         error: (collection, response) ->
-
-    ### Router ###
-    window.Workspace = Backbone.Router.extend
-        routes:
-            "saved": "saved"
-            "settings": "settings"
-            "map/:index/(:subview)": "goto"
-        goto: ->
-            cc arguments
-        saved: ->
-            cc "showing all maps"
-            cc Backbone.history.fragment
-        settings: ->
-            cc "showing settings"
-
-    window.app = new window.Workspace()
-    window.app.navigate "hello", true
-    Backbone.history.start()
