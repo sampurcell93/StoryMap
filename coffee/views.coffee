@@ -8,13 +8,12 @@ $ ->
     tagName: 'section'
     template: $("#map-instance").html()
     initialize: ->
-      _.bindAll @, "render", "afterAppend", "updateDateRange", "incrementValue"
+      _.bindAll @, "render", "afterAppend", "toggleMarkers"
       # Two way model view binding
+      self = @
       @model.instance = @
       @listenTo @model,
-        "updateDateRange": @updateDateRange
         "loading": @createLoadingOverlay
-      @updateDateRange()
     render: ->
       @$el.html( _.template @template, @model.toJSON() )
       @
@@ -22,96 +21,35 @@ $ ->
     afterAppend: ->
       self = @
       # Instantiate a new google map
-      @model.set "map", new window.GoogleMap @model
+      @model.set "map", self.mapObj = new window.GoogleMap @model
       # A function to update the display value of the range
-      update_val = (e, ui) ->
-          handle = $ ui.handle
-          pos = handle.index() - 1
-          range  =  ui.values
-          # Convert the slider's current value to a readable string
-          cleaned = new Date(range[pos]).cleanFormat()
-          # Display said string
-          display = $("<div/>").addClass("handle-display-value").text cleaned 
-          handle.find("div").remove().end().append display
-          self.model.filterByDate(ui.values[0], ui.values[1])
-      # Make a jquery ui slider element
-      @$timeline = @$(".timeline-slider")
-      @$timeline.slider
-        range: true
-        values: [0, 100]
-        step: 10000
-        slide: update_val
-        change: update_val
-    updateDateRange: ->
-      cc "updating date range"
-      articles = @model.get "articles"
-      # We want to find the earliest date
-      if articles.length > 0
-        min = articles.at 0
-        max = articles.last()
-        # Simple linear min function
-        _.each articles.models, (article) ->
-          date = article.get("date")
-          if date < min.get "date" then min = article
-          else if date > max.get "date" then max = article
-        # Isolate the date of the articles
-        mindate = min.get "date"
-        maxdate = max.get "date"
-        # cache the timeline obj
-        $timeline = @$timeline
-        # get handles and set their display data to clean dates
-        handles = $timeline.find(".ui-slider-handle")
-        handles.first().data("display-date", mindate.cleanFormat())
-        handles.last().data("display-date", maxdate.cleanFormat())
-        # Get the pure millisecond versions of the dates
-        mindate = mindate.getTime()
-        maxdate = maxdate.getTime()
-        # milliseconds in a day
-        oneday = 86400000
-        # mindate -= oneday
-        # maxdate += oneday
-        # Set the slider values to each end of the spectrum and update the min and max
-        $timeline.slider("values", 0, mindate)
-        $timeline.slider("values", 1, maxdate)
-        $timeline.slider("option", min: mindate, max: maxdate)
+      @articleList = new views.ArticleList collection: @model.get("articles")
+      @articleList.render()
+      @timeline = new views.Timeline collection: @model.get("articles"), map: @
+      @
+    toggleMarkers: (markers) ->
+      self = @
+      _.each markers.outrange, (outlier) ->
+        outlier.setMap null
+      _.each markers.inrange, (inlier) ->
+        unless inlier.getMap()?
+          inlier.setMap self.mapObj.map
+      @
     events:
+      "change .news-search": ->
+        @$(".go").trigger "click"
       "click .go": ->
-          self = @
-          @model.trigger "loading"
-          @model.getGoogleNews @$(".news-search").val(), 0, (query, start, done) ->
-             self.model.getYahooNews query, start, (query, start, done) ->
-                window.destroyModal()
+        self = @
+        @model.trigger "loading"
+        @model.getGoogleNews @$(".news-search").val(), 0, (query, start, done) ->
+           self.model.getYahooNews query, start, (query, start, done) ->
+              window.destroyModal()
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
-      "click .js-play-timeline": (e) ->
-        unless @playingTimeline is true
-          @playTimeline()
-    playTimeline: ->
-      $timeline = @$timeline
-      values = $timeline.slider "values"
-      lo = values[0]
-      hi = values[1]
-      @playingTimeline = true
-      # get the increment value
-      increment = Math.floor(Math.abs (hi - lo)/1000)
-      # start the tree
-      @incrementValue values[0], values[1] + 86400000, increment 
-    # Recursive function animates slider to auto play!
-    incrementValue: (lo, hi, increment) ->
-      self = @
-      window.setTimeout ->
-        if lo <= hi
-          cc "lo: " + lo
-          cc "hi: " + hi
-          newlo = lo + increment
-          self.$timeline.slider("values", 1, newlo)
-          self.incrementValue newlo, hi, increment
-        else
-          self.playingTimeline = false
-      , 4
+
     # Args: none
     # Rets: this
     # desc: creates a UI overlay so users can't tamper with stuff when it's loading
@@ -155,14 +93,168 @@ $ ->
         animation: google.maps.Animation.DROP
         title: @model.get "title"
       @
+
+  window.views.Article = Backbone.View.extend
+    template: $("#article-item").html()
+    tagName: 'li'
+    initialize: ->
+      _.bindAll @, "render"
+    render: ->
+      @$el.html(_.template @template, @model.toJSON())
+      @
+    events:
+      "click": ->
+        cc @model
   
+  window.views.ArticleList = Backbone.View.extend
+    el: '.all-articles'
+    events: 
+      "click": ->
+        cc @collection
+    initialize: ->
+      self = @
+      cc @$el
+      _.bindAll @, "render", "appendChild"
+      @listenTo @collection, "add", (model) ->
+        "appending new article"
+        self.appendChild model
+    appendChild:(model) ->
+      view = new views.Article model: model
+      @$el.append view.render().el
+      @
+    render: ->
+      console.log "Rendernd model list"
+      self = @
+      @$el.empty()
+      _.each @collection.models, (model) ->
+        self.appendChild model
+      @
+
+  window.views.Timeline = Backbone.View.extend
+    el: 'footer'
+    initialize: ->
+      self = @
+      @map = @options.map
+      @min = new Date
+      @max = new Date 0
+      @speed = 32
+      _.bindAll @,  "updateMinMax", "incrementValue", "updateHandles", "play"
+      @listenTo @collection, "add", (model) ->
+        self.addMarker model
+        self.updateMinMax model
+        self.updateHandles()
+      update_val = (e, ui) ->
+        handle = $ ui.handle
+        pos = handle.index() - 1
+        range  =  ui.values
+        # Convert the slider's current value to a readable string
+        cleaned = new Date(range[pos]).cleanFormat()
+        # Display said string
+        display = $("<div/>").addClass("handle-display-value").text cleaned 
+        handle.find("div").remove().end().append display
+        self.map.toggleMarkers self.collection.filterByDate(ui.values[0], ui.values[1])
+      # Make a jquery ui slider element
+      @$timeline = @$(".timeline-slider")
+      @$timeline.slider
+        range: true
+        values: [0, 100]
+        step: 10000
+        slide: update_val
+        change: update_val
+      @
+    render: ->
+      self = @
+      _.each collection.models, (article) ->
+        self.addMarker model
+      @
+    addMarker: (model) ->
+      cc "appending a RED MARKR ONTO TIMELINE"
+      view = new views.TimelineMarker model: model
+      @$el.append(view.render().el)
+      @
+    play: ->
+      $timeline = @$timeline
+      values = $timeline.slider "values"
+      lo = values[0]
+      hi = values[1]
+      @isPlaying = true
+      @savedHi = hi
+      # get the increment value
+      increment = Math.ceil(Math.abs (hi - lo)/300)
+      # start the tree
+      @incrementValue lo, (@savedHi || hi), increment 
+      @
+    stop: ->
+      @isPlaying = false
+      @$(".js-pause-timeline").trigger "switch"
+      @
+    # Recursive function animates slider to auto play!
+    incrementValue: (lo, hi, increment) ->
+      self = @
+      window.setTimeout ->
+        if lo <= hi and self.isPlaying is true
+          newlo = lo + increment
+          self.$timeline.slider("values", 1, newlo)
+          self.incrementValue newlo, hi, increment
+        else
+          self.stop()
+      , @speed
+      @
+    updateMinMax: (model) ->
+      if !model? then return @
+      cc "updaing min max"
+      date = model.get "date"
+      cc "with" + date
+      if date < @min
+        @min = date
+      else if date > @max
+        @max = date
+      else return @
+      @
+    updateHandles: ->
+      # cache the timeline obj
+      $timeline = @$timeline
+      # get handles and set their display data to clean dates
+      handles = $timeline.find(".ui-slider-handle")
+      handles.first().data("display-date", @max.cleanFormat())
+      handles.last().data("display-date", @min.cleanFormat())
+       # Get the pure millisecond versions of the dates
+      mindate = @min.getTime()
+      maxdate = @max.getTime()
+      # Set the slider values to each end of the spectrum and update the min and max
+      $timeline.slider("values", 0, mindate)
+      $timeline.slider("values", 1, maxdate)
+      $timeline.slider("option", min: mindate, max: maxdate)
+      @
+    events: 
+      "click .js-play-timeline": (e) ->
+        $(e.currentTarget).removeClass("js-play-timeline").addClass "js-pause-timeline"
+        unless @isPlaying
+          @play()
+      "click .js-pause-timeline": (e) ->
+        $(e.currentTarget).removeClass("js-pause-timeline").addClass "js-play-timeline"
+        @stop()
+      "switch .js-pause-timeline": (e) ->
+        $(e.currentTarget).removeClass("js-pause-timeline").addClass "js-play-timeline"
+      "click .js-fast-forward": (e)->
+        rel = Math.pow 2, 5 # 32, min speed ratio
+        cc rel
+        $t = $ e.currentTarget
+        speed = @speed
+        cc speed
+        if speed > 1
+          speed /= 2
+        else speed = 32
+        $t.attr "speed", (rel / speed) + "x"
+        @speed = speed
+        @
+
+
 
   window.views.TimelineMarker = Backbone.View.extend
-    tagName: 'div'
     className: '.timeline-marker'
+    render: ->
 
 
 
   AllMapsView = new window.views.MapInstanceList({collection: AllMaps})
-  # AllMaps.add new models.StoryMap()
-  window.app.navigate("/map/0", true)
