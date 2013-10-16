@@ -8,75 +8,49 @@
       tagName: 'section',
       template: $("#map-instance").html(),
       initialize: function() {
-        _.bindAll(this, "render", "afterAppend", "updateDateRange", "incrementValue");
+        var self;
+        _.bindAll(this, "render", "afterAppend", "toggleMarkers");
+        self = this;
         this.model.instance = this;
-        this.listenTo(this.model, {
-          "updateDateRange": this.updateDateRange,
+        return this.listenTo(this.model, {
           "loading": this.createLoadingOverlay
         });
-        return this.updateDateRange();
       },
       render: function() {
         this.$el.html(_.template(this.template, this.model.toJSON()));
         return this;
       },
       afterAppend: function() {
-        var self, update_val;
+        var self;
         self = this;
-        this.model.set("map", new window.GoogleMap(this.model));
-        update_val = function(e, ui) {
-          var cleaned, display, handle, pos, range;
-          handle = $(ui.handle);
-          pos = handle.index() - 1;
-          range = ui.values;
-          cleaned = new Date(range[pos]).cleanFormat();
-          display = $("<div/>").addClass("handle-display-value").text(cleaned);
-          handle.find("div").remove().end().append(display);
-          return self.model.filterByDate(ui.values[0], ui.values[1]);
-        };
-        this.$timeline = this.$(".timeline-slider");
-        return this.$timeline.slider({
-          range: true,
-          values: [0, 100],
-          step: 10000,
-          slide: update_val,
-          change: update_val
+        this.model.set("map", self.mapObj = new window.GoogleMap(this.model));
+        this.articleList = new views.ArticleList({
+          collection: this.model.get("articles")
         });
+        this.articleList.render();
+        this.timeline = new views.Timeline({
+          collection: this.model.get("articles"),
+          map: this
+        });
+        return this;
       },
-      updateDateRange: function() {
-        var $timeline, articles, handles, max, maxdate, min, mindate, oneday;
-        cc("updating date range");
-        articles = this.model.get("articles");
-        if (articles.length > 0) {
-          min = articles.at(0);
-          max = articles.last();
-          _.each(articles.models, function(article) {
-            var date;
-            date = article.get("date");
-            if (date < min.get("date")) {
-              return min = article;
-            } else if (date > max.get("date")) {
-              return max = article;
-            }
-          });
-          mindate = min.get("date");
-          maxdate = max.get("date");
-          $timeline = this.$timeline;
-          handles = $timeline.find(".ui-slider-handle");
-          handles.first().data("display-date", mindate.cleanFormat());
-          handles.last().data("display-date", maxdate.cleanFormat());
-          mindate = mindate.getTime();
-          maxdate = maxdate.getTime();
-          oneday = 86400000;
-          $timeline.slider("values", 0, mindate);
-          $timeline.slider("values", 1, maxdate);
-          return $timeline.slider("option", {
-            min: mindate,
-            max: maxdate
-          });
-        }
+      toggleMarkers: function(markers) {
+        var self;
+        self = this;
+        _.each(markers.outrange, function(outlier) {
+          return outlier.setMap(null);
+        });
+        _.each(markers.inrange, function(inlier) {
+          if (inlier.getMap() == null) {
+            return inlier.setMap(self.mapObj.map);
+          }
+        });
+        return this;
       },
       events: {
+        "change .news-search": function() {
+          return this.$(".go").trigger("click");
+        },
         "click .go": function() {
           var self;
           self = this;
@@ -95,33 +69,7 @@
           return window.app.navigate(route, {
             trigger: true
           });
-        },
-        "click .js-play-timeline": function(e) {
-          return this.playTimeline();
         }
-      },
-      playTimeline: function() {
-        var $timeline, hi, increment, lo, values;
-        $timeline = this.$timeline;
-        values = $timeline.slider("values");
-        lo = values[0];
-        hi = values[1];
-        increment = Math.floor(Math.abs((hi - lo) / 1000));
-        return this.incrementValue(values[0], values[1] + 86400000, increment);
-      },
-      incrementValue: function(lo, hi, increment) {
-        var self;
-        self = this;
-        return window.setTimeout(function() {
-          var newlo;
-          if (lo <= hi) {
-            cc("lo: " + lo);
-            cc("hi: " + hi);
-            newlo = lo + increment;
-            self.$timeline.slider("values", 1, newlo);
-            return self.incrementValue(newlo, hi, increment);
-          }
-        }, 4);
       },
       createLoadingOverlay: function() {
         var content, loader;
@@ -152,10 +100,229 @@
         return this;
       }
     });
-    AllMapsView = new window.views.MapInstanceList({
+    window.views.MapMarker = Backbone.View.extend({
+      tagName: 'div',
+      template: $("#storymarker").html(),
+      render: function() {
+        var pt, xOff, yOff;
+        this.$el.html(_.template(this.template, this.model.toJSON()));
+        this.xoff = xOff = Math.random() * 0.1;
+        this.yoff = yOff = Math.random() * 0.1;
+        pt = new google.maps.LatLng(parseInt(this.model.get("latitude")) + xOff, parseInt(this.model.get("longitude")) + yOff);
+        this.marker = new google.maps.Marker({
+          position: pt,
+          animation: google.maps.Animation.DROP,
+          title: this.model.get("title")
+        });
+        return this;
+      }
+    });
+    window.views.Article = Backbone.View.extend({
+      template: $("#article-item").html(),
+      tagName: 'li',
+      initialize: function() {
+        return _.bindAll(this, "render");
+      },
+      render: function() {
+        this.$el.html(_.template(this.template, this.model.toJSON()));
+        return this;
+      },
+      events: {
+        "click": function() {
+          return cc(this.model);
+        }
+      }
+    });
+    window.views.ArticleList = Backbone.View.extend({
+      el: '.all-articles',
+      events: {
+        "click": function() {
+          return cc(this.collection);
+        }
+      },
+      initialize: function() {
+        var self;
+        self = this;
+        cc(this.$el);
+        _.bindAll(this, "render", "appendChild");
+        return this.listenTo(this.collection, "add", function(model) {
+          "appending new article";
+          return self.appendChild(model);
+        });
+      },
+      appendChild: function(model) {
+        var view;
+        view = new views.Article({
+          model: model
+        });
+        this.$el.append(view.render().el);
+        return this;
+      },
+      render: function() {
+        var self;
+        console.log("Rendernd model list");
+        self = this;
+        this.$el.empty();
+        _.each(this.collection.models, function(model) {
+          return self.appendChild(model);
+        });
+        return this;
+      }
+    });
+    window.views.Timeline = Backbone.View.extend({
+      el: 'footer',
+      initialize: function() {
+        var self, update_val;
+        self = this;
+        this.map = this.options.map;
+        this.min = new Date;
+        this.max = new Date(0);
+        this.speed = 32;
+        _.bindAll(this, "updateMinMax", "incrementValue", "updateHandles", "play");
+        this.listenTo(this.collection, "add", function(model) {
+          self.addMarker(model);
+          self.updateMinMax(model);
+          return self.updateHandles();
+        });
+        update_val = function(e, ui) {
+          var cleaned, display, handle, pos, range;
+          handle = $(ui.handle);
+          pos = handle.index() - 1;
+          range = ui.values;
+          cleaned = new Date(range[pos]).cleanFormat();
+          display = $("<div/>").addClass("handle-display-value").text(cleaned);
+          handle.find("div").remove().end().append(display);
+          return self.map.toggleMarkers(self.collection.filterByDate(ui.values[0], ui.values[1]));
+        };
+        this.$timeline = this.$(".timeline-slider");
+        this.$timeline.slider({
+          range: true,
+          values: [0, 100],
+          step: 10000,
+          slide: update_val,
+          change: update_val
+        });
+        return this;
+      },
+      render: function() {
+        var self;
+        self = this;
+        _.each(collection.models, function(article) {
+          return self.addMarker(model);
+        });
+        return this;
+      },
+      addMarker: function(model) {
+        var view;
+        view = new views.TimelineMarker({
+          model: model
+        });
+        this.$el.append(view.render().el);
+        return this;
+      },
+      play: function() {
+        var $timeline, hi, increment, lo, values;
+        $timeline = this.$timeline;
+        values = $timeline.slider("values");
+        lo = values[0];
+        hi = values[1];
+        this.isPlaying = true;
+        this.savedHi = hi;
+        increment = Math.ceil(Math.abs((hi - lo) / 300));
+        this.incrementValue(lo, this.savedHi || hi, increment);
+        return this;
+      },
+      stop: function() {
+        this.isPlaying = false;
+        this.$(".js-pause-timeline").trigger("switch");
+        return this;
+      },
+      incrementValue: function(lo, hi, increment) {
+        var self;
+        self = this;
+        window.setTimeout(function() {
+          var newlo;
+          if (lo <= hi && self.isPlaying === true) {
+            newlo = lo + increment;
+            self.$timeline.slider("values", 1, newlo);
+            return self.incrementValue(newlo, hi, increment);
+          } else {
+            return self.stop();
+          }
+        }, this.speed);
+        return this;
+      },
+      updateMinMax: function(model) {
+        var date;
+        if (model == null) {
+          return this;
+        }
+        cc("updaing min max");
+        date = model.get("date");
+        cc("with" + date);
+        if (date < this.min) {
+          this.min = date;
+        } else if (date > this.max) {
+          this.max = date;
+        } else {
+          return this;
+        }
+        return this;
+      },
+      updateHandles: function() {
+        var $timeline, handles, maxdate, mindate;
+        $timeline = this.$timeline;
+        handles = $timeline.find(".ui-slider-handle");
+        handles.first().data("display-date", this.max.cleanFormat());
+        handles.last().data("display-date", this.min.cleanFormat());
+        mindate = this.min.getTime();
+        maxdate = this.max.getTime();
+        $timeline.slider("values", 0, mindate);
+        $timeline.slider("values", 1, maxdate);
+        $timeline.slider("option", {
+          min: mindate,
+          max: maxdate
+        });
+        return this;
+      },
+      events: {
+        "click .js-play-timeline": function(e) {
+          $(e.currentTarget).removeClass("js-play-timeline").addClass("js-pause-timeline");
+          if (!this.isPlaying) {
+            return this.play();
+          }
+        },
+        "click .js-pause-timeline": function(e) {
+          $(e.currentTarget).removeClass("js-pause-timeline").addClass("js-play-timeline");
+          return this.stop();
+        },
+        "switch .js-pause-timeline": function(e) {
+          return $(e.currentTarget).removeClass("js-pause-timeline").addClass("js-play-timeline");
+        },
+        "click .js-fast-forward": function(e) {
+          var $t, rel, speed;
+          rel = Math.pow(2, 5);
+          cc(rel);
+          $t = $(e.currentTarget);
+          speed = this.speed;
+          cc(speed);
+          if (speed > 1) {
+            speed /= 2;
+          } else {
+            speed = 32;
+          }
+          $t.attr("speed", (rel / speed) + "x");
+          this.speed = speed;
+          return this;
+        }
+      }
+    });
+    window.views.TimelineMarker = Backbone.View.extend({
+      className: '.timeline-marker'
+    });
+    return AllMapsView = new window.views.MapInstanceList({
       collection: AllMaps
     });
-    return window.app.navigate("/map/0", true);
   });
 
 }).call(this);

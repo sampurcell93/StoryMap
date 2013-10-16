@@ -10,5 +10,5 @@
 		curl_close($ch);
  		return $body;
 	}
-	$body = pull( "https://ajax.googleapis.com/ajax/services/search/news?" . "v=1.0&rsz=8&start=" . $start . "&q=" . $q);
+	$body = pull( "https://ajax.googleapis.com/ajax/services/search/news?v=1.0&rsz=8&start=" . $start . "&q=" . $q);
 	echo $body;

@@ -2,7 +2,7 @@
 (function() {
   window.GoogleMap = function(model) {
     this.mapOptions = {
-      center: new google.maps.LatLng(0, 0),
+      center: new google.maps.LatLng(35, -62),
       zoom: 2,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
@@ -14,27 +14,23 @@
   };
 
   window.GoogleMap.prototype.plotStory = function(story) {
-    var articleModel, display_string, marker, pt, that, xOff, yOff;
-    articleModel = story;
-    story = story.toJSON();
-    xOff = Math.random() * 0.1;
-    yOff = Math.random() * 0.1;
-    pt = new google.maps.LatLng(parseInt(story.latitude) + xOff, parseInt(story.longitude) + yOff);
-    display_string = "<h3><a target='_blank' href='" + story.unescapedUrl + "'>" + story.title + "</a></h3>" + "<p>" + story.content + "</p>";
-    marker = new google.maps.Marker({
-      position: pt,
-      animation: google.maps.Animation.DROP,
-      title: story.title
-    });
-    this.markers.push(marker);
-    marker.setMap(this.map);
-    articleModel.set("marker", marker);
-    that = this;
-    google.maps.event.addListener(marker, "click", function() {
-      cc(that.model);
-      that.infowindow.setContent(display_string);
-      return that.infowindow.open(that.map, this);
-    });
+    var display, j, marker, that;
+    j = story.toJSON();
+    if (!(typeof j.latitude === "undefined" || j.longitude === "undefined")) {
+      marker = new views.MapMarker({
+        model: story
+      });
+      display = marker.$el.html();
+      marker = marker.render().marker;
+      this.markers.push(marker);
+      marker.setMap(this.map);
+      story.set("marker", marker);
+      that = this;
+      google.maps.event.addListener(marker, "click", function() {
+        that.infowindow.setContent(display);
+        return that.infowindow.open(that.map, this);
+      });
+    }
     return this;
   };
 
