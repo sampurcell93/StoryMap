@@ -16,7 +16,7 @@
             <li><a class='icon-settings' data-route='#settings'>Settings</a></li>
           </ul>
           <div class="fr w5  search-bar">
-            <input placeholder='Search the news' type='text' name='news-term' class='fl news-search' />
+            <input placeholder='Search the news' type='text' name='news-term' class='fl news-search' value='bats'/>
             <button class='go fl'>Search <i class='s9 icon-search'></i> </button>  
           </div>
         </header>
@@ -29,10 +29,13 @@
           <li>gaf</li>
         </ul>
         <footer>
-          <div class="timeline-slider" ></div> 
+          <div class='slider-wrap'>
+            <div class="timeline-slider" ></div> 
+          </div>
           <ul class='timeline-controls'>
-            <li class='js-play-timeline icon-play' data-switch-icon="icon-pause"></li>
-            <li class='js-fast-forward icon-untitled' speed='1x'></li>
+            <li class='js-rewind icon-untitled-2 js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+            <li class='js-play-timeline icon-play' data-switch-icon="icon-pause" data-tooltip='Play Timeline'></li>
+            <li class='js-fast-forward icon-untitled js-speed-control' dir='forward' speed='1x' data-tooltip='Fast Forward Timeline'></li>
           </ul>
         </footer>
       </script>

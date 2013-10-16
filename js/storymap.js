@@ -20,8 +20,10 @@
       marker = new views.MapMarker({
         model: story
       });
-      display = marker.$el.html();
-      marker = marker.render().marker;
+      display = marker.render().$el.html();
+      marker = marker.marker;
+      cc(marker);
+      cc(display);
       this.markers.push(marker);
       marker.setMap(this.map);
       story.set("marker", marker);

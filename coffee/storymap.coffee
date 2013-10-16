@@ -25,8 +25,11 @@ window.GoogleMap::plotStory = (story) ->
   unless typeof j.latitude == "undefined" or j.longitude == "undefined"
     # A simple display string
     marker = new views.MapMarker model: story
-    display = marker.$el.html()
-    marker = marker.render().marker
+    display = marker.render().$el.html()
+    marker = marker.marker
+    cc marker
+    cc display
+
     # Push the marker to tha array
     @markers.push marker
     marker.setMap @map

@@ -61,6 +61,7 @@ $ ->
                     return false
                 # Get location data from OpenCalais for each story item
                 _.each json.responseData.results, (story) ->
+                    story.date = story.publishedDate
                     self.getCalaisData  story, story.titleNoFormatting + story.content, self.formCalaisAndPlot
                 self.getGoogleNews query, start + 32, done
             @
@@ -80,18 +81,15 @@ $ ->
                 unless !stories?
                     _.each stories, (story) ->
                         self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
-                    cc start
                     # 1000 is the length of results returned by Yahoo, so once we hit that, execute any callback for new data
-                    if start < 0
+                    if start <= 1000
                         self.getYahooNews query, start + 50, done
                     else if done? then done query, 0, null
-                    return
                 # if there were no stories and there is a callback, execute it.
-                if done? then done query, 0 , null
+                else if done? then done query, 0 , null
             @
         getCalaisData: (story, story_string, callback) ->
             self = @
-            console.log "getting data"
             # Pass the title and the story body into calais
             $.get "./calais.php",
                 content: story_string
@@ -110,10 +108,11 @@ $ ->
             @
         formCalaisAndPlot: (fullstory, calaisjson, i) ->
             calaisObj = _.extend {}, fullstory
+            cc fullstory
             calaisObj.latitude = calaisjson[i].resolutions[0].latitude
             calaisObj.longitude = calaisjson[i].resolutions[0].longitude
             # Set the date in order to make the range slider
-            calaisObj.date = new Date calaisjson.doc.info.docDate
+            calaisObj.date = new Date(calaisjson.doc.info.docDate)
             # It's a valid story - push it
             @get("articles").add article = new models.Article(calaisObj)
             # Plot the story en el mapa

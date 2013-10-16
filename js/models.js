@@ -70,6 +70,7 @@
             return false;
           }
           _.each(json.responseData.results, function(story) {
+            story.date = story.publishedDate;
             return self.getCalaisData(story, story.titleNoFormatting + story.content, self.formCalaisAndPlot);
           });
           return self.getGoogleNews(query, start + 32, done);
@@ -95,15 +96,12 @@
             _.each(stories, function(story) {
               return self.getCalaisData(story, story.title + story.abstract, self.formCalaisAndPlot);
             });
-            cc(start);
-            if (start < 0) {
-              self.getYahooNews(query, start + 50, done);
+            if (start <= 1000) {
+              return self.getYahooNews(query, start + 50, done);
             } else if (done != null) {
-              done(query, 0, null);
+              return done(query, 0, null);
             }
-            return;
-          }
-          if (done != null) {
+          } else if (done != null) {
             return done(query, 0, null);
           }
         });
@@ -112,7 +110,6 @@
       getCalaisData: function(story, story_string, callback) {
         var self;
         self = this;
-        console.log("getting data");
         $.get("./calais.php", {
           content: story_string
         }, function(data) {
@@ -134,6 +131,7 @@
       formCalaisAndPlot: function(fullstory, calaisjson, i) {
         var article, calaisObj;
         calaisObj = _.extend({}, fullstory);
+        cc(fullstory);
         calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
         calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
         calaisObj.date = new Date(calaisjson.doc.info.docDate);

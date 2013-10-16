@@ -48,8 +48,12 @@
         return this;
       },
       events: {
-        "change .news-search": function() {
-          return this.$(".go").trigger("click");
+        "keydown .news-search": function(e) {
+          var key;
+          key = e.keyCode || e.which;
+          if (key === 13) {
+            return this.$(".go").trigger("click");
+          }
         },
         "click .go": function() {
           var self;
@@ -57,7 +61,8 @@
           this.model.trigger("loading");
           return this.model.getGoogleNews(this.$(".news-search").val(), 0, function(query, start, done) {
             return self.model.getYahooNews(query, start, function(query, start, done) {
-              return window.destroyModal();
+              window.destroyModal();
+              return self.timeline.render();
             });
           });
         },
@@ -75,9 +80,10 @@
         var content, loader;
         loader = $("<img/>").addClass("loader").attr("src", "assets/images/loader.gif");
         content = _.template($("#main-loading-message").html(), {});
-        return window.launchModal($("<div/>").append(content).append(loader), {
+        window.launchModal($("<div/>").append(content).append(loader), {
           close: false
         });
+        return this;
       }
     });
     window.views.MapInstanceList = Backbone.View.extend({
@@ -146,7 +152,6 @@
         cc(this.$el);
         _.bindAll(this, "render", "appendChild");
         return this.listenTo(this.collection, "add", function(model) {
-          "appending new article";
           return self.appendChild(model);
         });
       },
@@ -171,16 +176,19 @@
     });
     window.views.Timeline = Backbone.View.extend({
       el: 'footer',
+      speeds: {
+        forward: 32,
+        back: 32
+      },
+      dir: "forward",
+      min: new Date,
+      max: new Date(0),
       initialize: function() {
         var self, update_val;
         self = this;
         this.map = this.options.map;
-        this.min = new Date;
-        this.max = new Date(0);
-        this.speed = 32;
-        _.bindAll(this, "updateMinMax", "incrementValue", "updateHandles", "play");
+        _.bindAll(this, "updateMinMax", "changeValue", "updateHandles", "play");
         this.listenTo(this.collection, "add", function(model) {
-          self.addMarker(model);
           self.updateMinMax(model);
           return self.updateHandles();
         });
@@ -207,29 +215,39 @@
       render: function() {
         var self;
         self = this;
-        _.each(collection.models, function(article) {
-          return self.addMarker(model);
+        _.each(this.collection.models, function(article) {
+          if ((article.get("latitude") != null) && (article.get("longitude") != null)) {
+            return self.addMarker(article);
+          }
         });
         return this;
       },
       addMarker: function(model) {
-        var view;
+        var pos, view;
+        cc("appending a RED MARKR ONTO TIMELINE");
+        cc(model.get("date").getTime());
+        pos = model.get("date").getTime();
         view = new views.TimelineMarker({
-          model: model
+          model: model,
+          left: pos / this.max
         });
-        this.$el.append(view.render().el);
+        this.$(".slider-wrap").append(view.render().el);
+        cc(view.render().el);
         return this;
       },
       play: function() {
-        var $timeline, hi, increment, lo, values;
+        var $timeline, dir, hi, inc, lo, values;
         $timeline = this.$timeline;
         values = $timeline.slider("values");
         lo = values[0];
         hi = values[1];
         this.isPlaying = true;
-        this.savedHi = hi;
-        increment = Math.ceil(Math.abs((hi - lo) / 300));
-        this.incrementValue(lo, this.savedHi || hi, increment);
+        dir = this.dir === "forward" ? 1 : -1;
+        inc = dir * Math.ceil(Math.abs((hi - lo) / 300));
+        cc(this.speeds[this.dir]);
+        this.changeValue(lo, hi, inc, function(lo, hi) {
+          return lo <= hi;
+        });
         return this;
       },
       stop: function() {
@@ -237,19 +255,19 @@
         this.$(".js-pause-timeline").trigger("switch");
         return this;
       },
-      incrementValue: function(lo, hi, increment) {
+      changeValue: function(lo, hi, increment, comparator) {
         var self;
         self = this;
         window.setTimeout(function() {
           var newlo;
-          if (lo <= hi && self.isPlaying === true) {
+          if (comparator(lo, hi) === true && self.isPlaying === true) {
             newlo = lo + increment;
             self.$timeline.slider("values", 1, newlo);
-            return self.incrementValue(newlo, hi, increment);
+            return self.changeValue(newlo, hi, increment, comparator);
           } else {
             return self.stop();
           }
-        }, this.speed);
+        }, this.speeds[this.dir]);
         return this;
       },
       updateMinMax: function(model) {
@@ -259,7 +277,6 @@
         }
         cc("updaing min max");
         date = model.get("date");
-        cc("with" + date);
         if (date < this.min) {
           this.min = date;
         } else if (date > this.max) {
@@ -285,6 +302,28 @@
         });
         return this;
       },
+      setSpeed: function(dir) {
+        var rel, speed;
+        rel = Math.pow(2, 5);
+        speed = this.speeds[dir];
+        if (speed > 1) {
+          speed /= 2;
+        } else {
+          speed = 32;
+        }
+        this.speeds[dir] = speed;
+        this.dir = dir;
+        return rel / speed;
+      },
+      renderSpeed: function(e) {
+        var $t, speed;
+        if (e != null) {
+          $t = $(e.currentTarget);
+          speed = this.setSpeed($t.attr("dir" || "forward"));
+          $t.attr("speed", speed + "x");
+          return $t.addClass("selected").siblings(".js-speed-control").removeClass("selected");
+        }
+      },
       events: {
         "click .js-play-timeline": function(e) {
           $(e.currentTarget).removeClass("js-play-timeline").addClass("js-pause-timeline");
@@ -299,26 +338,23 @@
         "switch .js-pause-timeline": function(e) {
           return $(e.currentTarget).removeClass("js-pause-timeline").addClass("js-play-timeline");
         },
-        "click .js-fast-forward": function(e) {
-          var $t, rel, speed;
-          rel = Math.pow(2, 5);
-          cc(rel);
-          $t = $(e.currentTarget);
-          speed = this.speed;
-          cc(speed);
-          if (speed > 1) {
-            speed /= 2;
-          } else {
-            speed = 32;
-          }
-          $t.attr("speed", (rel / speed) + "x");
-          this.speed = speed;
-          return this;
+        "click .js-fast-forward": "renderSpeed",
+        "click .js-rewind": "renderSpeed",
+        "mouseover .timeline-controls li": function(e) {
+          var $t;
+          return $t = $(e.currentTarget);
         }
       }
     });
     window.views.TimelineMarker = Backbone.View.extend({
-      className: '.timeline-marker'
+      className: 'timeline-marker',
+      render: function() {
+        var num;
+        num = this.options.left || (Math.random() * 100);
+        console.log("putting marker at " + num);
+        this.$el.css('left', (num * 100) + "%");
+        return this;
+      }
     });
     return AllMapsView = new window.views.MapInstanceList({
       collection: AllMaps

@@ -36,14 +36,18 @@ $ ->
           inlier.setMap self.mapObj.map
       @
     events:
-      "change .news-search": ->
-        @$(".go").trigger "click"
+      "keydown .news-search": (e) ->
+        key = e.keyCode || e.which
+        if key == 13
+          @$(".go").trigger "click"
       "click .go": ->
         self = @
         @model.trigger "loading"
         @model.getGoogleNews @$(".news-search").val(), 0, (query, start, done) ->
            self.model.getYahooNews query, start, (query, start, done) ->
               window.destroyModal()
+              # Now that we have all of the dates set, render the markers proportionally
+              self.timeline.render()
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"
@@ -57,7 +61,7 @@ $ ->
       loader = $("<img/>").addClass("loader").attr("src", "assets/images/loader.gif")
       content = _.template $("#main-loading-message").html(), {}
       window.launchModal $("<div/>").append(content).append(loader), close: false
-
+      @
   # The view for all instances of saved maps, a list of tabs perhaps
   window.views.MapInstanceList = Backbone.View.extend
     el: ".map-instance-list"
@@ -116,7 +120,6 @@ $ ->
       cc @$el
       _.bindAll @, "render", "appendChild"
       @listenTo @collection, "add", (model) ->
-        "appending new article"
         self.appendChild model
     appendChild:(model) ->
       view = new views.Article model: model
@@ -132,17 +135,18 @@ $ ->
 
   window.views.Timeline = Backbone.View.extend
     el: 'footer'
+    speeds:{ forward : 32, back : 32}
+    dir: "forward"
+    min: new Date
+    max: new Date 0
     initialize: ->
       self = @
       @map = @options.map
-      @min = new Date
-      @max = new Date 0
-      @speed = 32
-      _.bindAll @,  "updateMinMax", "incrementValue", "updateHandles", "play"
+      _.bindAll @,  "updateMinMax", "changeValue", "updateHandles", "play"
       @listenTo @collection, "add", (model) ->
-        self.addMarker model
         self.updateMinMax model
         self.updateHandles()
+      # callback to run each time the timeline is changed
       update_val = (e, ui) ->
         handle = $ ui.handle
         pos = handle.index() - 1
@@ -164,13 +168,19 @@ $ ->
       @
     render: ->
       self = @
-      _.each collection.models, (article) ->
-        self.addMarker model
+      _.each @collection.models, (article) ->
+        if article.get("latitude")? and article.get("longitude")?
+          self.addMarker article
       @
     addMarker: (model) ->
       cc "appending a RED MARKR ONTO TIMELINE"
-      view = new views.TimelineMarker model: model
-      @$el.append(view.render().el)
+      cc model.get("date").getTime()
+      # Get the article's position in the range 
+      pos = model.get("date").getTime()
+      # Calculate a percentage for the article and pass into marker view
+      view = new views.TimelineMarker model: model, left: pos/@max
+      @$(".slider-wrap").append(view.render().el)
+      cc view.render().el
       @
     play: ->
       $timeline = @$timeline
@@ -178,33 +188,33 @@ $ ->
       lo = values[0]
       hi = values[1]
       @isPlaying = true
-      @savedHi = hi
-      # get the increment value
-      increment = Math.ceil(Math.abs (hi - lo)/300)
+      dir = if @dir == "forward" then 1 else -1
       # start the tree
-      @incrementValue lo, (@savedHi || hi), increment 
+      inc = dir*Math.ceil(Math.abs (hi - lo)/300)
+      cc @speeds[@dir]
+      @changeValue lo, hi, inc, (lo, hi) ->
+        lo <= hi
       @
     stop: ->
       @isPlaying = false
       @$(".js-pause-timeline").trigger "switch"
       @
     # Recursive function animates slider to auto play!
-    incrementValue: (lo, hi, increment) ->
+    changeValue: (lo, hi, increment, comparator) ->
       self = @
       window.setTimeout ->
-        if lo <= hi and self.isPlaying is true
+        if comparator(lo, hi) is true and self.isPlaying is true
           newlo = lo + increment
           self.$timeline.slider("values", 1, newlo)
-          self.incrementValue newlo, hi, increment
+          self.changeValue newlo, hi, increment, comparator
         else
           self.stop()
-      , @speed
+      , @speeds[@dir]
       @
     updateMinMax: (model) ->
       if !model? then return @
       cc "updaing min max"
       date = model.get "date"
-      cc "with" + date
       if date < @min
         @min = date
       else if date > @max
@@ -226,6 +236,21 @@ $ ->
       $timeline.slider("values", 1, maxdate)
       $timeline.slider("option", min: mindate, max: maxdate)
       @
+    setSpeed: (dir) ->
+        rel = Math.pow 2, 5 # 32, min speed ratio
+        speed = @speeds[dir]
+        if speed > 1
+          speed /= 2
+        else speed = 32
+        @speeds[dir] = speed
+        @dir = dir
+        rel / speed
+    renderSpeed: (e)->
+      if e?
+        $t = $ e.currentTarget
+        speed = @setSpeed($t.attr "dir" || "forward")
+        $t.attr "speed", speed + "x"
+        $t.addClass("selected").siblings(".js-speed-control").removeClass "selected"
     events: 
       "click .js-play-timeline": (e) ->
         $(e.currentTarget).removeClass("js-play-timeline").addClass "js-pause-timeline"
@@ -236,25 +261,19 @@ $ ->
         @stop()
       "switch .js-pause-timeline": (e) ->
         $(e.currentTarget).removeClass("js-pause-timeline").addClass "js-play-timeline"
-      "click .js-fast-forward": (e)->
-        rel = Math.pow 2, 5 # 32, min speed ratio
-        cc rel
+      "click .js-fast-forward": "renderSpeed"
+      "click .js-rewind": "renderSpeed"
+      "mouseover .timeline-controls li": (e) ->
         $t = $ e.currentTarget
-        speed = @speed
-        cc speed
-        if speed > 1
-          speed /= 2
-        else speed = 32
-        $t.attr "speed", (rel / speed) + "x"
-        @speed = speed
-        @
-
 
 
   window.views.TimelineMarker = Backbone.View.extend
-    className: '.timeline-marker'
+    className: 'timeline-marker'
     render: ->
+      num = @options.left || (Math.random() * 100)
+      console.log "putting marker at " + num
+      @$el.css('left', (num*100) + "%")
+      @
 
 
-
-  AllMapsView = new window.views.MapInstanceList({collection: AllMaps})
+  AllMapsView = new window.views.MapInstanceList collection: AllMaps
