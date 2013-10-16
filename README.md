@@ -2,11 +2,16 @@ Installing and running Flask
 ============================
 If you're on a Mac, run - 
 
-`sudo easy_install pip 
+`sudo easy_install pip
+
 sudo pip install Flask
+
 sudo pip install SQLAlchemy
+
 sudo pip install Flask-SQLAlchemy
+
 cd SMBackend
+
 python run.py`
 
 else abort() // And by that I mean google it
