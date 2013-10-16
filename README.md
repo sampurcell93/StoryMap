@@ -24,5 +24,8 @@ _Conventions_: Keeping with the best practices of the day, it will make everyone
 1. Make modules. If you find yourself writing SCSS that is all kinda unified but not really in any previously defined category, make a new file in assets/sass like "_filename.scss" and import it. It'll help organization immensely.
 2. Includes go at the top of the block.
 
+## Python/Flask
+1. Backend is in python running the flask framework for a fully restful interface
+
 
 Stay thirsty, my friends.
