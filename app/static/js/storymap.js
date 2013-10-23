@@ -13,20 +13,19 @@
     return this;
   };
 
-  window.GoogleMap.prototype.plotStory = function(story) {
+  window.GoogleMap.prototype.plot = function(story) {
     var display, j, marker, that;
     j = story.toJSON();
+    cc(j);
     if (!(typeof j.latitude === "undefined" || j.longitude === "undefined")) {
       marker = new views.MapMarker({
         model: story
       });
       display = marker.render().$el.html();
       marker = marker.marker;
-      cc(marker);
-      cc(display);
       this.markers.push(marker);
       marker.setMap(this.map);
-      story.set("marker", marker);
+      story.marker = marker;
       that = this;
       google.maps.event.addListener(marker, "click", function() {
         that.infowindow.setContent(display);

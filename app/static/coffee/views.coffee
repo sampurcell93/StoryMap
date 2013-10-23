@@ -1,14 +1,13 @@
 $ ->
 
   window.views = {}
-  AllMaps = window.AllMaps
 
   # The view for a single instance of a map, that is, the full view with controllers, et cetera
   window.views.MapItem = Backbone.View.extend
     tagName: 'section'
     template: $("#map-instance").html()
     initialize: ->
-      _.bindAll @, "render", "afterAppend", "toggleMarkers"
+      _.bindAll @, "render", "afterAppend", "toggleMarkers", "search"
       # Two way model view binding
       self = @
       @model.instance = @
@@ -35,19 +34,35 @@ $ ->
         unless inlier.getMap()?
           inlier.setMap self.mapObj.map
       @
+    search: (query) ->
+      self = @
+      @model.trigger "loading"
+      @model.getGoogleNews query , 0, (query, start, done) ->
+         self.model.getYahooNews query, start, (query, start, done) ->
+            articles = self.model.get("articles")
+            _.each articles.models, (article, i) ->
+                story = article.toJSON()
+                unless i + 1 == articles.length
+                  self.model.getCalaisData story, story.title + story.abstract, (story, coords) ->
+                    self.model.attachCoordinates story, coords
+                    cc "about to call plot"
+                    self.model.plot article
+                else 
+                  self.model.getCalaisData story, story.title + story.abstract, (story, coords) ->
+                    self.model.attachCoordinates story, coords
+                    self.model.plot article
+                    self.timeline.render()
+
+            window.destroyModal()
+            # Now that we have all of the dates set, render the markers proportionally
+            self.timeline.render()
     events:
       "keydown .news-search": (e) ->
         key = e.keyCode || e.which
-        if key == 13
-          @$(".go").trigger "click"
-      "click .go": ->
-        self = @
-        @model.trigger "loading"
-        @model.getGoogleNews @$(".news-search").val(), 0, (query, start, done) ->
-           self.model.getYahooNews query, start, (query, start, done) ->
-              window.destroyModal()
-              # Now that we have all of the dates set, render the markers proportionally
-              self.timeline.render()
+        val = $(e.currentTarget).val()
+        if key == 13 then @model.checkExistingQuery(val, @search)
+      "click .go": (e) ->
+        @model.checkExistingQuery( @$(".news-search").val() , @search)
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"
@@ -58,9 +73,8 @@ $ ->
     # Rets: this
     # desc: creates a UI overlay so users can't tamper with stuff when it's loading
     createLoadingOverlay: ->
-      loader = $("<img/>").addClass("loader").attr("src", "assets/images/loader.gif")
       content = _.template $("#main-loading-message").html(), {}
-      window.launchModal $("<div/>").append(content).append(loader), close: false
+      window.launchModal $("<div/>").append(content), close: false
       @
   # The view for all instances of saved maps, a list of tabs perhaps
   window.views.MapInstanceList = Backbone.View.extend
@@ -117,7 +131,6 @@ $ ->
         cc @collection
     initialize: ->
       self = @
-      cc @$el
       _.bindAll @, "render", "appendChild"
       @listenTo @collection, "add", (model) ->
         self.appendChild model
@@ -137,8 +150,8 @@ $ ->
     el: 'footer'
     speeds:{ forward : 32, back : 32}
     dir: "forward"
-    min: new Date
-    max: new Date 0
+    min: new Date 0
+    max: new Date
     initialize: ->
       self = @
       @map = @options.map
@@ -174,13 +187,11 @@ $ ->
       @
     addMarker: (model) ->
       cc "appending a RED MARKR ONTO TIMELINE"
-      cc model.get("date").getTime()
       # Get the article's position in the range 
       pos = model.get("date").getTime()
       # Calculate a percentage for the article and pass into marker view
       view = new views.TimelineMarker model: model, left: pos/@max
       @$(".slider-wrap").append(view.render().el)
-      cc view.render().el
       @
     play: ->
       $timeline = @$timeline
@@ -213,15 +224,15 @@ $ ->
       @
     updateMinMax: (model) ->
       if !model? then return @
-      cc "updaing min max"
+      cc "updating min max"
       date = model.get "date"
       if date < @min
         @min = date
-      else if date > @max
+      if date > @max
         @max = date
-      else return @
       @
     updateHandles: ->
+      cc "updating handles"
       # cache the timeline obj
       $timeline = @$timeline
       # get handles and set their display data to clean dates
@@ -277,7 +288,7 @@ $ ->
 
 
   # Instantiate new collection of all maps
-  AllMaps = new collections.Maps()
+  AllMaps = window.AllMaps = new collections.Maps()
   # # Get all existing maps from server
   # window.AllMaps.fetch 
   #     success: (collection, response) ->

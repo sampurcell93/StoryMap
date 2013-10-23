@@ -3,7 +3,8 @@ $ ->
     window.collections = {}
 
     ### Data Models ###
-    window.models.Article = Backbone.Model.extend()
+    window.models.Article = Backbone.Model.extend
+        idAttribute: 'title'
     window.collections.Articles = Backbone.Collection.extend
         model: models.Article
         initialize: (opts) ->
@@ -17,8 +18,10 @@ $ ->
             outrange = []
             # console.log @get("articles").models
             _.each @models, (article) ->
-                date = article.get("date").getTime()
-                marker = article.get("marker")
+                date = article.get("date")
+                if date instanceof Date == false
+                    date = new Date date
+                marker = article.marker
                 if marker?
                     if date < hidate and date > lodate
                         inrange.push marker
@@ -36,10 +39,31 @@ $ ->
                 markers: []
                 articles: articles
             }
+        external_url: '/externalNews'
         initialize: ->
-            _.bindAll @, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews"
+            _.bindAll @, "attachCoordinates", "getCalaisData", "getGoogleNews", "getYahooNews", "addArticle", "plot"
+        checkExistingQuery: (query, callback) ->
+            callback query
+        # desc: takes an object (not a model) and formats its attributes by mapping the keys in the map to the 
+        # rets: the formatted article, with all key mappings
+        format: (article, map) ->
+            _.each map, (val, key) ->
+                unless typeof val == "function"
+                    article[key] = article[val]
+                else
+                    article[key] = val.call(this)
+            article
+        # desc: checks if a story has been looked at by seeing if its title exists in the hashtable
+        # If new, add it to collection
+        # ret: this
+        addArticle: (story, opts) ->
+            articles = @get("articles")
+            unless articles._byId.hasOwnProperty(story.title)
+                options = _.extend {}, opts
+                articles.add new models.Article(@format(story, options.map)), options
+            @
         # desc: Issues a request to a curl script, retrieving google news stories
-        # args: the query, the start index of to search (0-56), and the done callback
+        # args: the query, the start index to search (0-56), and the done callback
         # rets: this
         # A note on infinitely chained callback sequences - 
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
@@ -47,8 +71,9 @@ $ ->
         getGoogleNews: (query, start, done) ->
             if !query? then return false
             self = @
-            $.get "/googleNews",
-                q: query.toLowerCase()
+            $.get @external_url, obj =
+                source: 'google'
+                q: encodeURIComponent query.toLowerCase()
                 start: start
             , (data) ->
                 # parse the json
@@ -60,16 +85,17 @@ $ ->
                     return false
                 # Get location data from OpenCalais for each story item
                 _.each json.responseData.results, (story) ->
-                    story.date = story.publishedDate
-                    self.getCalaisData  story, story.titleNoFormatting + story.content, self.formCalaisAndPlot
+                    self.addArticle story, map: date: 'publishedDate'
+                        
                 self.getGoogleNews query, start + 32, done
             @
         getYahooNews: (query, start, done) ->
             # cc "Getting Yahoo " + query + " " + start
             if !query? then return false
             self = @
-            $.get "/yahooNews",
-                q: query.toLowerCase()
+            $.get @external_url,
+                source: 'yahoo'
+                q: encodeURIComponent query.toLowerCase()
                 start: start
             , (data) ->
                 response = JSON.parse(data)
@@ -79,43 +105,50 @@ $ ->
                 # unless there are no stories, plot the stories
                 unless !stories?
                     _.each stories, (story) ->
-                        self.getCalaisData story, story.title + story.abstract, self.formCalaisAndPlot
-                    # 1000 is the length of results returned by Yahoo, so once we hit that, execute any callback for new data
+                        console.log story
+                        self.addArticle story, map: content: 'abstract', date: -> new Date(parseInt(story.date))
+                    # 1000 is the length of results returned by Yahoo
+                    # if start <= 1000
                     if start <= 1000
                         self.getYahooNews query, start + 50, done
                     else if done? then done query, 0, null
-                # if there were no stories and there is a callback, execute it.
                 else if done? then done query, 0 , null
             @
         getCalaisData: (story, story_string, callback) ->
             self = @
             # Pass the title and the story body into calais
-            $.get "./calais.php",
+            $.get "/calais",
                 content: story_string
-            , (data) ->
-                cc "returning from calais"
+            , (calaisjson) ->
                 # parse the response object
-                calaisjson = JSON.parse(data)
-                unless calaisjson? then return
-                # Check each property of the returned calais object
-                for i of calaisjson
-                  # If it contains a "resolutions" key, it has latitude and longitude
-                  if calaisjson[i].hasOwnProperty("resolutions")
-                    callback(story, calaisjson, i)
-                    break
+                cc "calais return"
+                unless !calaisjson?
+                    # Check each property of the returned calais object
+                    _.each calaisjson.entities, (entity) ->
+                      # If it contains a "resolutions" key, it has latitude and longitude
+                      if entity.hasOwnProperty("resolutions")
+                        breakval = true
+                        _.each entity.resolutions, (coords) ->
+                            if coords.latitude? and coords.longitude? 
+                                cc "coords found"
+                                callback story, {latitude: coords.latitude, longitude: coords.longitude}
+                                return breakval = false
+                            true
+                        breakval
                 return
             @
-        formCalaisAndPlot: (fullstory, calaisjson, i) ->
-            calaisObj = _.extend {}, fullstory
-            cc fullstory
-            calaisObj.latitude = calaisjson[i].resolutions[0].latitude
-            calaisObj.longitude = calaisjson[i].resolutions[0].longitude
-            # Set the date in order to make the range slider
-            calaisObj.date = new Date(calaisjson.doc.info.docDate)
-            # It's a valid story - push it
-            @get("articles").add article = new models.Article(calaisObj)
-            # Plot the story en el mapa
-            @get("map").plotStory article
+        # args: plain article object or model (will find correct model if plain obj) and lat long object
+        # rets: the story with coords added in
+        attachCoordinates: (article, coords) ->
+            if article instanceof models.Article == false
+                article = @get("articles")._byId[article.title]
+            console.log coords
+            console.log article
+            _.extend article.attributes, coords
+            article
+        plot: (article) ->
+            cc "plotting"
+            @get("map").plot article
             @
 
     # The global collection of all maps for a user, 

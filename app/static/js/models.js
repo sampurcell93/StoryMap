@@ -5,7 +5,9 @@
     window.collections = {};
     /* Data Models*/
 
-    window.models.Article = Backbone.Model.extend();
+    window.models.Article = Backbone.Model.extend({
+      idAttribute: 'title'
+    });
     window.collections.Articles = Backbone.Collection.extend({
       model: models.Article,
       initialize: function(opts) {
@@ -22,8 +24,11 @@
         outrange = [];
         _.each(this.models, function(article) {
           var date, marker;
-          date = article.get("date").getTime();
-          marker = article.get("marker");
+          date = article.get("date");
+          if (date instanceof Date === false) {
+            date = new Date(date);
+          }
+          marker = article.marker;
           if (marker != null) {
             if (date < hidate && date > lodate) {
               return inrange.push(marker);
@@ -48,17 +53,41 @@
           articles: articles
         };
       },
+      external_url: '/externalNews',
       initialize: function() {
-        return _.bindAll(this, "formCalaisAndPlot", "getCalaisData", "getGoogleNews", "getYahooNews");
+        return _.bindAll(this, "attachCoordinates", "getCalaisData", "getGoogleNews", "getYahooNews", "addArticle", "plot");
+      },
+      checkExistingQuery: function(query, callback) {
+        return callback(query);
+      },
+      format: function(article, map) {
+        _.each(map, function(val, key) {
+          if (typeof val !== "function") {
+            return article[key] = article[val];
+          } else {
+            return article[key] = val.call(this);
+          }
+        });
+        return article;
+      },
+      addArticle: function(story, opts) {
+        var articles, options;
+        articles = this.get("articles");
+        if (!articles._byId.hasOwnProperty(story.title)) {
+          options = _.extend({}, opts);
+          articles.add(new models.Article(this.format(story, options.map)), options);
+        }
+        return this;
       },
       getGoogleNews: function(query, start, done) {
-        var self;
+        var obj, self;
         if (query == null) {
           return false;
         }
         self = this;
-        $.get("/googleNews", {
-          q: query.toLowerCase(),
+        $.get(this.external_url, obj = {
+          source: 'google',
+          q: encodeURIComponent(query.toLowerCase()),
           start: start
         }, function(data) {
           var json;
@@ -70,8 +99,11 @@
             return false;
           }
           _.each(json.responseData.results, function(story) {
-            story.date = story.publishedDate;
-            return self.getCalaisData(story, story.titleNoFormatting + story.content, self.formCalaisAndPlot);
+            return self.addArticle(story, {
+              map: {
+                date: 'publishedDate'
+              }
+            });
           });
           return self.getGoogleNews(query, start + 32, done);
         });
@@ -83,8 +115,9 @@
           return false;
         }
         self = this;
-        $.get("/yahooNews", {
-          q: query.toLowerCase(),
+        $.get(this.external_url, {
+          source: 'yahoo',
+          q: encodeURIComponent(query.toLowerCase()),
           start: start
         }, function(data) {
           var response, stories;
@@ -94,7 +127,15 @@
           }
           if (!(stories == null)) {
             _.each(stories, function(story) {
-              return self.getCalaisData(story, story.title + story.abstract, self.formCalaisAndPlot);
+              console.log(story);
+              return self.addArticle(story, {
+                map: {
+                  content: 'abstract',
+                  date: function() {
+                    return new Date(parseInt(story.date));
+                  }
+                }
+              });
             });
             if (start <= 1000) {
               return self.getYahooNews(query, start + 50, done);
@@ -110,33 +151,45 @@
       getCalaisData: function(story, story_string, callback) {
         var self;
         self = this;
-        $.get("./calais.php", {
+        $.get("/calais", {
           content: story_string
-        }, function(data) {
-          var calaisjson, i;
-          cc("returning from calais");
-          calaisjson = JSON.parse(data);
-          if (calaisjson == null) {
-            return;
-          }
-          for (i in calaisjson) {
-            if (calaisjson[i].hasOwnProperty("resolutions")) {
-              callback(story, calaisjson, i);
-              break;
-            }
+        }, function(calaisjson) {
+          cc("calais return");
+          if (!(calaisjson == null)) {
+            _.each(calaisjson.entities, function(entity) {
+              var breakval;
+              if (entity.hasOwnProperty("resolutions")) {
+                breakval = true;
+                _.each(entity.resolutions, function(coords) {
+                  if ((coords.latitude != null) && (coords.longitude != null)) {
+                    cc("coords found");
+                    callback(story, {
+                      latitude: coords.latitude,
+                      longitude: coords.longitude
+                    });
+                    return breakval = false;
+                  }
+                  return true;
+                });
+                return breakval;
+              }
+            });
           }
         });
         return this;
       },
-      formCalaisAndPlot: function(fullstory, calaisjson, i) {
-        var article, calaisObj;
-        calaisObj = _.extend({}, fullstory);
-        cc(fullstory);
-        calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
-        calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
-        calaisObj.date = new Date(calaisjson.doc.info.docDate);
-        this.get("articles").add(article = new models.Article(calaisObj));
-        this.get("map").plotStory(article);
+      attachCoordinates: function(article, coords) {
+        if (article instanceof models.Article === false) {
+          article = this.get("articles")._byId[article.title];
+        }
+        console.log(coords);
+        console.log(article);
+        _.extend(article.attributes, coords);
+        return article;
+      },
+      plot: function(article) {
+        cc("plotting");
+        this.get("map").plot(article);
         return this;
       }
     });

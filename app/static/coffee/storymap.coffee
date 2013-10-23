@@ -20,20 +20,18 @@ window.GoogleMap = ( model ) ->
 # Plot a single story on the map
 # args: an article model
 # rets: map obj
-window.GoogleMap::plotStory = (story) ->
+window.GoogleMap::plot = (story) ->
   j = story.toJSON()
+  cc j
   unless typeof j.latitude == "undefined" or j.longitude == "undefined"
     # A simple display string
     marker = new views.MapMarker model: story
     display = marker.render().$el.html()
     marker = marker.marker
-    cc marker
-    cc display
-
     # Push the marker to tha array
     @markers.push marker
     marker.setMap @map
-    story.set "marker", marker
+    story.marker = marker
     that = @
     # On click, show data
     google.maps.event.addListener marker, "click", ->

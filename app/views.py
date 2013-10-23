@@ -1,3 +1,4 @@
+from pprint import pprint
 from app import app, models, db
 import datetime
 import flask
@@ -11,6 +12,7 @@ import urllib
 import urllib2
 import httplib2
 from sqlalchemy.exc import IntegrityError
+from calais import Calais
 
 views = "./views"
 
@@ -233,7 +235,7 @@ def stories():
 def getStory(id):
     story = models.Stories.query.get(id)
     if (story is None):
-        return 'Story does not exist'
+        return flask.jsonify()
     return flask.jsonify(story=to_json(story))
 
 # Create a new story ##
@@ -294,7 +296,13 @@ def addStoriesToQuery():
     db.session.commit()
     return 'Success!\n'
 
-@app.route("/googleNews", methods=["GET"])
+@app.route("/externalNews", methods=['GET'])
+def getNews():
+    sources = {
+        'google': googleNews,
+        'yahoo': yahooNews,
+    }
+    return sources[request.args['source']]()
 def googleNews():
     # Query and offset of stories
     query = request.args['q']
@@ -307,8 +315,6 @@ def googleNews():
     # Issue request
     res = urllib2.urlopen(req)
     return res.read()
-
-@app.route("/yahooNews", methods=["GET"])
 def yahooNews():
     URL = "http://yboss.yahooapis.com/ysearch/news"
     OAUTH_CONSUMER_KEY = "dj0yJmk9RHp0ckM1NnRMUmk1JmQ9WVdrOVdUbHdOMkZLTTJVbWNHbzlNakV5TXpReE1EazJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD0xMg--"
@@ -328,3 +334,11 @@ def yahooNews():
     complete_url = oauth_request.to_url()
     response = urllib.urlopen(complete_url)
     return response.read()
+
+@app.route("/calais")
+def calais():
+    key = "c3wjfrkfmrsft3r5wgxm5skr"
+    calais = Calais(key, submitter="Sam Purcell")
+    print request.args['content'].encode("utf-8")
+    resp = vars(calais.analyze(request.args['content'].encode("utf-8")))
+    return flask.jsonify(**resp)

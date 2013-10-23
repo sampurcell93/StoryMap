@@ -9,7 +9,6 @@
   </head>
   <body>
     {% for item in [1,2,3,4] %}
-        <!-- <li><a href="{{ item.href }}">{{ item }}</a></li> -->
     {% endfor %}
     <div class="map-instance-list">
       <script type='text/template' id='map-instance'>
@@ -38,29 +37,7 @@
         </footer>
       </script>
     </div> <!-- end large container -->
-    <script type="text/template" id="article-item">
-    <span class='article-title'><%= title %></span>
-</script>
-<script type="text/template" id='storymarker'>
-  <% var u = "undefined" %>
-  <h3>
-    <a target='_blank' href='" + <%= typeof unescapedUrl !== u ? unescapedUrl : "" %> + "'><%= title %></a>
-  </h3>
-  <p><%= typeof content !== u ? content : "Sorry, we don't have a snippet here" %></p>
-</script>
-<script type="text/template" id='main-loading-message'>
-    <h2 class='center'>Fetching....</h2>
-    <p class='center p10 message'>We are currently pulling news stories together from all over the internet and finding out where they occurred. Hold your horses!</p>
-</script>
-    <script type='text/javascript' src='static/js/jquery.js'></script>
-    <script type='text/javascript' src='static/js/jqueryui.js'></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoS1bfOyPBTbYH1GhtD4xRs9XrT17nGwg&sensor=true"></script>
-    <script type='text/javascript' src='static/js/underscore.js'></script>
-    <script type='text/javascript' src='static/js/backbone.js'></script>
-    <script type='text/javascript' src='static/js/general.js'></script>
-    <script type='text/javascript' src='static/js/routes.js'></script>
-    <script type='text/javascript' src='static/js/models.js'></script>
-    <script type='text/javascript' src='static/js/views.js'></script>
-    <script type='text/javascript' src='static/js/storymap.js'></script>
+    {% include "templates.html" %}
+    {% include "scripts.html" %}
   </body>
 </html>
