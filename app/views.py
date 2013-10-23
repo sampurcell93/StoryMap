@@ -338,23 +338,10 @@ def yahooNews():
     response = urllib.urlopen(complete_url)
     return response.read()
 
-<<<<<<< HEAD
-@app.route("/calais")
+@app.route("/calais", methods=['GET'])
 def calais():
     key = "c3wjfrkfmrsft3r5wgxm5skr"
     calais = Calais(key, submitter="Sam Purcell")
     print request.args['content'].encode("utf-8")
     resp = vars(calais.analyze(request.args['content'].encode("utf-8")))
     return flask.jsonify(**resp)
-=======
-@app.route("/calais", methods=['GET'])
-def calais():
-    API_KEY = "c3wjfrkfmrsft3r5wgxm5skr"
-    content = request.args.get("content").encode('utf-8')
-    calais = Calais(API_KEY, submitter="Story Map")
-    result = calais.analyze(content)
-    try:
-        return json.dumps(result.entities)
-    except:
-        return json.dumps({'error':'An error occured'})
->>>>>>> 5aaabbfbfaf563ba165bafd191c9ba9ee0957f9c
