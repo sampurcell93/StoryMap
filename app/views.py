@@ -11,6 +11,8 @@ import oauth.oauth as oauth
 import urllib
 import urllib2
 import httplib2
+import json
+from calais import Calais
 from sqlalchemy.exc import IntegrityError
 from calais import Calais
 
@@ -307,7 +309,8 @@ def googleNews():
     # Query and offset of stories
     query = request.args['q']
     start = request.args['start']
-    url = "https://ajax.googleapis.com/ajax/services/search/news?v=1.0&rsz=8&start=" + start + "&q=" + query
+    data = {'start':start, 'q':query}
+    url = "https://ajax.googleapis.com/ajax/services/search/news?v=1.0&rsz=8&"+urllib.urlencode(data)
     # Curl request headers
     req = urllib2.Request(url)
     req.add_header('Accept', 'application/json')
@@ -335,6 +338,7 @@ def yahooNews():
     response = urllib.urlopen(complete_url)
     return response.read()
 
+<<<<<<< HEAD
 @app.route("/calais")
 def calais():
     key = "c3wjfrkfmrsft3r5wgxm5skr"
@@ -342,3 +346,15 @@ def calais():
     print request.args['content'].encode("utf-8")
     resp = vars(calais.analyze(request.args['content'].encode("utf-8")))
     return flask.jsonify(**resp)
+=======
+@app.route("/calais", methods=['GET'])
+def calais():
+    API_KEY = "c3wjfrkfmrsft3r5wgxm5skr"
+    content = request.args.get("content").encode('utf-8')
+    calais = Calais(API_KEY, submitter="Story Map")
+    result = calais.analyze(content)
+    try:
+        return json.dumps(result.entities)
+    except:
+        return json.dumps({'error':'An error occured'})
+>>>>>>> 5aaabbfbfaf563ba165bafd191c9ba9ee0957f9c
