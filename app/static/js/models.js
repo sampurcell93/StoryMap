@@ -110,7 +110,7 @@
       getCalaisData: function(story, story_string, callback) {
         var self;
         self = this;
-        $.get("./calais.php", {
+        $.get("/calais", {
           content: story_string
         }, function(data) {
           var calaisjson, i;
@@ -134,7 +134,7 @@
         cc(fullstory);
         calaisObj.latitude = calaisjson[i].resolutions[0].latitude;
         calaisObj.longitude = calaisjson[i].resolutions[0].longitude;
-        calaisObj.date = new Date(calaisjson.doc.info.docDate);
+        calaisObj.date = new Date(calaisjson[i].date);
         this.get("articles").add(article = new models.Article(calaisObj));
         this.get("map").plotStory(article);
         return this;

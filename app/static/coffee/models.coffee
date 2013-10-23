@@ -90,7 +90,7 @@ $ ->
         getCalaisData: (story, story_string, callback) ->
             self = @
             # Pass the title and the story body into calais
-            $.get "./calais.php",
+            $.get "/calais",
                 content: story_string
             , (data) ->
                 cc "returning from calais"
@@ -111,7 +111,7 @@ $ ->
             calaisObj.latitude = calaisjson[i].resolutions[0].latitude
             calaisObj.longitude = calaisjson[i].resolutions[0].longitude
             # Set the date in order to make the range slider
-            calaisObj.date = new Date(calaisjson.doc.info.docDate)
+            calaisObj.date = new Date(calaisjson[i].date)
             # It's a valid story - push it
             @get("articles").add article = new models.Article(calaisObj)
             # Plot the story en el mapa
