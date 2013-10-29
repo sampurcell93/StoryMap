@@ -58,13 +58,13 @@
               var story;
               story = article.toJSON();
               if (i + 1 !== articles.length) {
-                return self.model.getCalaisData(story, story.title + story.abstract, function(story, coords) {
+                return self.model.getCalaisData(story, story.title + story.content, function(story, coords) {
                   self.model.attachCoordinates(story, coords);
                   cc("about to call plot");
                   return self.model.plot(article);
                 });
               } else {
-                return self.model.getCalaisData(story, story.title + story.abstract, function(story, coords) {
+                return self.model.getCalaisData(story, story.title + story.content, function(story, coords) {
                   self.model.attachCoordinates(story, coords);
                   self.model.plot(article);
                   return self.timeline.render();
@@ -130,6 +130,21 @@
     window.views.MapMarker = Backbone.View.extend({
       tagName: 'div',
       template: $("#storymarker").html(),
+      initialize: function() {
+        this.map = this.options.map || window.map;
+        return this.listenTo(this.model, {
+          "hide": function() {
+            if (this.marker != null) {
+              return this.marker.setMap(null);
+            }
+          },
+          "show": function() {
+            if (this.marker != null) {
+              return this.marker.setMap(this.map);
+            }
+          }
+        });
+      },
       render: function() {
         var pt, xOff, yOff;
         this.$el.html(_.template(this.template, this.model.toJSON()));
@@ -144,11 +159,21 @@
         return this;
       }
     });
-    window.views.Article = Backbone.View.extend({
+    window.views.ArticleListItem = Backbone.View.extend({
       template: $("#article-item").html(),
       tagName: 'li',
       initialize: function() {
-        return _.bindAll(this, "render");
+        _.bindAll(this, "render");
+        return this.listenTo(this.model, {
+          "hide": function() {
+            console.log("hiding");
+            return this.$el.hide();
+          },
+          "show": function() {
+            console.log("showing");
+            return this.$el.show();
+          }
+        });
       },
       render: function() {
         this.$el.html(_.template(this.template, this.model.toJSON()));
@@ -156,12 +181,13 @@
       },
       events: {
         "click": function() {
-          return cc(this.model);
+          return cc(this.model.toJSON());
         }
       }
     });
     window.views.ArticleList = Backbone.View.extend({
       el: '.all-articles',
+      list: 'ul.article-list',
       events: {
         "click": function() {
           return cc(this.collection);
@@ -177,21 +203,38 @@
       },
       appendChild: function(model) {
         var view;
-        view = new views.Article({
+        view = new views.ArticleListItem({
           model: model
         });
-        this.$el.append(view.render().el);
+        this.$(this.list).append(view.render().el);
         return this;
       },
       render: function() {
         var self;
-        console.log("Rendernd model list");
         self = this;
-        this.$el.empty();
+        this.$(this.list).empty();
         _.each(this.collection.models, function(model) {
           return self.appendChild(model);
         });
         return this;
+      },
+      filter: function(query) {
+        return _.each(this.collection.models, function(article) {
+          var str;
+          str = (article.toJSON().title + article.toJSON().content).toLowerCase();
+          if (str.indexOf(query.toLowerCase()) === -1) {
+            return article.trigger("hide");
+          } else {
+            return article.trigger("show");
+          }
+        });
+      },
+      events: {
+        "keyup .js-filter-articles": function(e) {
+          var $t, val;
+          val = ($t = $(e.currentTarget)).val();
+          return this.filter(val);
+        }
       }
     });
     window.views.Timeline = Backbone.View.extend({
@@ -201,8 +244,8 @@
         back: 32
       },
       dir: "forward",
-      min: new Date(0),
-      max: new Date,
+      min: new Date,
+      max: new Date(0),
       initialize: function() {
         var self, update_val;
         self = this;

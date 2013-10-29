@@ -17,6 +17,12 @@
     Date.prototype.cleanFormat = function() {
       return this.getDate() + "/" + parseInt(this.getMonth() + 1) + "/" + this.getFullYear();
     };
+    String.prototype.stripHTML = function() {
+      var div;
+      div = document.createElement("div");
+      div.innerHTML = this;
+      return div.innerText;
+    };
     $(this).on("click switch", "[data-switch-icon]", function() {
       var $t, curricon, switchicon;
       $t = $(this);

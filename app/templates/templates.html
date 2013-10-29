@@ -1,12 +1,13 @@
 <script type="text/template" id="article-item">
-    <span class='article-title'><%= title %></span>
+    <% var u = "undefined" %>
+    <a class='article-title' target='_blank' href='<%= typeof unescapedUrl !== u ? unescapedUrl : url %>'><%= title %></a>
 </script>
 <script type="text/template" id='storymarker'>
-  <% var u = "undefined" %>
-  <h3>
-    <a target='_blank' href='<%= typeof url !== u ? url : typeof unescapedUrl !== u ? unescapedUrl : "" %>'><%= title %></a>
-  </h3>
-  <p><%= typeof content !== u ? content : "Sorry, we don't have a snippet here" %></p>
+    <% var u = "undefined" %>
+    <h3>
+        <a target='_blank' href='<%= typeof unescapedUrl !== u ? unescapedUrl : url %>'><%= title %></a>
+    </h3>
+    <p><%= typeof content !== u ? content : "Sorry, we don't have a snippet here" %></p>
 </script>
 <script type="text/template" id='main-loading-message'>
     <h2 class='center'>Fetching....</h2>

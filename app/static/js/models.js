@@ -10,6 +10,7 @@
     });
     window.collections.Articles = Backbone.Collection.extend({
       model: models.Article,
+      _byTitle: {},
       initialize: function(opts) {
         if ((opts != null) && opts.parent_map) {
           this.parent_map = opts.parent_map;
@@ -26,7 +27,7 @@
           var date, marker;
           date = article.get("date");
           if (date instanceof Date === false) {
-            date = new Date(date);
+            article.set("date", new Date(date));
           }
           marker = article.marker;
           if (marker != null) {
@@ -71,27 +72,33 @@
         return article;
       },
       addArticle: function(story, opts) {
-        var articles, options;
+        var article, articles, options, title;
         articles = this.get("articles");
-        if (!articles._byId.hasOwnProperty(story.title)) {
+        title = story.title.toLowerCase().stripHTML();
+        if (!articles._byTitle.hasOwnProperty(title)) {
           options = _.extend({}, opts);
-          articles.add(new models.Article(this.format(story, options.map)), options);
+          articles.add(article = new models.Article(this.format(story, options.map)), options);
+          articles._byTitle[title] = article;
+        } else {
+          cc("story exists");
         }
         return this;
       },
       getGoogleNews: function(query, start, done) {
-        var obj, self;
+        var self;
+        console.log(encodeURIComponent(query.toLowerCase()));
         if (query == null) {
           return false;
         }
         self = this;
-        $.get(this.external_url, obj = {
+        $.get(this.external_url, {
           source: 'google',
-          q: encodeURIComponent(query.toLowerCase()),
-          start: start
+          q: query.toLowerCase(),
+          start: start || "0"
         }, function(data) {
           var json;
           json = JSON.parse(data);
+          console.log(json);
           if (json.responseDetails === "out of range start") {
             if (done != null) {
               done(query, 0, null);
@@ -117,22 +124,24 @@
         self = this;
         $.get(this.external_url, {
           source: 'yahoo',
-          q: encodeURIComponent(query.toLowerCase()),
-          start: start
+          q: query.toLowerCase(),
+          start: start || "0"
         }, function(data) {
           var response, stories;
+          cc("returning from yahoo with ");
+          cc(data);
           response = JSON.parse(data);
           if ((response != null) && (response.bossresponse != null) && (response.bossresponse.news != null)) {
             stories = response.bossresponse.news.results;
           }
           if (!(stories == null)) {
             _.each(stories, function(story) {
-              console.log(story);
+              console.log(story.date);
               return self.addArticle(story, {
                 map: {
                   content: 'abstract',
                   date: function() {
-                    return new Date(parseInt(story.date));
+                    return new Date(parseInt(story.date) * 1000);
                   }
                 }
               });
@@ -154,7 +163,8 @@
         $.get("/calais", {
           content: story_string
         }, function(calaisjson) {
-          cc("calais return");
+          cc("calais return " + story_string);
+          cc(calaisjson);
           if (!(calaisjson == null)) {
             _.each(calaisjson.entities, function(entity) {
               var breakval;
@@ -188,7 +198,6 @@
         return article;
       },
       plot: function(article) {
-        cc("plotting");
         this.get("map").plot(article);
         return this;
       }

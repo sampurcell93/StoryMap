@@ -8,8 +8,6 @@
     <link rel='stylesheet' media='screen' href='static/icomoon/style.css' />
   </head>
   <body>
-    {% for item in [1,2,3,4] %}
-    {% endfor %}
     <div class="map-instance-list">
       <script type='text/template' id='map-instance'>
         <header>
@@ -18,13 +16,16 @@
             <li><a class='icon-settings' data-route='#settings'>Settings</a></li>
           </ul>
           <div class="fr w5  search-bar">
-            <input placeholder='Search the news' type='text' name='news-term' class='fl news-search' value='bats'/>
+            <input placeholder='Search the news' type='text' name='news-term' class='fl news-search' value='Colony Collapse'/>
             <button class='go fl'>Search <i class='s9 icon-search'></i> </button>  
           </div>
         </header>
         <div class='map-canvas' id='map-canvas'></div>
-        <ul class='all-articles'> 
-        </ul>
+        <div class='all-articles'> 
+          <input type='text' placeholder='Filter Articles' class='js-filter-articles' />
+          <ul class='article-list'>
+          </ul>
+        </div>
         <footer>
           <div class='slider-wrap'>
             <div class="timeline-slider" ></div> 

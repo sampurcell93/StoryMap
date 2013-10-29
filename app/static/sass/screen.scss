@@ -78,6 +78,10 @@ header, footer {
 	width: 100%;
 	z-index: 9999;
 
+	input { 
+		width: 77%;
+	}
+	
 	button {
 		@include border-radius(0 4px 4px 0);
 		border: 1px solid #333;
@@ -91,18 +95,6 @@ header, footer {
 		i {
 			padding-left: 7px;
 			vertical-align: -2px;
-		}
-	}
-
-	input {
-		@include border-radius(4px 0 0 4px);
-		width: 77%;
-		color: #f9f9f9;
-		background: rgba(0,0,0,.2);
-		border: none;
-
-		&:focus {
-			background: rgba(0,0,0,.5);
 		}
 	}
 }
@@ -169,8 +161,12 @@ input {
 	line-height: 30px;
 	font-size: 1.4em;
 	padding: 0 10px;
+	color: #f9f9f9;
+	background: rgba(0,0,0,.2);
+	border: none;
 
 	&:focus {
+		background: rgba(0,0,0,.5);
 		@include placeholder(#74ac3d);
 		border-color: #aaa;
 	}
@@ -377,7 +373,7 @@ ul.control-panel{
 	z-index: 9999;
 	position: absolute;
 	top: 61px;
-	display: none;
+	// display: none;
 	right: 0;
 	width: 300px;
 	background: rgba(0,0,0,.73);
@@ -385,21 +381,32 @@ ul.control-panel{
 	color: #f9f9f9;
 	line-height: 1.8;
 	height: 588px;
-	padding: 10px;
+	overflow: auto;
+
+	input {
+		margin: 3px 10px 10px 10px;
+		width: 95%;
+	}
 
 	li {
 		border-top: 1px solid #555;
 		border-bottom: 1px solid #111;
-		padding:2px 8px;
+		padding:2px 12px;
 		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;
+		cursor: pointer;
 
 		&:first-of-type { border-top: none; }
 		&:last-of-type { border-bottom: none; }
 
 		.article-title {
+			color: #f9f9f9;
+			text-decoration: none;
+		}
 
+		&:hover {
+			background: rgba(0,0,0,.2);
 		}
 	}
 }
