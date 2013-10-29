@@ -76,7 +76,7 @@ header, footer {
 	background: rgba(0,0,0,.73);
 	min-height: 60px;
 	width: 100%;
-	z-index: 9999;
+	z-index: 999;
 
 	input { 
 		width: 77%;
@@ -370,7 +370,7 @@ ul.control-panel{
 }
 
 .all-articles {
-	z-index: 9999;
+	z-index: 9;
 	position: absolute;
 	top: 61px;
 	// display: none;

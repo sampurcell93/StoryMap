@@ -9,11 +9,11 @@ $ ->
             cc arguments
         saved: (rt) ->
             cc "showing all maps"   
-            launchModal "All Saved Maps", { destroyHash: true }
+            launchModal "<h2>All Saved Maps</h2>", { destroyHash: true }
 
         settings: ->
             cc "showing settings"
-            launchModal "Your Settings", { destroyHash: true }
+            launchModal "<h2>Your Settings</h2>", { destroyHash: true }
 
     window.app = new window.Workspace()
     Backbone.history.start()

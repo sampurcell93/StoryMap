@@ -14,13 +14,13 @@
       },
       saved: function(rt) {
         cc("showing all maps");
-        return launchModal("All Saved Maps", {
+        return launchModal("<h2>All Saved Maps</h2>", {
           destroyHash: true
         });
       },
       settings: function() {
         cc("showing settings");
-        return launchModal("Your Settings", {
+        return launchModal("<h2>Your Settings</h2>", {
           destroyHash: true
         });
       }

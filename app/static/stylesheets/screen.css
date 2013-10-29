@@ -3762,7 +3762,7 @@ header, footer {
   background: rgba(0, 0, 0, 0.73);
   min-height: 60px;
   width: 100%;
-  z-index: 9999;
+  z-index: 999;
 }
 /* line 81, ../sass/screen.scss */
 header input, footer input {
@@ -4142,7 +4142,7 @@ ul.control-panel li a:before {
 
 /* line 372, ../sass/screen.scss */
 .all-articles {
-  z-index: 9999;
+  z-index: 9;
   position: absolute;
   top: 61px;
   right: 0;

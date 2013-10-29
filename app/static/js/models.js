@@ -86,7 +86,6 @@
       },
       getGoogleNews: function(query, start, done) {
         var self;
-        console.log(encodeURIComponent(query.toLowerCase()));
         if (query == null) {
           return false;
         }
@@ -95,20 +94,21 @@
           source: 'google',
           q: query.toLowerCase(),
           start: start || "0"
-        }, function(data) {
-          var json;
-          json = JSON.parse(data);
-          console.log(json);
-          if (json.responseDetails === "out of range start") {
+        }, function(response) {
+          response = JSON.parse(response);
+          if (response.responseDetails === "out of range start") {
             if (done != null) {
               done(query, 0, null);
             }
             return false;
           }
-          _.each(json.responseData.results, function(story) {
+          _.each(response.responseData.results, function(story) {
             return self.addArticle(story, {
               map: {
-                date: 'publishedDate'
+                date: 'publishedDate',
+                type: function() {
+                  return 'google';
+                }
               }
             });
           });
@@ -121,38 +121,41 @@
         if (query == null) {
           return false;
         }
+        query = '"' + query.toLowerCase() + '"';
         self = this;
         $.get(this.external_url, {
           source: 'yahoo',
-          q: query.toLowerCase(),
+          q: query,
           start: start || "0"
-        }, function(data) {
-          var response, stories;
-          cc("returning from yahoo with ");
-          cc(data);
-          response = JSON.parse(data);
-          if ((response != null) && (response.bossresponse != null) && (response.bossresponse.news != null)) {
-            stories = response.bossresponse.news.results;
-          }
-          if (!(stories == null)) {
+        }, function(response) {
+          var news, stories, total;
+          response = JSON.parse(response);
+          try {
+            news = response.bossresponse.news;
+            stories = news.results;
+            total = news.totalresults || 1000;
             _.each(stories, function(story) {
-              console.log(story.date);
               return self.addArticle(story, {
                 map: {
                   content: 'abstract',
                   date: function() {
                     return new Date(parseInt(story.date) * 1000);
+                  },
+                  type: function() {
+                    return 'yahoo';
                   }
                 }
               });
             });
-            if (start <= 1000) {
+            if (start <= total) {
               return self.getYahooNews(query, start + 50, done);
             } else if (done != null) {
               return done(query, 0, null);
             }
-          } else if (done != null) {
-            return done(query, 0, null);
+          } catch (_error) {
+            if (done != null) {
+              return done(query, 0, null);
+            }
           }
         });
         return this;

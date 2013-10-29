@@ -77,54 +77,58 @@ $ ->
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
         getGoogleNews: (query, start, done) ->
-            console.log(encodeURIComponent query.toLowerCase())
             if !query? then return false
             self = @
             $.get @external_url,
                 source: 'google'
                 q: query.toLowerCase()
                 start: start || "0"
-            , (data) ->
+            , (response) ->
                 # parse the json
-                json = JSON.parse(data)
-                console.log(json)
+                response = JSON.parse(response)
                 # Once google news is exhausted, execute yhoo
-                if json.responseDetails is "out of range start"
+                if response.responseDetails is "out of range start"
                     if done? 
                         done query, 0, null
                     return false
                 # Get location data from OpenCalais for each story item
-                _.each json.responseData.results, (story) ->
-                    self.addArticle story, map: date: 'publishedDate'
+                _.each response.responseData.results, (story) ->
+                    self.addArticle story, map: 
+                        date: 'publishedDate'
+                        type: -> 'google'
                         
                 self.getGoogleNews query, start + 32, done
             @
         getYahooNews: (query, start, done) ->
             # cc "Getting Yahoo " + query + " " + start
             if !query? then return false
+            query = '"' + query.toLowerCase() + '"'
             self = @
             $.get @external_url,
                 source: 'yahoo'
-                q: query.toLowerCase()
+                q: query
                 start: start || "0"
-            , (data) ->
-                cc "returning from yahoo with "
-                cc data
-                response = JSON.parse(data)
-                # cc response.bossresponse
-                if response? and response.bossresponse? and response.bossresponse.news?
-                    stories = response.bossresponse.news.results
-                # unless there are no stories, plot the stories
-                unless !stories?
+            , (response) ->
+                response = JSON.parse response
+                try 
+                    # get all news, including metadata
+                    news = response.bossresponse.news
+                    # get the stories
+                    stories = news.results
+                    # get total results
+                    total = news.totalresults || 1000
                     _.each stories, (story) ->
-                        console.log story.date
-                        self.addArticle story, map: content: 'abstract', date: -> new Date(parseInt(story.date) * 1000)
+                        self.addArticle story, map:
+                            content: 'abstract'
+                            date: -> new Date(parseInt(story.date) * 1000)
+                            type: -> 'yahoo'
                     # 1000 is the length of results returned by Yahoo
                     # if start <= 1000
-                    if start <= 1000
+                    if start <= total
                         self.getYahooNews query, start + 50, done
                     else if done? then done query, 0, null
-                else if done? then done query, 0 , null
+                catch 
+                    if done? then done query, 0 , null
             @
         getCalaisData: (story, story_string, callback) ->
             self = @

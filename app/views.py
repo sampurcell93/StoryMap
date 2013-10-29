@@ -75,7 +75,7 @@ def to_json(result, is_query=False):
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html")
+    return render_template("login.html")
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -138,7 +138,7 @@ def createUser():
         last_name = request.args.get('last_name')
         user = models.Users(
             username=username, email=email, first_name=first_name,
-            last_name=last_name, password=password,
+            last_name=last_name, password=bcrypt.generate_password_hash('password'),
             last_login=datetime.datetime.now())
         db.session.add(user)
         db.session.commit()
@@ -161,7 +161,7 @@ def login():
     user = models.Users.query.filter_by(username=username).first()
     if user is None:
         return 'User does not exist\n'
-    if getattr(user, 'password') != password:
+    if bcrypt.check_password_hash(getattr(user, 'password'), password) is False:
         return 'Incorrect password\n'
     user.last_login = datetime.datetime.now()
     db.session.commit()

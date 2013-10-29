@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>News Map Login</title>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+        <link rel='stylesheet' media='screen' href='static/stylesheets/login.css' />
+        <link rel='stylesheet' media='screen' href='static/icomoon/style.css' />
+    </head>
+    <body>
+        <div class="login-wrap">
+            <form action="/login" method="POST">
+                <label>
+                    <span>Username:</span>
+                    <input type="text" name='username' placeholder='username'/>
+                </label>
+                <label>
+                    <span>Password:</span>
+                    <input type="password" name='password' placeholder='password' />
+                </label>
+                <input type="submit" class='button' name='submit'> 
+                <a href='#'>Forgot your password?</a>
+            </form>
+        </div>
+    </body>
+</html>
