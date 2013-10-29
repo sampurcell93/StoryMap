@@ -27,8 +27,9 @@
         }
       });
       if (empty) {
-        return e.preventDefault();
+        e.preventDefault();
       }
+      return true;
     });
   });
 

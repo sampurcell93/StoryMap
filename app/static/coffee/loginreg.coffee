@@ -18,4 +18,5 @@ $ ->
                 empty = true
         )
         if empty then e.preventDefault()
-        
+        true
+

@@ -2,10 +2,9 @@ from pprint import pprint
 from app import app, models, db
 import datetime
 import flask
-from flask import request
-from flask import render_template
 from flaskext.bcrypt import Bcrypt
 from flask_oauth import OAuth
+from flask import Flask,redirect,request,render_template
 import time
 import oauth2
 import oauth.oauth as oauth
@@ -15,7 +14,6 @@ import httplib2
 import json
 from calais import Calais
 from sqlalchemy.exc import IntegrityError
-from calais import Calais
 bcrypt = Bcrypt(app)
 
 views = "./views"
@@ -77,12 +75,15 @@ def to_json(result, is_query=False):
 ## User Interfaces ##
 @app.route('/')
 def index():
-    return render_template("login.html")
+    return render_template("login.html", error=request.args.get('error'), args=request.args)
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return 'Woops this page does not exist.\n'
+    return render_template("404.html")
 
+@app.route("/map")
+def map(): 
+    return render_template("map.html")
 #######################
 ## User REST Methods ##
 #######################
@@ -148,7 +149,7 @@ def createUser():
     except IntegrityError as e:
         db.session.flush()
         error = {'error_code': e.orig[0], 'error_string': e.orig[1]}
-        return flask.jsonify(**error)
+        return redirect("/?error=2&username=" + username + "&email=" + email + "&first_name=" + first_name + "&last_name=" + last_name)
     except Exception as e:
         db.session.flush()
         return 'Error\n'
@@ -162,12 +163,12 @@ def login():
     password = request.form['password']
     user = models.Users.query.filter_by(username=username).first()
     if user is None:
-        return 'User does not exist\n'
+        return redirect("/?error=0")
     if bcrypt.check_password_hash(getattr(user, 'password'), password) is False:
-        return 'Incorrect password\n'
+        return redirect("/?error=1")
     user.last_login = datetime.datetime.now()
     db.session.commit()
-    return 'Success!\n'
+    return redirect("/map")
 
 # User 'liked' a query ##
 
@@ -218,7 +219,7 @@ def createQuery(title=None):
     query = models.Queries(title=title, last_query=last_query)
     db.session.add(query)
     db.session.commit()
-    return 'Success!\n'
+    return "{success: true}"
 
 ########################
 ## Story REST Methods ##

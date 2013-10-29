@@ -9,6 +9,14 @@
         
     </head>
     <body>
+        {% set errors = [
+            "Sorry, but that user doesn't exist.", 
+            "Your password was incorrect.",
+            "An account with that email address or username already exists."]
+        %}
+        {% if error != None %}
+        <div class='error'>{{errors[error|int]}}</div>
+        {% endif %}
         <div class="login-wrap">
             <form action="/login" method="POST">
                 <label>
@@ -30,11 +38,11 @@
             <form action="/users" method="POST">
                 <label class='w6'>
                     <span>Username:</span>
-                    <input type="text" name='username' class='w6' placeholder='Username'/>
+                    <input type="text" name='username' class='w6' value="{{args.username}}" placeholder='Username'/>
                 </label>
                 <label class='w6'>
                     <span>Email:</span>
-                    <input type="text" name='email' placeholder='Email' />
+                    <input type="text" name='email' value="{{args.email}}" placeholder='Email' />
                 </label>
                 <label class='inline w4'>
                     <span>Password:</span>
@@ -46,11 +54,11 @@
                 </label>
                 <label class='inline w4'>
                     <span>First Name:</span>
-                    <input type="text" name='first_name' placeholder='First Name' />
+                    <input type="text" name='first_name' value="{{args.first_name}}" placeholder='First Name' />
                 </label>
                 <label class='inline w4'>
                     <span>Last Name:</span>
-                    <input type="text" name='last_name' placeholder='Last Name' />
+                    <input type="text" name='last_name' value="{{args.last_name}}" placeholder='Last Name' />
                 </label>
                 <input type="submit" class='button js-register-submit' name='submit' value='Register'/ > 
             </form>
