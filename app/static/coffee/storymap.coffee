@@ -1,7 +1,7 @@
 # Define the map object
 # args: optional model
 # rets: themap obj
-window.GoogleMap = ( model ) ->
+window.GoogleMap = ( @model ) ->
   # Set default map options
   @mapOptions =
     center: new google.maps.LatLng(35, -62)
@@ -12,7 +12,6 @@ window.GoogleMap = ( model ) ->
   # Assign an info window handler
   @infowindow = new google.maps.InfoWindow()
   # Link map to parent model if there is one
-  @model = model || null
   # Point markers array to either the model's array, or make a new one.
   @markers = model.get("markers") || []
   @
@@ -22,10 +21,9 @@ window.GoogleMap = ( model ) ->
 # rets: map obj
 window.GoogleMap::plot = (story) ->
   j = story.toJSON()
-  cc j
   unless typeof j.latitude == "undefined" or j.longitude == "undefined"
     # A simple display string
-    marker = new views.MapMarker model: story
+    marker = new views.MapMarker({model: story, map: @map})
     display = marker.render().$el.html()
     marker = marker.marker
     # Push the marker to tha array
