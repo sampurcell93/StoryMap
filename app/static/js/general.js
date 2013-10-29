@@ -28,7 +28,7 @@
       $t = $(this);
       switchicon = $t.data("switch-icon");
       curricon = $t.attr("class").split(" ");
-      _.each(curricon, function(classname) {
+      $.each(curricon, function(index, classname) {
         if (classname.indexOf("icon") > -1) {
           curricon = classname;
           return false;
@@ -45,10 +45,10 @@
         close: true,
         destroyHash: false
       };
-      options = _.extend(defaults, options);
+      options = $.extend(defaults, options);
       modal = $("<div />").addClass("modal");
       if ($.isArray(content)) {
-        _.each(content, function(item) {
+        $.each(content, function(index, item) {
           return modal.append(item);
         });
       } else {

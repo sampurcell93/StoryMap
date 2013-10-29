@@ -46,7 +46,7 @@ $lato: "Lato", sans-serif;
 .no-show { @include opacity(0);}
 .show {@include opacity(1);}
 .noclick { pointer-events: none;}
-.inline { display: inline-block; }
+.inline { display: inline-block !important; }
 .block { display: block !important; }
 .hidden { display: none; }
 .visible { display: block; }

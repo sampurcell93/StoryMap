@@ -4,6 +4,7 @@ import datetime
 import flask
 from flask import request
 from flask import render_template
+from flaskext.bcrypt import Bcrypt
 from flask_oauth import OAuth
 import time
 import oauth2
@@ -15,6 +16,7 @@ import json
 from calais import Calais
 from sqlalchemy.exc import IntegrityError
 from calais import Calais
+bcrypt = Bcrypt(app)
 
 views = "./views"
 
@@ -72,8 +74,8 @@ def to_json(result, is_query=False):
     return output
 
 
+## User Interfaces ##
 @app.route('/')
-@app.route('/index')
 def index():
     return render_template("login.html")
 
@@ -86,7 +88,6 @@ def page_not_found(e):
 #######################
 
 # Get all users ##
-
 
 @app.route('/users', methods=['GET'])
 def users():
@@ -131,14 +132,15 @@ def deactiveUser():
 @app.route('/users', methods=['POST'])
 def createUser():
     try:
-        username = request.args.get('username')
-        password = request.args.get('password')
-        email = request.args.get('email')
-        first_name = request.args.get('first_name')
-        last_name = request.args.get('last_name')
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        # The db only accepts a certain pass length
         user = models.Users(
             username=username, email=email, first_name=first_name,
-            last_name=last_name, password=bcrypt.generate_password_hash('password'),
+            last_name=last_name, password=bcrypt.generate_password_hash(password),
             last_login=datetime.datetime.now())
         db.session.add(user)
         db.session.commit()
@@ -156,8 +158,8 @@ def createUser():
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.args.get('username')
-    password = request.args.get('password')
+    username = request.form['username']
+    password = request.form['password']
     user = models.Users.query.filter_by(username=username).first()
     if user is None:
         return 'User does not exist\n'

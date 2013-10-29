@@ -1,5 +1,7 @@
 @import "compass/css3";
-@import "compass/reset";
+@import "build";
+@import "overlays";
+// @import "compass/reset";
 
 * {
     @include box-sizing(border-box);
@@ -12,6 +14,7 @@ body {
     position: relative;
     background: url("../images/connections.png") center fixed;
     @include background-size(cover);
+    padding: 0;
 }
 
 .login-wrap {
@@ -42,32 +45,6 @@ body {
     //     @include background-image(linear-gradient(left bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,0) 54%,rgba(255,255,255,0.47) 55%,rgba(255,255,255,0) 99%));
 
     // }
-
-    input[type='text'], input[type='password'] {
-        outline: none;
-        @include border-radius(3px);
-        margin: 2px 0 6px;
-        display: block;
-        border: none;
-        padding: 6px 8px;
-        width: 100%;
-        color: #f9f9f9;
-        background: #111;
-        line-height: 30px;
-        font-size: 1.14em;
-        border-bottom: 1px solid #3B4E77;
-        border-top: 1px solid transparent;
-
-
-        &:focus {
-            border-top: 1px solid #3B4E77;
-            // needs latest Compass, add '@import "compass"' to your scss
-            background-color: rgb(14,14,14); // Old browsers
-            @include filter-gradient(#0e0e0e, #272a3d, vertical); // IE6-9
-            @include background-image(linear-gradient(top,  rgba(14,14,14,1) 0%,rgba(39,42,61,1) 100%));
-
-        }
-    }
 }
 
 .button {
@@ -95,6 +72,7 @@ a {
     float: right;
     margin-top: 10px;
     color: #5976B7;
+    padding: 0 10px;
 
     &:hover {
         color: #769AE8;
@@ -105,4 +83,55 @@ label span{
     color: #769AE8;
     display: block;
     padding: 0px 0 5px 0;
+}
+
+.none {display: none;}
+
+input[type='text'], input[type='password'] {
+    outline: none;
+    @include border-radius(3px);
+    margin: 2px 0 6px;
+    display: block;
+    border: none;
+    padding: 6px 8px;
+    width: 100%;
+    color: #f9f9f9;
+    background: #111;
+    line-height: 30px;
+    font-size: 1.14em;
+    border-bottom: 1px solid #3B4E77;
+    border-top: 1px solid transparent;
+
+
+    &:focus {
+        border-top: 1px solid #3B4E77;
+        // needs latest Compass, add '@import "compass"' to your scss
+        background-color: rgb(14,14,14); // Old browsers
+        @include filter-gradient(#0e0e0e, #272a3d, vertical); // IE6-9
+        @include background-image(linear-gradient(top,  rgba(14,14,14,1) 0%,rgba(39,42,61,1) 100%));
+
+    }
+}
+
+.modal {
+    p {
+        padding: 10px;
+        text-align: center;
+    }
+
+    label {
+        display: block;
+
+        span {
+            color: #222;
+        }
+    }
+
+    .inline {
+        margin: 0 15px 0 0;
+    }
+
+    .button {
+        margin: 0 0 0 10px;
+    }
 }

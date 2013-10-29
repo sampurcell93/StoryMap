@@ -25,7 +25,7 @@ $ ->
         $t = $ this
         switchicon = $t.data("switch-icon")
         curricon = $t.attr("class").split(" ")
-        _.each curricon, (classname) ->
+        $.each curricon, (index, classname) ->
             if classname.indexOf("icon") > -1
                 curricon = classname
                 false
@@ -41,10 +41,10 @@ $ ->
         defaults = 
             close: true
             destroyHash: false
-        options = _.extend defaults, options
+        options = $.extend defaults, options
         modal = $("<div />").addClass("modal")
         if $.isArray(content)
-          _.each content, (item) ->
+          $.each content, (index, item) ->
               modal.append(item)
         else modal.html(content)
         unless options.close is false
