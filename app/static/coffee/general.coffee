@@ -16,6 +16,11 @@ $ ->
     Date.prototype.cleanFormat = ->
        @getDate() + "/" + parseInt(@getMonth() + 1) + "/" + @getFullYear()
 
+    String.prototype.stripHTML = ->
+        div = document.createElement("div")
+        div.innerHTML = @
+        div.innerText
+
     $(@).on "click switch", "[data-switch-icon]", ->
         $t = $ this
         switchicon = $t.data("switch-icon")
