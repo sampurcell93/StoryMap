@@ -43,12 +43,12 @@ $ ->
             _.each articles.models, (article, i) ->
                 story = article.toJSON()
                 unless i + 1 == articles.length
-                  self.model.getCalaisData story, story.title + story.abstract, (story, coords) ->
+                  self.model.getCalaisData story, story.title + story.content, (story, coords) ->
                     self.model.attachCoordinates story, coords
                     cc "about to call plot"
                     self.model.plot article
                 else 
-                  self.model.getCalaisData story, story.title + story.abstract, (story, coords) ->
+                  self.model.getCalaisData story, story.title + story.content, (story, coords) ->
                     self.model.attachCoordinates story, coords
                     self.model.plot article
                     self.timeline.render()
@@ -99,6 +99,15 @@ $ ->
   window.views.MapMarker = Backbone.View.extend
     tagName: 'div'
     template: $("#storymarker").html()
+    initialize: ->
+      @map = @options.map || window.map
+      @listenTo @model,
+        "hide": ->
+          if @marker?
+            @marker.setMap null
+        "show": ->
+          if @marker?
+            @marker.setMap @map
     render: ->
       @$el.html(_.template @template, @model.toJSON())
       # Give slight offsets to make sure stories in same location are not overlapped
@@ -112,20 +121,29 @@ $ ->
         title: @model.get "title"
       @
 
-  window.views.Article = Backbone.View.extend
+  window.views.ArticleListItem = Backbone.View.extend
     template: $("#article-item").html()
     tagName: 'li'
     initialize: ->
       _.bindAll @, "render"
+      @listenTo @model, 
+        "hide": ->
+          console.log("hiding")
+          this.$el.hide()
+        "show": ->
+          console.log("showing")
+          this.$el.show()
     render: ->
       @$el.html(_.template @template, @model.toJSON())
       @
     events:
       "click": ->
-        cc @model
+        cc @model.toJSON()
   
+  # List of articles, regardless of location data, and controls for filtering
   window.views.ArticleList = Backbone.View.extend
     el: '.all-articles'
+    list: 'ul.article-list'
     events: 
       "click": ->
         cc @collection
@@ -135,23 +153,33 @@ $ ->
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
-      view = new views.Article model: model
-      @$el.append view.render().el
+      view = new views.ArticleListItem model: model
+      @$(@list).append view.render().el
       @
     render: ->
-      console.log "Rendernd model list"
       self = @
-      @$el.empty()
+      @$(@list).empty()
       _.each @collection.models, (model) ->
         self.appendChild model
-      @
+      @;
+    filter: (query) ->
+      _.each @collection.models, (article) -> 
+        str = (article.toJSON().title + article.toJSON().content).toLowerCase()
+        if str.indexOf(query.toLowerCase()) == -1
+          article.trigger "hide"
+        else 
+          article.trigger "show"
+    events: 
+      "keyup .js-filter-articles": (e) ->
+        val = ($t = $(e.currentTarget)).val()
+        @filter val
 
   window.views.Timeline = Backbone.View.extend
     el: 'footer'
-    speeds:{ forward : 32, back : 32}
+    speeds:{ forward : 32, back : 32 }
     dir: "forward"
-    min: new Date 0
-    max: new Date
+    min: new Date
+    max: new Date 0
     initialize: ->
       self = @
       @map = @options.map
