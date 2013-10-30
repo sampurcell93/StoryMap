@@ -10,7 +10,7 @@
 html, body { height: 100%; }
 
 body {
-    font-family: 'Lato', sans-serif;
+    font-family: $lato;
     position: relative;
     background: url("../images/connections.png") center fixed;
     @include background-size(cover);
@@ -141,6 +141,10 @@ input[type='text'], input[type='password'] {
 
     .button {
         margin: 0 0 0 10px;
+    }
+
+    input[type='text'], [type='password'] {
+        background: #aaa;
     }
 }
 

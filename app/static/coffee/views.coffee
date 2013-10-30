@@ -121,7 +121,7 @@ $ ->
         title: @model.get "title"
       @
 
-  window.views.ArticleListItem = Backbone.View.extend
+  window.views.ArticleListItem = Backbone.View.extend 
     template: $("#article-item").html()
     tagName: 'li'
     initialize: ->

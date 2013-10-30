@@ -6,6 +6,7 @@ window.GoogleMap = ( @model ) ->
   @mapOptions =
     center: new google.maps.LatLng(35, -62)
     zoom: 2
+    styles: gmapNightStyle
     mapTypeId: google.maps.MapTypeId.ROADMAP
   # get map object - needs fix
   @map = new google.maps.Map(document.getElementById("map-canvas"), @mapOptions)

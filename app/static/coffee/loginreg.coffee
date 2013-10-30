@@ -12,6 +12,10 @@ $ ->
             alert("Your passwords don't match")
             e.preventDefault()
             return false
+        else if pass == ""
+            alert "You cannot have an empty password"
+            e.preventDefault()
+            return false
         empty = false
         form.find("input").each( ->
             if $(@).val() == ""

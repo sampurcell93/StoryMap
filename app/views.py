@@ -164,7 +164,7 @@ def login():
     user = models.Users.query.filter_by(username=username).first()
     if user is None:
         return redirect("/?error=0")
-    if bcrypt.check_password_hash(getattr(user, 'password'), password) is False:
+    if not bcrypt.check_password_hash(getattr(user, 'password'), password):
         return redirect("/?error=1")
     user.last_login = datetime.datetime.now()
     db.session.commit()
