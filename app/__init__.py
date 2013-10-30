@@ -1,4 +1,6 @@
 import os
+import psycopg2
+import urlparse
 from flask import Flask
 from flaskext.bcrypt import Bcrypt
 from flask.ext.sqlalchemy import SQLAlchemy
