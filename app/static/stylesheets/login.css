@@ -314,6 +314,42 @@
   color: #fff;
 }
 
+/* line 76, ../sass/_build.scss */
+.button, button {
+  -webkit-box-shadow: 0px 0px 1px white inset;
+  -moz-box-shadow: 0px 0px 1px white inset;
+  box-shadow: 0px 0px 1px white inset;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #514266;
+  *zoom: 1;
+  filter: progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr='#FF514266', endColorstr='#FF172849');
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #514266), color-stop(100%, #172849));
+  background-image: -webkit-linear-gradient(top, #514266 0%, #172849 100%);
+  background-image: -moz-linear-gradient(top, #514266 0%, #172849 100%);
+  background-image: -o-linear-gradient(top, #514266 0%, #172849 100%);
+  background-image: linear-gradient(top, #514266 0%, #172849 100%);
+  border: 1px solid #222;
+  color: #f9f9f9;
+  line-height: 2.2;
+  font-size: 1.07em;
+  padding: 0 10px;
+  cursor: pointer;
+  outline: none;
+}
+/* line 91, ../sass/_build.scss */
+.button:hover, button:hover {
+  color: #fff;
+  background: #18305B;
+}
+/* line 96, ../sass/_build.scss */
+.button:focus, button:focus {
+  background: #14213A;
+}
+
 /* line 2, ../sass/_overlays.scss */
 body:after {
   content: "";
@@ -549,7 +585,7 @@ input[type='text']:focus, input[type='password']:focus {
   margin: 0 0 0 10px;
 }
 /* line 146, ../sass/login.scss */
-.modal input[type='text'], .modal [type='password'] {
+.modal input[type='text'], .modal input[type='password'] {
   background: #aaa;
 }
 

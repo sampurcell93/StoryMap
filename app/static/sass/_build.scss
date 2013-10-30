@@ -73,8 +73,27 @@ $roboto: 'Roboto', sans-serif;
 .w10 { width: 100%; }
 .icon { font-family: 'icons'; }
 .white { color: #fff; }
+.button, button {
+    @include box-shadow(0px 0px 1px #fff inset);
+    @include border-radius(3px);
+    // needs latest Compass, add '@import "compass"' to your scss
+    background-color: rgb(81,66,102); // Old browsers
+    @include filter-gradient(#514266, #172849, vertical); // IE6-9
+    @include background-image(linear-gradient(top,  rgba(81,66,102,1) 0%,rgba(23,40,73,1) 100%));
+    border: 1px solid #222;
+    color: #f9f9f9;
+    line-height: 2.2;
+    font-size: 1.07em;
+    padding: 0 10px;   
+    cursor: pointer;
+    outline: none;
 
-.error {
+    &:hover {
+        color: #fff;
+        background: #18305B;
+    } 
 
-
-}
+    &:focus {
+        background: #14213A;
+    }
+}   

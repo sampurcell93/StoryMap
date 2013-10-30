@@ -16,6 +16,7 @@ app.secret_key = "THISISASUPERSECRETKEY"
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=14)
 login_serializer = URLSafeTimedSerializer(app.secret_key)
 db = SQLAlchemy(app)
+db.create_all()
 bcrypt = Bcrypt(app)
 lm = LoginManager()
 lm.init_app(app)
