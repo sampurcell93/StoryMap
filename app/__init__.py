@@ -9,11 +9,8 @@ from datetime import timedelta
 from itsdangerous import URLSafeTimedSerializer
 app = Flask(__name__)
 from sqlalchemy import create_engine
-url = 'mysql://root@localhost/newsmaps'
-try:
-    url = os.environ['DATABASE_URL']
-except:
-    print "local"
+# url = 'mysql://root@localhost/newsmaps'
+url = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_DATABASE_URI'] = url
 app.secret_key = "THISISASUPERSECRETKEY"
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=14)
