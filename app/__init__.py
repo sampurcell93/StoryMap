@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flaskext.bcrypt import Bcrypt
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -6,7 +7,12 @@ from datetime import timedelta
 from itsdangerous import URLSafeTimedSerializer
 app = Flask(__name__)
 from sqlalchemy import create_engine
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/newsmaps'
+url = 'mysql://root@localhost/newsmaps'
+try:
+    url = os.environ['DATABASE_URL']
+except:
+    print "local"
+app.config['SQLALCHEMY_DATABASE_URI'] = url
 app.secret_key = "THISISASUPERSECRETKEY"
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=14)
 login_serializer = URLSafeTimedSerializer(app.secret_key)
