@@ -1,4 +1,4 @@
-from app import db
+from app import db, login_serializer
 from sqlalchemy.dialects.mysql import TINYINT, TIMESTAMP, DATETIME
 
 ACTIVE = 1
@@ -32,10 +32,32 @@ class Users(db.Model):
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
     active = db.Column(TINYINT, default=ACTIVE)
-    password = db.Column(db.String(45))
+    password = db.Column(db.String(255))
     last_login = db.Column(DATETIME)
     queries = db.relationship('Queries', secondary=users_has_queries,
                               backref=db.backref('users', lazy='dynamic'))
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return unicode(self.id)
+
+    def get_auth_token(self):
+        """
+        Encode a secure token for cookie
+        """
+        data = [str(self.id), self.password]
+        return login_serializer.dumps(data)
+
+    def __repr__(self):
+        return '<User %r>' % (self.nickname)
 
 
 class Queries(db.Model):

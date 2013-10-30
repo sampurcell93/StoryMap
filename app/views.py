@@ -1,10 +1,10 @@
 from pprint import pprint
-from app import app, models, db
+from app import app, models, db, lm, login_serializer
 import datetime
 import flask
 from flaskext.bcrypt import Bcrypt
 from flask_oauth import OAuth
-from flask import Flask,redirect,request,render_template
+from flask import Flask,redirect,request,render_template, g
 import time
 import oauth2
 import oauth.oauth as oauth
@@ -14,6 +14,7 @@ import httplib2
 import json
 from calais import Calais
 from sqlalchemy.exc import IntegrityError
+from flask.ext.login import login_user, logout_user, current_user, login_required
 bcrypt = Bcrypt(app)
 
 views = "./views"
@@ -75,6 +76,8 @@ def to_json(result, is_query=False):
 ## User Interfaces ##
 @app.route('/')
 def index():
+    if current_user.is_authenticated():
+        return redirect("/map")
     return render_template("login.html", error=request.args.get('error'), args=request.args)
 
 @app.errorhandler(404)
@@ -82,6 +85,7 @@ def page_not_found(e):
     return render_template("404.html")
 
 @app.route("/map")
+@login_required
 def map(): 
     return render_template("map.html")
 #######################
@@ -155,6 +159,24 @@ def createUser():
         return 'Error\n'
 
 # User login ##
+@lm.user_loader
+def load_user(userid):
+    return models.Users.query.get(userid)
+ 
+@lm.token_loader
+def load_token(token):
+    max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
+ 
+    #Decrypt the Security Token, data = [username, hashpass]
+    data = login_serializer.loads(token, max_age=max_age)
+ 
+    #Find the User
+    user = models.Users.query.get(data[0])
+ 
+    #Check Password and return user or None
+    if user and data[1] == user.password:
+        return user
+    return None
 
 
 @app.route('/login', methods=['POST'])
@@ -168,12 +190,19 @@ def login():
         return redirect("/?error=1")
     user.last_login = datetime.datetime.now()
     db.session.commit()
+    login_user(user, remember=True)
     return redirect("/map")
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    logout_user()
+    return redirect("/")
 
 # User 'liked' a query ##
 
 
 @app.route('/favorite', methods=['POST'])
+@login_required
 def favorite():
     try:
         user_id = request.args.get('user_id')
@@ -193,6 +222,7 @@ def favorite():
 
 
 @app.route('/queries', methods=['GET'])
+@login_required
 def queries():
     queries = models.Queries.query.all()
     return flask.jsonify(queries=to_json_list(queries, True))
@@ -201,6 +231,7 @@ def queries():
 
 
 @app.route('/queries/<string:id>', methods=['GET'])
+@login_required
 def getQuery(id):
     query = models.Queries.query.get(id)
     if (query is None):
@@ -212,6 +243,7 @@ def getQuery(id):
 
 @app.route('/queries', methods=['POST'])
 @app.route('/queries/<string:title>', methods=['POST'])
+@login_required
 def createQuery(title=None):
     if title is None:
         title = request.args.get('title')
@@ -229,6 +261,7 @@ def createQuery(title=None):
 
 
 @app.route('/stories', methods=['GET'])
+@login_required
 def stories():
     stories = models.Stories.query.all()
     return flask.jsonify(stories=to_json_list(stories))
@@ -237,6 +270,7 @@ def stories():
 
 
 @app.route('/stories/<string:id>', methods=['GET'])
+@login_required
 def getStory(id):
     story = models.Stories.query.get(id)
     if (story is None):
@@ -250,6 +284,7 @@ def getStory(id):
 @app.route(('/stories/<string:title>/<string:publication>/'
            '<string:date>/<string:author>/<string:url>/<float:lat>'
            '/<float:lng>'))
+@login_required
 def createStory(title=None, publication=None, date=None, author=None, url=None,
                 lat=None, lng=None):
     if title is None:
@@ -270,6 +305,7 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
 
 
 @app.route('/addStoryToQuery', methods=['POST'])
+@login_required
 def addStoryToQuery():
     story_id = request.args.get('story_id')
     query_id = request.args.get('query_id')
@@ -287,6 +323,7 @@ def addStoryToQuery():
 
 
 @app.route('/addStoriesToQuery', methods=['POST'])
+@login_required
 def addStoriesToQuery():
     story_list = request.args.getlist('stories')[0].split(",")
     query_id = request.args.get('query_id')
@@ -302,12 +339,14 @@ def addStoriesToQuery():
     return 'Success!\n'
 
 @app.route("/externalNews", methods=['GET'])
+@login_required
 def getNews():
     sources = {
         'google': googleNews,
         'yahoo': yahooNews,
     }
     return sources[request.args['source']]()
+
 def googleNews():
     # Query and offset of stories
     query = request.args['q']
@@ -342,6 +381,7 @@ def yahooNews():
     return response.read()
 
 @app.route("/calais", methods=['GET'])
+@login_required
 def calais():
     key = "c3wjfrkfmrsft3r5wgxm5skr"
     calais = Calais(key, submitter="Sam Purcell")
