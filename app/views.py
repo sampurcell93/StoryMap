@@ -95,6 +95,7 @@ def map():
 # Get all users ##
 
 @app.route('/users', methods=['GET'])
+@login_required
 def users():
     users = models.Users.query.all()
     return flask.jsonify(users=to_json_list(users))
@@ -103,6 +104,7 @@ def users():
 
 
 @app.route('/users/<string:id>', methods=['GET'])
+@login_required
 def getUser(id):
     user = models.Users.query.get(id)
     if(user is None):
@@ -113,6 +115,7 @@ def getUser(id):
 
 
 @app.route('/users', methods=['DELETE'])
+@login_required
 def deleteUser():
     id = request.args.get('id')
     user = models.Users.query.get(id)
@@ -135,6 +138,7 @@ def deactiveUser():
 
 
 @app.route('/users', methods=['POST'])
+@login_required
 def createUser():
     try:
         username = request.form['username']
