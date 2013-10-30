@@ -6,7 +6,7 @@ from datetime import timedelta
 from itsdangerous import URLSafeTimedSerializer
 app = Flask(__name__)
 from sqlalchemy import create_engine
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/newsmaps?unix_socket=/Applications/MAMP/tmp/mysql/mysql.sock'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/newsmaps'
 app.secret_key = "THISISASUPERSECRETKEY"
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=14)
 login_serializer = URLSafeTimedSerializer(app.secret_key)

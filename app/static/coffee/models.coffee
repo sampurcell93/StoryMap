@@ -84,6 +84,7 @@ $ ->
                 q: query.toLowerCase()
                 start: start || "0"
             , (response) ->
+                console.count "google news story returned"
                 # parse the json
                 response = JSON.parse(response)
                 # Once google news is exhausted, execute yhoo
@@ -111,6 +112,7 @@ $ ->
             , (response) ->
                 response = JSON.parse response
                 try 
+                    console.count "yahoo news story returned"
                     # get all news, including metadata
                     news = response.bossresponse.news
                     # get the stories
@@ -136,10 +138,8 @@ $ ->
             $.get "/calais",
                 content: story_string
             , (calaisjson) ->
-                # parse the response object
-                cc "calais return " + story_string
-                cc calaisjson
                 unless !calaisjson?
+                    console.count "calais data returned"
                     # Check each property of the returned calais object
                     _.each calaisjson.entities, (entity) ->
                       # If it contains a "resolutions" key, it has latitude and longitude

@@ -95,6 +95,7 @@
           q: query.toLowerCase(),
           start: start || "0"
         }, function(response) {
+          console.count("google news story returned");
           response = JSON.parse(response);
           if (response.responseDetails === "out of range start") {
             if (done != null) {
@@ -131,6 +132,7 @@
           var news, stories, total;
           response = JSON.parse(response);
           try {
+            console.count("yahoo news story returned");
             news = response.bossresponse.news;
             stories = news.results;
             total = news.totalresults || 1000;
@@ -166,9 +168,8 @@
         $.get("/calais", {
           content: story_string
         }, function(calaisjson) {
-          cc("calais return " + story_string);
-          cc(calaisjson);
           if (!(calaisjson == null)) {
+            console.count("calais data returned");
             _.each(calaisjson.entities, function(entity) {
               var breakval;
               if (entity.hasOwnProperty("resolutions")) {
