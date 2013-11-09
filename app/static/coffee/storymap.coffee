@@ -6,8 +6,14 @@ window.GoogleMap = ( @model ) ->
   @mapOptions =
     center: new google.maps.LatLng(35, -62)
     zoom: 2
-    styles: gmapNightStyle
+    styles: gMapRetro
+    mapTypeControl: false
     mapTypeId: google.maps.MapTypeId.ROADMAP
+    zoomControlOptions: 
+      position: google.maps.ControlPosition.LEFT_CENTER
+    panControlOptions:
+      position: google.maps.ControlPosition.LEFT_CENTER
+    # disableDefaultUI: true,
   # get map object - needs fix
   @map = new google.maps.Map(document.getElementById("map-canvas"), @mapOptions)
   # Assign an info window handler
@@ -36,4 +42,5 @@ window.GoogleMap::plot = (story) ->
     google.maps.event.addListener marker, "click", ->
       that.infowindow.setContent display
       that.infowindow.open that.map, @
+    story.trigger "doneloading"
   @

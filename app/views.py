@@ -1,6 +1,7 @@
 from pprint import pprint
 from app import app, models, db, lm, login_serializer
 import datetime
+import traceback
 import flask
 from flaskext.bcrypt import Bcrypt
 from flask_oauth import OAuth
@@ -14,6 +15,7 @@ import httplib2
 import json
 from calais import Calais
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from flask.ext.login import login_user, logout_user, current_user, login_required
 bcrypt = Bcrypt(app)
 
@@ -87,7 +89,7 @@ def page_not_found(e):
 @app.route("/map")
 @login_required
 def map(): 
-    return render_template("map.html")
+    return render_template("map.html", user=getattr(current_user, "id"))
 #######################
 ## User REST Methods ##
 #######################
@@ -109,6 +111,7 @@ def getUser(id):
     user = models.Users.query.get(id)
     if(user is None):
         return 'User does not exist'
+    del user.password
     return flask.jsonify(user=to_json(user))
 
 # Delete user ##
@@ -209,14 +212,18 @@ def logout():
 @login_required
 def favorite():
     try:
-        user_id = request.args.get('user_id')
-        query_id = request.args.get('query_id')
+        user_id = request.form.get('user_id')
+        query_id = request.form.get('query_id')
         user = models.Users.query.get(user_id)
-        user.queries.append(models.Queries.query.get(query_id))
-        db.session.commit()
-        return 'Success!\n'
-    except:
-        return 'An error occured\n'
+        query = models.Queries.query.get(query_id)
+        if query is not None:
+            if user.queries.filter_by(user_id=user_id, query_id=query_id) is None:
+                user.queries.append(query)
+                db.session.commit()
+            return json.dumps({"success": True})
+    except Exception, err:
+        print traceback.format_exc()
+        return json.dumps({"success": False})
 
 ########################
 ## Query REST Methods ##
@@ -232,30 +239,32 @@ def queries():
     return flask.jsonify(queries=to_json_list(queries, True))
 
 # Get one query by id ##
-
-
 @app.route('/queries/<string:id>', methods=['GET'])
 @login_required
-def getQuery(id):
+def getQueryById(id):
     query = models.Queries.query.get(id)
     if (query is None):
-        return 'Query does not exist'
+        return json.dumps({"exists": False})
     return flask.jsonify(query=to_json(query, True))
 
+
 # Create a new query ##
-
-
-@app.route('/queries', methods=['POST'])
 @app.route('/queries/<string:title>', methods=['POST'])
 @login_required
 def createQuery(title=None):
     if title is None:
-        title = request.args.get('title')
+        title = request.form.get('title')
     last_query = datetime.datetime.now()
-    query = models.Queries(title=title, last_query=last_query)
-    db.session.add(query)
-    db.session.commit()
-    return "{success: true}"
+    existing = models.Queries.query.filter_by(title = title).all()
+    query_id = None
+    if not existing: 
+        query = models.Queries(title=title, last_query=last_query, created=last_query)
+        db.session.add(query)
+        db.session.commit()
+        query_id = query.id
+    else: 
+        query_id = existing[0].id
+    return json.dumps({'success': 'true', 'id': query_id})
 
 ########################
 ## Story REST Methods ##
@@ -292,13 +301,13 @@ def getStory(id):
 def createStory(title=None, publication=None, date=None, author=None, url=None,
                 lat=None, lng=None):
     if title is None:
-        title = request.args.get('title')
-        publication = request.args.get('publication')
-        date = request.args.get('date')
-        author = request.args.get('author')
-        url = request.args.get('url')
-        lat = request.args.get('lat')
-        lng = request.args.get('lng')
+        title = request.form.get('title')
+        publication = request.form.get('publication')
+        date = request.form.get('date')
+        author = request.form.get('author')
+        url = request.form.get('url')
+        lat = request.form.get('lat')
+        lng = request.form.get('lng')
     story = models.Stories(title=title, publication=publication, date=date,
                            author=author, url=url, lat=lat, lng=lng)
     db.session.add(story)
@@ -311,8 +320,8 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
 @app.route('/addStoryToQuery', methods=['POST'])
 @login_required
 def addStoryToQuery():
-    story_id = request.args.get('story_id')
-    query_id = request.args.get('query_id')
+    story_id = request.form.get('story_id')
+    query_id = request.form.get('query_id')
     story = models.Stories.query.get(story_id)
     if story is None:
         return 'Story does not exist\n'

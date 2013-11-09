@@ -2,32 +2,14 @@
 	font-family: 'icomoon';
 	src:url('fonts/icomoon.eot');
 	src:url('fonts/icomoon.eot?#iefix') format('embedded-opentype'),
-		url('fonts/icomoon.woff') format('woff'),
 		url('fonts/icomoon.ttf') format('truetype'),
+		url('fonts/icomoon.woff') format('woff'),
 		url('fonts/icomoon.svg#icomoon') format('svg');
 	font-weight: normal;
 	font-style: normal;
 }
 
-/* Use the following CSS code if you want to use data attributes for inserting your icons */
-[data-icon]:before {
-	font-family: 'icomoon';
-	content: attr(data-icon);
-	speak: none;
-	font-weight: normal;
-	font-variant: normal;
-	text-transform: none;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-}
-
-/* Use the following CSS code if you want to have a class per icon */
-/*
-Instead of a list of all class selectors,
-you can use the generic selector below, but it's slower:
 [class*="icon-"] {
-*/
-.icon-untitled, .icon-untitled-2, .icon-untitled-3, .icon-untitled-4, .icon-untitled-5, .icon-untitled-6, .icon-untitled-7, .icon-settings, .icon-meter, .icon-magnifying-glass, .icon-search, .icon-pin, .icon-expand, .icon-shrink, .icon-arrow-left, .icon-arrow-right, .icon-arrow-down, .icon-arrow-up, .icon-share, .icon-graph, .icon-search-2, .icon-search-3, .icon-home, .icon-th, .icon-th-large, .icon-search-4, .icon-out, .icon-in, .icon-play, .icon-pause {
 	font-family: 'icomoon';
 	speak: none;
 	font-style: normal;
@@ -35,43 +17,55 @@ you can use the generic selector below, but it's slower:
 	font-variant: normal;
 	text-transform: none;
 	line-height: 1;
+	
+	/* Enable Ligatures ================ */
+	-webkit-font-feature-settings: "liga";
+	-moz-font-feature-settings: "liga=1";
+	-moz-font-feature-settings: "liga";
+	-ms-font-feature-settings: "liga" 1;
+	-o-font-feature-settings: "liga";
+	font-feature-settings: "liga";
+
+	/* Better Font Rendering =========== */
 	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
-.icon-untitled:before {
-	content: "\61";
-}
-.icon-untitled-2:before {
-	content: "\62";
-}
-.icon-untitled-3:before {
-	content: "\63";
-}
-.icon-untitled-4:before {
-	content: "\64";
-}
-.icon-untitled-5:before {
-	content: "\65";
-}
-.icon-untitled-6:before {
-	content: "\66";
-}
-.icon-untitled-7:before {
+
+.icon-uni67:before {
 	content: "\67";
 }
 .icon-settings:before {
 	content: "\68";
 }
-.icon-meter:before {
-	content: "\69";
+.icon-play:before {
+	content: "\33";
 }
-.icon-magnifying-glass:before {
-	content: "\6a";
+.icon-pause:before {
+	content: "\34";
+}
+.icon-th-large:before {
+	content: "\79";
+}
+.icon-home:before {
+	content: "\77";
+}
+.icon-in:before {
+	content: "\32";
+}
+.icon-out:before {
+	content: "\31";
+}
+.icon-uni65:before {
+	content: "\65";
+}
+.icon-uni66:before {
+	content: "\66";
+}
+.icon-graph:before {
+	content: "\74";
 }
 .icon-search:before {
 	content: "\6b";
-}
-.icon-pin:before {
-	content: "\6c";
 }
 .icon-expand:before {
 	content: "\6d";
@@ -79,51 +73,66 @@ you can use the generic selector below, but it's slower:
 .icon-shrink:before {
 	content: "\6e";
 }
-.icon-arrow-left:before {
-	content: "\6f";
-}
-.icon-arrow-right:before {
-	content: "\70";
-}
 .icon-arrow-down:before {
-	content: "\71";
+	content: "\e600";
 }
 .icon-arrow-up:before {
-	content: "\72";
+	content: "\e603";
 }
-.icon-share:before {
-	content: "\73";
+.icon-play2:before {
+	content: "\e604";
 }
-.icon-graph:before {
-	content: "\74";
+.icon-pause2:before {
+	content: "\e605";
 }
-.icon-search-2:before {
-	content: "\75";
+.icon-record:before {
+	content: "\e606";
 }
-.icon-search-3:before {
-	content: "\76";
+.icon-stop:before {
+	content: "\e607";
 }
-.icon-home:before {
-	content: "\77";
+.icon-next:before {
+	content: "\e608";
 }
-.icon-th:before {
-	content: "\78";
+.icon-previous:before {
+	content: "\e609";
 }
-.icon-th-large:before {
-	content: "\79";
+.icon-last:before {
+	content: "\e60a";
 }
-.icon-search-4:before {
-	content: "\7a";
+.icon-first:before {
+	content: "\e60b";
 }
-.icon-out:before {
-	content: "\31";
+.icon-cw:before {
+	content: "\e60c";
 }
-.icon-in:before {
-	content: "\32";
+.icon-ccw:before {
+	content: "\e60d";
 }
-.icon-play:before {
-	content: "\33";
+.icon-logout:before {
+	content: "\e60e";
 }
-.icon-pause:before {
-	content: "\34";
+.icon-ellipsis:before {
+	content: "\e612";
+}
+.icon-dots:before {
+	content: "\e613";
+}
+.icon-dot:before {
+	content: "\e614";
+}
+.icon-remove:before {
+	content: "\e602";
+}
+.icon-check-sign:before {
+	content: "\e60f";
+}
+.icon-sign-blank:before {
+	content: "\e610";
+}
+.icon-circle:before {
+	content: "\e601";
+}
+.icon-ok-circle:before {
+	content: "\e611";
 }

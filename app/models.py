@@ -24,7 +24,6 @@ queries_has_stories = db.Table('queries_has_stories',
                                db.Column('active', TINYINT, default=ACTIVE)
                                )
 
-
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(45), index=True, unique=True)

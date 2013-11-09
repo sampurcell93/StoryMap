@@ -1,0 +1,105 @@
+.twitter-typeahead { 
+    width: 70%;
+    float: left;
+    margin: 10px 0;
+    @include border-radius(3px);
+}
+
+.tt-query {
+    background: rgba(0,0,0,.6) !important;
+}
+
+.tt-hint { 
+    background: transparent!important;
+    width: 100%;
+}
+
+.tt-dropdown-menu {
+    position: absolute;
+    z-index: 999999;
+    left: 11px;
+    background: rgba(0,0,0,.75);
+    max-height: 500px;
+    @include border-radius(0 0 3px 3px);
+    @include box-shadow(0px 2px 6px #222);
+    width: 100%;
+    font-size: .8rem;
+    color: #333;
+
+    &:hover { text-shadow: none;}
+
+    .tt-suggestions {
+        max-height:180px;
+        overflow: auto;   
+    }
+
+    .tt-suggestion {
+        line-height: 30px;
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 1.2em;
+        text-align: left;
+        color: #bbb;
+        text-indent: 1em;
+
+        &.tt-is-under-cursor {  
+            background: rgba(0,0,0,.5);
+
+            a {
+                color: #000;
+                text-decoration: underline;
+            }  
+        }
+
+        &:first-of-type {
+            border-top: none;
+        }
+        &:last-of-type {
+            border-bottom: none;
+        }
+
+        a {
+            color: #222;
+            text-decoration: none;
+            display: inline-block;
+            width: 80%;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        i {
+            position: relative;
+            top: 5px;
+            border: 1px solid red;
+            right: 10px;
+
+            &:hover { color: red; }
+
+        }
+    }
+    h2 {    
+        text-align: left;
+        margin-top: 0;
+        margin-bottom: 0;
+        border-top: 1px solid #ccc;
+        @include box-shadow(0px 0px 2px inset #fff);
+        background-color: rgb(69,72,77); // Old browsers
+        @include filter-gradient(#45484d, #000000, vertical); // IE6-9
+        @include background-image(linear-gradient(top,  rgba(69,72,77,1) 0%,rgba(0,0,0,1) 100%));
+        color: #fff;
+        cursor: auto;
+
+        i {
+            padding: 0px 10px;
+            display: inline-block;
+            line-height: 30px;
+
+            &:before { 
+                vertical-align: -2px; }
+        }
+    }
+}   

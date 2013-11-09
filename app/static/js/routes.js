@@ -6,11 +6,7 @@
     window.Workspace = Backbone.Router.extend({
       routes: {
         "saved": "saved",
-        "settings": "settings",
-        "map/:index/(:subview)": "goto"
-      },
-      goto: function() {
-        return cc(arguments);
+        "settings": "settings"
       },
       saved: function(rt) {
         cc("showing all maps");

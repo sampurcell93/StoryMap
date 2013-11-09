@@ -4,9 +4,6 @@ $ ->
         routes:
             "saved": "saved"
             "settings": "settings"
-            "map/:index/(:subview)": "goto"
-        goto: ->
-            cc arguments
         saved: (rt) ->
             cc "showing all maps"   
             launchModal "<h2>All Saved Maps</h2>", { destroyHash: true }

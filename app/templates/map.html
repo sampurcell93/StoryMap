@@ -3,40 +3,62 @@
   <head>
     <title>News Map</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <link href='http://fonts.googleapis.com/css?family=Lato|Roboto' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Lato:400,300,100|Roboto:300,100' rel='stylesheet' type='text/css'>
     <link rel='stylesheet' media='screen' href='static/stylesheets/screen.css' />
     <link rel='stylesheet' media='screen' href='static/icomoon/style.css' />
   </head>
   <body>
+    <script type='text/javascript'>
+      window.userid = {{user|safe}}
+    </script>
     <div class="map-instance-list">
       <script type='text/template' id='map-instance'>
-        <header>
-          <ul class="w4 fl control-panel ">
-            <li><a id="logout" href="/logout">Logout</a></li>
-            <li><a class='icon-th-large' data-route='#saved'>Saved</a></li>
-            <li><a class='icon-settings' data-route='#settings'>Settings</a></li>
-          </ul>
-          <div class="fr w5  search-bar">
-            <input placeholder='Search the news' type='text' name='news-term' class='fl news-search' value='Colony Collapse'/>
-            <button class='go fl'>Search <i class='s9 icon-search'></i> </button>  
-          </div>
-        </header>
-        <div class='map-canvas' id='map-canvas'></div>
         <div class='all-articles'> 
-          <input type='text' placeholder='Filter Articles' class='js-filter-articles' />
-          <ul class='article-list'>
+          <input type='text' placeholder='Filter by title' class='js-filter-articles' />
+          <i class='icon-arrow-down js-sort-options'></i>
+          <ul class='sort-options-list'>
+            <li class='header'>Show...</li>
+            <li class='js-filter-param icon-check-sign' data-switch-icon='icon-sign-blank'>Stories with locations</li>
+            <li class='js-filter-param icon-check-sign' data-switch-icon='icon-sign-blank'>Stories without locations</li>
+            <li class='js-filter-param icon-check-sign' data-switch-icon='icon-sign-blank'>Favorites</li>
+            <li class='js-filter-param icon-check-sign' data-switch-icon='icon-sign-blank'>Google News</li>
+            <li class='js-filter-param icon-check-sign' data-switch-icon='icon-sign-blank'>Yahoo News</li>
+            <li class='header'>Sort by...</li>
+            <li class='js-sort icon-sign-blank' data-switch-icon='icon-check-sign' data-sort="newest">Newest first</li>
+            <li class='js-sort icon-sign-blank' data-switch-icon='icon-check-sign' data-sort="oldest">Oldest first</li>
           </ul>
+            <i class='icon-uni65 js-toggle-view' data-switch-icon='icon-uni66'></i>
+          <ol class='article-list'>
+            <li class='placeholder center p10'>Search for something.</li>
+          </ol>
         </div>
-        <footer>
-          <div class='slider-wrap'>
-            <div class="timeline-slider" ></div> 
-          </div>
-          <ul class='timeline-controls'>
-            <li class='js-rewind icon-untitled-2 js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
-            <li class='js-play-timeline icon-play' data-switch-icon="icon-pause" data-tooltip='Play Timeline'></li>
-            <li class='js-fast-forward icon-untitled js-speed-control' dir='forward' speed='1x' data-tooltip='Fast Forward Timeline'></li>
-          </ul>
-        </footer>
+        <div class='main-content-wrap'>
+          <header>
+            <ul class="control-panel ">
+              <li><a class='icon-logout' id="logout" title='Logout' href="/logout"></a></li>
+              <li><a class='icon-th-large' title='Saved' href='#saved'></a></li>
+              <li><a class='icon-settings' title='Settings' href='#settings'></a></li>
+            </ul>
+            <div class="search-bar">
+              <i class='icon-in js-save-query'></i>
+              <input placeholder='Search the news' type='text' name='news-term' class='fl js-news-search' value='Colony Collapse'/>
+              <button class='go fl'>Search</button>  
+            </div>
+          </header>
+          <div class='map-canvas' id='map-canvas'></div>
+          <footer>
+            <div class='slider-wrap'>
+              <div class="timeline-slider" ></div> 
+            </div>
+            <ul class='timeline-controls'>
+              <li class='js-rewind icon-first js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+              <li class='js-rewind icon-previous js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+              <li class='js-play-timeline icon-play2' data-switch-icon="icon-pause2" data-tooltip='Play Timeline'></li>
+              <li class='js-rewind icon-next js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+              <li class='js-fast-forward icon-last js-speed-control' dir='forward' speed='1x' data-tooltip='Fast Forward Timeline'></li>
+            </ul>
+          </footer>
+        </div>
       </script>
     </div> <!-- end large container -->
     {% include "templates.html" %}

@@ -5,8 +5,15 @@
     this.mapOptions = {
       center: new google.maps.LatLng(35, -62),
       zoom: 2,
-      styles: gmapNightStyle,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
+      styles: gMapRetro,
+      mapTypeControl: false,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      zoomControlOptions: {
+        position: google.maps.ControlPosition.LEFT_CENTER
+      },
+      panControlOptions: {
+        position: google.maps.ControlPosition.LEFT_CENTER
+      }
     };
     this.map = new google.maps.Map(document.getElementById("map-canvas"), this.mapOptions);
     this.infowindow = new google.maps.InfoWindow();
@@ -32,6 +39,7 @@
         that.infowindow.setContent(display);
         return that.infowindow.open(that.map, this);
       });
+      story.trigger("doneloading");
     }
     return this;
   };

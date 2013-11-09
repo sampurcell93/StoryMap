@@ -1,4 +1,13 @@
 $ ->
+  blueIcon = "/static/images/bluepoi.png"
+  redIcon = "/static/images/redpoi.png"
+
+  # img = document.createElement("img")
+  # img.src = blueIcon
+  # img.addEventListener("load", ->
+  #   cc "ld"
+  #   document.body.appendChild img
+  # )
 
   window.views = {}
 
@@ -13,8 +22,27 @@ $ ->
       @model.instance = @
       @listenTo @model,
         "loading": @createLoadingOverlay
+        "doneloading": ->
+          window.destroyModal()
     render: ->
+      self = @
       @$el.html( _.template @template, @model.toJSON() )
+      Underscore = 
+                compile: (template) ->
+                    compiled = _.template(template)
+                    render: (context) -> 
+                        compiled(context)
+      @model.get("existingQueries").fetch success: (coll) ->
+        cc coll.models
+        self.$(".js-news-search").typeahead([
+          {
+              name: 'Queries'
+              template: $("#existing-query-item").html()
+              local: coll.models
+              engine: Underscore
+              limit: 1000
+          }
+          ])
       @
     # Now that the view is in the DOM, do stuff to child elements
     afterAppend: ->
@@ -22,8 +50,7 @@ $ ->
       # Instantiate a new google map
       @model.set "map", self.mapObj = new window.GoogleMap @model
       # A function to update the display value of the range
-      @articleList = new views.ArticleList collection: @model.get("articles")
-      @articleList.render()
+      @articleList = new views.ArticleList collection: @model.get("articles"), map :@
       @timeline = new views.Timeline collection: @model.get("articles"), map: @
       @
     toggleMarkers: (markers) ->
@@ -36,38 +63,29 @@ $ ->
       @
     search: (query) ->
       self = @
-      @model.trigger "loading"
-      @model.getGoogleNews query , 0, (query, start, done) ->
-         self.model.getYahooNews query, start, (query, start, done) ->
-            articles = self.model.get("articles")
-            _.each articles.models, (article, i) ->
-                story = article.toJSON()
-                unless i + 1 == articles.length
-                  self.model.getCalaisData story, story.title + story.content, (story, coords) ->
-                    self.model.attachCoordinates story, coords
-                    cc "about to call plot"
-                    self.model.plot article
-                else 
-                  self.model.getCalaisData story, story.title + story.content, (story, coords) ->
-                    self.model.attachCoordinates story, coords
-                    self.model.plot article
-                    self.timeline.render()
+      map = @model
+      map.trigger "loading"
+      # When done with getting news, stop the loading 
+      map.getYahooNews(query).getGoogleNews query, 0, () ->
+        window.destroyModal()
+        _.each map.get("articles").models, (article) ->
+          console.log(article.toJSON())
+          article.getCalaisData()
 
-            window.destroyModal()
-            # Now that we have all of the dates set, render the markers proportionally
-            self.timeline.render()
     events:
-      "keydown .news-search": (e) ->
+      "keydown .js-news-search": (e) ->
         key = e.keyCode || e.which
         val = $(e.currentTarget).val()
         if key == 13 then @model.checkExistingQuery(val, @search)
       "click .go": (e) ->
-        @model.checkExistingQuery( @$(".news-search").val() , @search)
+        @model.checkExistingQuery( @$(".js-news-search").val() , @search)
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
+      "click .js-save-query": ->
+        cc "saving"
 
     # Args: none
     # Rets: this
@@ -108,6 +126,13 @@ $ ->
         "show": ->
           if @marker?
             @marker.setMap @map
+        "highlight": ->
+          if @marker?
+            @marker.setIcon blueIcon
+        "unhighlight": ->
+          if @marker?
+            @marker.setIcon redIcon
+
     render: ->
       @$el.html(_.template @template, @model.toJSON())
       # Give slight offsets to make sure stories in same location are not overlapped
@@ -119,6 +144,7 @@ $ ->
         position: pt
         animation: google.maps.Animation.DROP
         title: @model.get "title"
+        icon: redIcon
       @
 
   window.views.ArticleListItem = Backbone.View.extend 
@@ -126,6 +152,7 @@ $ ->
     tagName: 'li'
     initialize: ->
       _.bindAll @, "render"
+      self = @
       @listenTo @model, 
         "hide": ->
           console.log("hiding")
@@ -133,28 +160,41 @@ $ ->
         "show": ->
           console.log("showing")
           this.$el.show()
+        "loading": ->
+          cc "loading"
+          self.$el.prepend("<img class='loader' src='static/images/loader.gif' />")
+        "change:hasLocation": -> 
+            @$el.addClass("has-location")
     render: ->
-      @$el.html(_.template @template, @model.toJSON())
+      @$el.append(_.template @template, @model.toJSON())
       @
     events:
       "click": ->
         cc @model.toJSON()
+      "mouseover": ->
+        @model.trigger("highlight")
+      "mouseout": ->
+        @model.trigger("unhighlight")
+
   
   # List of articles, regardless of location data, and controls for filtering
   window.views.ArticleList = Backbone.View.extend
     el: '.all-articles'
-    list: 'ul.article-list'
+    list: 'ol.article-list'
+    sortopts: '.sort-options-list'
+    hidden: false
     events: 
       "click": ->
         cc @collection
     initialize: ->
       self = @
-      _.bindAll @, "render", "appendChild"
+      @map = @options.map
+      _.bindAll @, "render", "appendChild", "toggle", "filter"
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
       view = new views.ArticleListItem model: model
-      @$(@list).append view.render().el
+      @$(@list).find(".placeholder").remove().end().append view.render().el
       @
     render: ->
       self = @
@@ -169,14 +209,46 @@ $ ->
           article.trigger "hide"
         else 
           article.trigger "show"
+    toggle: ->
+      this.hidden = !this.hidden
+      @$el.toggleClass "away"
+      map = @map.mapObj.map
+      startTime = new Date().getTime()
+      # We want the map to smoothly enlarge, so we need to 
+      # trigger a resize at each stage of the UI transition
+      smoothRender = setInterval ->
+        timeFromStart = new Date().getTime() - startTime
+        google.maps.event.trigger map, 'resize'
+        map.setZoom map.getZoom()
+        # transition lasts .34sec
+        if timeFromStart >= 450
+          clearInterval smoothRender
+      , 1
     events: 
       "keyup .js-filter-articles": (e) ->
         val = ($t = $(e.currentTarget)).val()
         @filter val
+      "click .js-toggle-view": "toggle"
+      "click .placeholder": ->
+        @map.$(".js-news-search").focus()
+      'click .js-sort-options': (e) ->
+        @$(@sortopts).toggle("fast")
+        e.stopPropagation()
+        e.preventDefault()
+      'click .js-filter-param': (e) ->
+        $t = $ e.currentTarget
+        show = $t.data "filtered"
+        if typeof show == "undefined" then show = true
+        $t.data "filtered", !show
+        cc($t.data "filtered")
+      'click .js-sort-param': (e) ->
+        $t = $ e.currentTarget
+        $siblings = $t.siblings(".js-sort-param")
+
 
   window.views.Timeline = Backbone.View.extend
     el: 'footer'
-    speeds:{ forward : 32, back : 32 }
+    speeds: { forward : 32, back : 32 }
     dir: "forward"
     min: new Date
     max: new Date 0
@@ -313,18 +385,3 @@ $ ->
       console.log "putting marker at " + num
       @$el.css('left', (num*100) + "%")
       @
-
-
-  # Instantiate new collection of all maps
-  AllMaps = window.AllMaps = new collections.Maps()
-  # # Get all existing maps from server
-  # window.AllMaps.fetch 
-  #     success: (collection, response) ->
-  #         if collection.length is 0
-  #             collection.add new models.StoryMap()
-  #         else 
-  #             cc "Now we want to go to the route for all saved maps"
-  #     error: (collection, response) ->
-  #         cc "fail"
-  AllMapsView = new window.views.MapInstanceList collection: AllMaps
-  AllMaps.add new models.StoryMap()

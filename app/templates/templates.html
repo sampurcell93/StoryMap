@@ -1,6 +1,9 @@
 <script type="text/template" id="article-item">
     <% var u = "undefined" %>
-    <a class='article-title' target='_blank' href='<%= typeof unescapedUrl !== u ? unescapedUrl : url %>'><%= title %></a>
+    <a class='article-title' target='_blank' href='<%= typeof unescapedUrl !== u ? unescapedUrl : url %>' title="<%= title %>">
+        <%= title %>
+    </a>
+    
 </script>
 <script type="text/template" id='storymarker'>
     <% var u = "undefined" %>
@@ -13,4 +16,7 @@
     <h2 class='center'>Fetching....</h2>
     <p class='center p10 message'>We are currently pulling news stories together from all over the internet and finding out where they occurred. Hold your horses!</p>
     <img class='loader' src='static/images/loader.gif' />
+</script>
+<script type="text/template" id='existing-query-item'>
+    <%= value %>
 </script>
