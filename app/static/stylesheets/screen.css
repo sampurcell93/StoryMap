@@ -4553,14 +4553,18 @@ footer:hover {
   text-shadow: none;
 }
 
-/* line 585, ../sass/screen.scss */
-.map-instance-list {
-  height: 100%;
-  width: 100%;
+/* line 586, ../sass/screen.scss */
+.query-thumb-list li {
+  display: inline-block;
+  width: 29.3333%;
+  margin: 10px 2%;
+  border: 1px solid #ccc;
+  height: 100px;
+  text-align: center;
 }
 
 @media screen and (max-width: 960px) {
-  /* line 591, ../sass/screen.scss */
+  /* line 597, ../sass/screen.scss */
   header button .icon-search {
     display: none;
   }

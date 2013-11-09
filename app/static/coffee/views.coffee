@@ -1,4 +1,5 @@
 $ ->
+
   blueIcon = "/static/images/bluepoi.png"
   redIcon = "/static/images/redpoi.png"
 
@@ -6,10 +7,11 @@ $ ->
 
   # The view for a single instance of a map, that is, the full view with controllers, et cetera
   window.views.MapItem = Backbone.View.extend
-    tagName: 'section'
-    template: $("#map-instance").html()
+    el: 'section.map'
+    url: -> '/favorite?user_id=' + @model.user.id + "&query_id=" + @currQuery.id
     initialize: ->
-      _.bindAll @, "render", "afterAppend", "toggleMarkers", "search"
+      console.log @model.user.id
+      _.bindAll @, "render", "toggleMarkers", "search"
       # Two way model view binding
       self = @
       @model.instance = @
@@ -19,7 +21,6 @@ $ ->
           window.destroyModal()
     render: ->
       self = @
-      @$el.html( _.template @template, @model.toJSON() )
       Underscore = 
                 compile: (template) ->
                     compiled = _.template(template)
@@ -34,10 +35,6 @@ $ ->
             limit: 1000
         }
         ])
-      @
-    # Now that the view is in the DOM, do stuff to child elements
-    afterAppend: ->
-      self = @
       # Instantiate a new google map
       @model.set "map", self.mapObj = new window.GoogleMap @model
       # A function to update the display value of the range
@@ -69,14 +66,14 @@ $ ->
         val = $(e.currentTarget).val()
         if key == 13 then @model.checkExistingQuery(val, @search)
       "click .go": (e) ->
-        @model.checkExistingQuery( @$(".js-news-search").val() , @search)
+        @search @$(".js-news-search").val()
       "click [data-route]": (e) ->
         $t = $ e.currentTarget
         route = $t.data "route"
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
-      "click .js-save-query": ->
-        cc "saving"
+      "click .js-save-query": ->  
+
 
     # Args: none
     # Rets: this
@@ -84,25 +81,6 @@ $ ->
     createLoadingOverlay: ->
       content = _.template $("#main-loading-message").html(), {}
       window.launchModal $("<div/>").append(content), close: false
-      @
-  # The view for all instances of saved maps, a list of tabs perhaps
-  window.views.MapInstanceList = Backbone.View.extend
-    el: ".map-instance-list"
-    initialize: ->
-      # When the collection is added to, add a new view for the added model
-      @listenTo @collection,
-        add: @addInstance
-      @
-    addInstance: (model) ->
-      # Create a new view object
-      item = new window.views.MapItem model: model
-      # Render it, grab its DOM element, and JQueryify it
-      instance = $ item.render().el
-      # Put it into the list
-      instance.appendTo @$el
-      item.afterAppend()
-      # Hide others, cause this shit is new
-      instance.siblings().hide()
       @
 
   window.views.MapMarker = Backbone.View.extend
@@ -375,4 +353,28 @@ $ ->
       num = @options.left || (Math.random() * 100)
       console.log "putting marker at " + num
       @$el.css('left', (num*100) + "%")
+      @
+
+
+  window.views.QueryThumb = Backbone.View.extend
+    tagName: 'li'
+    template: $("#query-thumb").html()
+    searchComplete: ->
+      console.log arguments
+    render: ->
+      @$el.html(_.template @template, @model.toJSON())
+      @
+
+  window.views.QueryThumbList = Backbone.View.extend
+    tagName: 'ul'
+    className: 'query-thumb-list'
+    appendChild: (model) ->
+      thumb = new views.QueryThumb model: model
+      @$el.append thumb.render().el
+      @
+    render: ->
+      self = @
+      @$el.html("<h2>Your Saved Queries</h2>")
+      _.each @collection.models, (query) ->
+        self.appendChild query
       @

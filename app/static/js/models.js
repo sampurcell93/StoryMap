@@ -168,9 +168,6 @@
       initialize: function() {
         return _.bindAll(this, "getGoogleNews", "getYahooNews", "addArticle", "plot");
       },
-      checkExistingQuery: function(query, callback) {
-        return callback(query);
-      },
       format: function(article, map) {
         _.each(map, function(val, key) {
           if (typeof val !== "function") {

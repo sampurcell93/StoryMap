@@ -131,8 +131,6 @@ $ ->
         external_url: '/externalNews'
         initialize: ->
             _.bindAll @,"getGoogleNews", "getYahooNews", "addArticle", "plot"
-        checkExistingQuery: (query, callback) ->
-            callback query
         # desc: takes an object (not a model) and formats its attributes by modifying its key structure (never destructive)
         # rets: the formatted article, with all key mappings
         format: (article, map) ->

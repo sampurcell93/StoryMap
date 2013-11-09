@@ -1,20 +1,25 @@
 $ ->
 
-    user = window.user = new window.models.User id: window.userid
+    user = new window.models.User id: window.userid
     window.existingQueries = new window.collections.Queries()
     user.fetch({
         success: (model) ->
             existingQueries.fetch
                 success: (coll) ->
-                    cc model
-                    # Instantiate new collection of all maps
-                    AllMaps = window.AllMaps = new collections.Maps()
-                    AllMapsView = new window.views.MapInstanceList collection: AllMaps, user: user
-                    AllMaps.add new models.StoryMap()
+                    cc user.toJSON()
+                    # Initialize routes
+                    window.app = new window.Workspace({user: user})
+                    Backbone.history.start()
+                    # Make a new map view/controller and render it
+                    map = new models.StoryMap queries: existingQueries
+                    map.user = user
+                    map = new views.MapItem model: map
+                    map.render()
         })
 
+
     $.post "/favorite", {
-        user_id: 4
-        query_id: 22
-        }, (resp)->
-            console.log resp
+        user_id: 56
+        query_id: 21
+    }, (resp) ->
+        cc resp

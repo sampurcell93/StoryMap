@@ -208,12 +208,12 @@ def logout():
 # User 'liked' a query ##
 
 
-@app.route('/favorite', methods=['GET'])
+@app.route('/favorite', methods=['POST'])
 @login_required
 def favorite():
     try:
-        user_id = request.args.get('user_id')
-        query_id = request.args.get('query_id')
+        user_id = request.form.get('user_id')
+        query_id = request.form.get('query_id')
         user = models.Users.query.get(user_id)
         query = models.Queries.query.get(query_id)
         if query is not None:

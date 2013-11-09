@@ -6,11 +6,14 @@
     redIcon = "/static/images/redpoi.png";
     window.views = {};
     window.views.MapItem = Backbone.View.extend({
-      tagName: 'section',
-      template: $("#map-instance").html(),
+      el: 'section.map',
+      url: function() {
+        return '/favorite?user_id=' + this.model.user.id + "&query_id=" + this.currQuery.id;
+      },
       initialize: function() {
         var self;
-        _.bindAll(this, "render", "afterAppend", "toggleMarkers", "search");
+        console.log(this.model.user.id);
+        _.bindAll(this, "render", "toggleMarkers", "search");
         self = this;
         this.model.instance = this;
         return this.listenTo(this.model, {
@@ -23,7 +26,6 @@
       render: function() {
         var Underscore, self;
         self = this;
-        this.$el.html(_.template(this.template, this.model.toJSON()));
         Underscore = {
           compile: function(template) {
             var compiled;
@@ -44,11 +46,6 @@
             limit: 1000
           }
         ]);
-        return this;
-      },
-      afterAppend: function() {
-        var self;
-        self = this;
         this.model.set("map", self.mapObj = new window.GoogleMap(this.model));
         this.articleList = new views.ArticleList({
           collection: this.model.get("articles"),
@@ -96,7 +93,7 @@
           }
         },
         "click .go": function(e) {
-          return this.model.checkExistingQuery(this.$(".js-news-search").val(), this.search);
+          return this.search(this.$(".js-news-search").val());
         },
         "click [data-route]": function(e) {
           var $t, current_route, route;
@@ -107,9 +104,7 @@
             trigger: true
           });
         },
-        "click .js-save-query": function() {
-          return cc("saving");
-        }
+        "click .js-save-query": function() {}
       },
       createLoadingOverlay: function() {
         var content;
@@ -117,26 +112,6 @@
         window.launchModal($("<div/>").append(content), {
           close: false
         });
-        return this;
-      }
-    });
-    window.views.MapInstanceList = Backbone.View.extend({
-      el: ".map-instance-list",
-      initialize: function() {
-        this.listenTo(this.collection, {
-          add: this.addInstance
-        });
-        return this;
-      },
-      addInstance: function(model) {
-        var instance, item;
-        item = new window.views.MapItem({
-          model: model
-        });
-        instance = $(item.render().el);
-        instance.appendTo(this.$el);
-        item.afterAppend();
-        instance.siblings().hide();
         return this;
       }
     });
@@ -489,13 +464,45 @@
         }
       }
     });
-    return window.views.TimelineMarker = Backbone.View.extend({
+    window.views.TimelineMarker = Backbone.View.extend({
       className: 'timeline-marker',
       render: function() {
         var num;
         num = this.options.left || (Math.random() * 100);
         console.log("putting marker at " + num);
         this.$el.css('left', (num * 100) + "%");
+        return this;
+      }
+    });
+    window.views.QueryThumb = Backbone.View.extend({
+      tagName: 'li',
+      template: $("#query-thumb").html(),
+      searchComplete: function() {
+        return console.log(arguments);
+      },
+      render: function() {
+        this.$el.html(_.template(this.template, this.model.toJSON()));
+        return this;
+      }
+    });
+    return window.views.QueryThumbList = Backbone.View.extend({
+      tagName: 'ul',
+      className: 'query-thumb-list',
+      appendChild: function(model) {
+        var thumb;
+        thumb = new views.QueryThumb({
+          model: model
+        });
+        this.$el.append(thumb.render().el);
+        return this;
+      },
+      render: function() {
+        var self;
+        self = this;
+        this.$el.html("<h2>Your Saved Queries</h2>");
+        _.each(this.collection.models, function(query) {
+          return self.appendChild(query);
+        });
         return this;
       }
     });

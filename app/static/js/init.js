@@ -2,7 +2,7 @@
 (function() {
   $(function() {
     var user;
-    user = window.user = new window.models.User({
+    user = new window.models.User({
       id: window.userid
     });
     window.existingQueries = new window.collections.Queries();
@@ -10,23 +10,29 @@
       success: function(model) {
         return existingQueries.fetch({
           success: function(coll) {
-            var AllMaps, AllMapsView;
-            cc(model);
-            AllMaps = window.AllMaps = new collections.Maps();
-            AllMapsView = new window.views.MapInstanceList({
-              collection: AllMaps,
+            var map;
+            cc(user.toJSON());
+            window.app = new window.Workspace({
               user: user
             });
-            return AllMaps.add(new models.StoryMap());
+            Backbone.history.start();
+            map = new models.StoryMap({
+              queries: existingQueries
+            });
+            map.user = user;
+            map = new views.MapItem({
+              model: map
+            });
+            return map.render();
           }
         });
       }
     });
     return $.post("/favorite", {
-      user_id: 4,
-      query_id: 22
+      user_id: 56,
+      query_id: 21
     }, function(resp) {
-      return console.log(resp);
+      return cc(resp);
     });
   });
 

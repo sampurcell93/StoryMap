@@ -6,7 +6,14 @@
         return "/users/" + this.get("id");
       },
       parse: function(response) {
+        var queries;
+        cc("parsing");
         response.user.last_login = new Date(response.user.last_login);
+        queries = new collections.Queries;
+        _.each(response.user.queries, function(query) {
+          return queries.add(new models.Query(query));
+        });
+        response.user.queries = queries;
         return response.user;
       }
     });

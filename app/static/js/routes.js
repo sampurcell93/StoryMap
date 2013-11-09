@@ -3,14 +3,20 @@
   $(function() {
     /* Router*/
 
-    window.Workspace = Backbone.Router.extend({
+    return window.Workspace = Backbone.Router.extend({
+      initialize: function(attrs) {
+        return this.user = attrs.user;
+      },
       routes: {
         "saved": "saved",
         "settings": "settings"
       },
       saved: function(rt) {
-        cc("showing all maps");
-        return launchModal("<h2>All Saved Maps</h2>", {
+        var settings;
+        settings = new views.QueryThumbList({
+          collection: this.user.get("queries")
+        });
+        return launchModal(settings.render().el, {
           destroyHash: true
         });
       },
@@ -21,8 +27,6 @@
         });
       }
     });
-    window.app = new window.Workspace();
-    return Backbone.history.start();
   });
 
 }).call(this);
