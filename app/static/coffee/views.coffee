@@ -2,13 +2,6 @@ $ ->
   blueIcon = "/static/images/bluepoi.png"
   redIcon = "/static/images/redpoi.png"
 
-  # img = document.createElement("img")
-  # img.src = blueIcon
-  # img.addEventListener("load", ->
-  #   cc "ld"
-  #   document.body.appendChild img
-  # )
-
   window.views = {}
 
   # The view for a single instance of a map, that is, the full view with controllers, et cetera
@@ -32,17 +25,15 @@ $ ->
                     compiled = _.template(template)
                     render: (context) -> 
                         compiled(context)
-      @model.get("existingQueries").fetch success: (coll) ->
-        cc coll.models
-        self.$(".js-news-search").typeahead([
-          {
-              name: 'Queries'
-              template: $("#existing-query-item").html()
-              local: coll.models
-              engine: Underscore
-              limit: 1000
-          }
-          ])
+      self.$(".js-news-search").typeahead([
+        {
+            name: 'Queries'
+            template: $("#existing-query-item").html()
+            local: window.existingQueries.models
+            engine: Underscore
+            limit: 1000
+        }
+        ])
       @
     # Now that the view is in the DOM, do stuff to child elements
     afterAppend: ->

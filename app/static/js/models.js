@@ -161,8 +161,6 @@
         articles = new collections.Articles;
         articles.parent_map = this;
         return {
-          existingQueries: new collections.Queries,
-          markers: [],
           articles: articles
         };
       },

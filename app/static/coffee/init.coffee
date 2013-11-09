@@ -1,13 +1,16 @@
 $ ->
 
     user = window.user = new window.models.User id: window.userid
+    window.existingQueries = new window.collections.Queries()
     user.fetch({
         success: (model) ->
-            cc model
-            # Instantiate new collection of all maps
-            AllMaps = window.AllMaps = new collections.Maps()
-            AllMapsView = new window.views.MapInstanceList collection: AllMaps, user: user
-            AllMaps.add new models.StoryMap()
+            existingQueries.fetch
+                success: (coll) ->
+                    cc model
+                    # Instantiate new collection of all maps
+                    AllMaps = window.AllMaps = new collections.Maps()
+                    AllMapsView = new window.views.MapInstanceList collection: AllMaps, user: user
+                    AllMaps.add new models.StoryMap()
         })
 
     $.post "/favorite", {

@@ -35,20 +35,15 @@
             };
           }
         };
-        this.model.get("existingQueries").fetch({
-          success: function(coll) {
-            cc(coll.models);
-            return self.$(".js-news-search").typeahead([
-              {
-                name: 'Queries',
-                template: $("#existing-query-item").html(),
-                local: coll.models,
-                engine: Underscore,
-                limit: 1000
-              }
-            ]);
+        self.$(".js-news-search").typeahead([
+          {
+            name: 'Queries',
+            template: $("#existing-query-item").html(),
+            local: window.existingQueries.models,
+            engine: Underscore,
+            limit: 1000
           }
-        });
+        ]);
         return this;
       },
       afterAppend: function() {

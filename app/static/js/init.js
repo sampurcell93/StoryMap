@@ -5,16 +5,21 @@
     user = window.user = new window.models.User({
       id: window.userid
     });
+    window.existingQueries = new window.collections.Queries();
     user.fetch({
       success: function(model) {
-        var AllMaps, AllMapsView;
-        cc(model);
-        AllMaps = window.AllMaps = new collections.Maps();
-        AllMapsView = new window.views.MapInstanceList({
-          collection: AllMaps,
-          user: user
+        return existingQueries.fetch({
+          success: function(coll) {
+            var AllMaps, AllMapsView;
+            cc(model);
+            AllMaps = window.AllMaps = new collections.Maps();
+            AllMapsView = new window.views.MapInstanceList({
+              collection: AllMaps,
+              user: user
+            });
+            return AllMaps.add(new models.StoryMap());
+          }
         });
-        return AllMaps.add(new models.StoryMap());
       }
     });
     return $.post("/favorite", {

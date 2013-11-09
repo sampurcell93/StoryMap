@@ -126,8 +126,6 @@ $ ->
             articles = new collections.Articles
             articles.parent_map = @
             {
-                existingQueries: new collections.Queries
-                markers: []
                 articles: articles
             }
         external_url: '/externalNews'
