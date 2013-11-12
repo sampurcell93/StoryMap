@@ -5,7 +5,7 @@
     this.mapOptions = {
       center: new google.maps.LatLng(35, -62),
       zoom: 2,
-      styles: gMapRetro,
+      styles: themes[window.user.mapStyle] || themes['gMapRetro'],
       mapTypeControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       zoomControlOptions: {
@@ -17,14 +17,15 @@
     };
     this.map = new google.maps.Map(document.getElementById("map-canvas"), this.mapOptions);
     this.infowindow = new google.maps.InfoWindow();
-    this.markers = model.get("markers") || [];
+    this.markers = this.model.get("markers") || [];
     return this;
   };
 
   window.GoogleMap.prototype.plot = function(story) {
-    var display, j, marker, that;
+    var display, j, marker, self;
     j = story.toJSON();
-    if (!(typeof j.latitude === "undefined" || j.longitude === "undefined")) {
+    if (!((j.lat == null) || (j.lng == null) || typeof j.lat === "undefined" || typeof j.lng === "undefined")) {
+      story.set("hasLocation", true);
       marker = new views.MapMarker({
         model: story,
         map: this.map
@@ -34,10 +35,11 @@
       this.markers.push(marker);
       marker.setMap(this.map);
       story.marker = marker;
-      that = this;
+      self = this;
       google.maps.event.addListener(marker, "click", function() {
-        that.infowindow.setContent(display);
-        return that.infowindow.open(that.map, this);
+        cc(model.toJSON());
+        self.infowindow.setContent(display);
+        return self.infowindow.open(self.map, this);
       });
       story.trigger("doneloading");
     }

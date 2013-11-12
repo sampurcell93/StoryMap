@@ -2,7 +2,7 @@ $ ->
 
     window.models = {}
     window.collections = {}
-    
+
     # Quick logging
     window.cc = (arg) ->
         console.log arg
@@ -18,6 +18,7 @@ $ ->
 
     Date.prototype.cleanFormat = ->
        @getDate() + "/" + parseInt(@getMonth() + 1) + "/" + @getFullYear()
+
 
     String.prototype.stripHTML = ->
         div = document.createElement("div")
@@ -52,15 +53,15 @@ $ ->
                   modal.append(item)
             else modal.html(content)
         unless options.close is false
-            modal.prepend("<i class='close-modal icon-untitled-7'></i>")
+            modal.prepend("<i class='close-modal icon-uni67'></i>")
             modal.find(".close-modal").on "click", ->
-                $(document.body).removeClass("active-modal")
-                modal.remove()
-                if options.destroyHash is true
-                    window.location.hash = ""
+                destroyModal(null, options)
         $(document.body).addClass("active-modal").append(modal)
         modal
-    window.destroyModal = (existing) ->
+    window.destroyModal = (existing, options) ->
+        options = $.extend {destroyHash: true}, options
         $(".modal").fadeOut "fast", ->
             unless existing == true
                 $(document.body).removeClass("active-modal")
+                if options.destroyHash == true
+                    window.location.hash = ""

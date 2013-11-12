@@ -1,20 +1,95 @@
 $ ->
+
+    # desc: takes an object (not a model) and formats its attributes by modifying its key structure (never destructive)
+    # rets: the formatted article, with all key mappings
+    format = (story, map) ->
+        _.each map, (val, key) ->
+            unless typeof val == "function"
+                story[key] = story[val]
+            else
+                story[key] = val.call story
+        story
+
     ### Data Models ###
 
     window.models.Query = Backbone.Model.extend
+        url: -> "/queries/" + (@get("id") || @get("title"))
+        initialize: (attrs, options) ->
+            try @get("stories").parent_map = options.map
+        defaults: ->
+            stories: new collections.Stories
         parse: (model) ->
-            @value = model.title
-            @tokens = [ model.title ]
-            model
+            if model.query?
+                obj = model.query
+            else 
+                obj = model
+            @value = obj.title
+            @tokens = [ obj.title ]
+            stories = new collections.Stories()
+            _.each obj.stories, (story) ->
+                stories.add new models.Story(story)
+            obj.stories = stories
+            if obj.created? then obj.created = new Date(obj.created)
+            if obj.last_query? then obj.last_query = new Date(obj.last_query)
+            obj
+        exists: (exists_callback, fails_callback) ->
+            querytitle = @get("title")
+            self = @
+            $.get("/title/query/" + querytitle, {}, (response)->
+                try response = JSON.parse(response)
+                # the query doesn't exist - execute the success callback
+                if response.exists == false 
+                    self.id = response.id
+                    self.set("id", response.id)
+                    console.log self
+                    exists_callback querytitle
+                else if fails_callback?
+                    fails_callback self, new models.Query(response, {parse: true})
+            )
+            @
+        favorite: ->
+            user_id = window.user.id
+            query_id = @id || @get("id")
+            $.post "/favorite", {
+                user_id: user_id
+                query_id: query_id
+            }, (resp) ->
+                resp = JSON.parse resp
+                cc resp
+                cc "THIS MAP HAS BEEN FAVORITED"
+         # desc: checks if a story has been looked at by seeing if its title exists in the hashtable
+        # If new, add it to collection
+        # ret: this
+        addStory: (story, opts) ->
+            stories = @get("stories")
+            # ignore case for title
+            title = story.title.toLowerCase().stripHTML()
+            # check if the story exists
+            unless stories._byTitle.hasOwnProperty(title)
+                # if it doesn't add it and set it in the titles hashtable
+                options = _.extend {}, opts
+                stories.add story = new models.Story(format(story, options.map)), options
+                id = @get("id") || @id
+                if id then story.set("query_id", id)
+                stories._byTitle[title] = story
+            else 
+                cc "story exists"
+            @
 
     window.collections.Queries = Backbone.Collection.extend
         model: models.Query
         url: "/queries"
-        parse: (response) -> response.queries
+        parse: (response) -> 
+            cc response.queries[0]
+            cc "parsing collection"
+            response.queries
 
 
-    window.models.Article = Backbone.Model.extend
-        idAttribute: 'title'
+    window.models.Story = Backbone.Model.extend
+        url: ->
+            url = "/stories"
+            if @id then url += "/" + @id
+            url
         loading: false
         defaults: 
             hasLoaded: false
@@ -37,13 +112,8 @@ $ ->
                         cc i
                         unless obj[i] == applyfun
                             obj[i] = applyfun.apply(self,[obj[i]])
-                true
-
-            # coords.latitude = parseInt coords.latitude
-            # coords.longitude = parseInt coords.longitude
                 _.extend self.attributes, obj
             if plot == true
-                console.log("plotting")
                 @collection.parent_map.get("map").plot @
             @
         # Expects a callback
@@ -75,8 +145,8 @@ $ ->
                     if coords.latitude? and coords.longitude?
                         self.attach [{
                             applyfun: parseFloat
-                            latitude: coords.latitude 
-                            longitude: coords.longitude
+                            lat: coords.latitude 
+                            lng: coords.longitude
                         }], options.plot
                         # Mark this as a model with a location
                         self.set("hasLocation", true)
@@ -86,14 +156,14 @@ $ ->
     ( ->
 
         sortMethods = {
-            "newest": (article) ->
-                article.get("date")
+            "newest": (story) ->
+                story.get("date")
             "oldest": ->
-                -article.get("date")
+                -story.get("date")
         }
 
-        window.collections.Articles = Backbone.Collection.extend
-            model: models.Article
+        window.collections.Stories = Backbone.Collection.extend
+            model: models.Story
             _byTitle: {}
             initialize: (opts) ->
                 # If the collection is the child of a news map, save a reference to the map
@@ -105,11 +175,11 @@ $ ->
                 inrange = []
                 outrange = []
                 # console.log @get("articles").models
-                _.each @models, (article) ->
-                    date = article.get("date")
+                _.each @models, (story) ->
+                    date = story.get("date")
                     if date instanceof Date == false
-                        article.set "date", new Date(date)
-                    marker = article.marker
+                        story.set "date", new Date(date)
+                    marker = story.marker
                     if marker?
                         if date < hidate and date > lodate
                             inrange.push marker
@@ -122,40 +192,12 @@ $ ->
     # the markers, and a collection of articles
     window.models.StoryMap = Backbone.Model.extend
         saved: false
-        defaults: ->
-            articles = new collections.Articles
-            articles.parent_map = @
-            {
-                articles: articles
-            }
         external_url: '/externalNews'
-        initialize: ->
-            _.bindAll @,"getGoogleNews", "getYahooNews", "addArticle", "plot"
-        # desc: takes an object (not a model) and formats its attributes by modifying its key structure (never destructive)
-        # rets: the formatted article, with all key mappings
-        format: (article, map) ->
-            _.each map, (val, key) ->
-                unless typeof val == "function"
-                    article[key] = article[val]
-                else
-                    article[key] = val.call article
-            article
-        # desc: checks if a story has been looked at by seeing if its title exists in the hashtable
-        # If new, add it to collection
-        # ret: this
-        addArticle: (story, opts) ->
-            articles = @get("articles")
-            # ignore case for title
-            title = story.title.toLowerCase().stripHTML()
-            # check if the story exists
-            unless articles._byTitle.hasOwnProperty(title)
-                # if it doesn't add it and set it in the titles hashtable
-                options = _.extend {}, opts
-                articles.add article = new models.Article(@format(story, options.map)), options
-                articles._byTitle[title] = article
-            else 
-                cc "story exists"
-            @
+        initialize: (attrs) ->
+            @currentquery = new models.Query(attrs, {map: @})
+            _.bindAll @,"getGoogleNews", "getYahooNews", "plot"
+            # Instantiate a new google map
+            @set "map",  new window.GoogleMap @
         # desc: Issues a request to a curl script, retrieving google news stories
         # args: the query, the start index to search (0-56), and the done callback
         # rets: this
@@ -171,20 +213,18 @@ $ ->
                 q: query.toLowerCase()
                 start: start 
             , (response) ->
-                try 
-                    console.count "google news story set returned"
-                    # parse the json
-                    response = JSON.parse(response)
-                    # Once google news is exhausted, execute yhoo
-                    if response.responseDetails is "out of range start" or start > 64
-                        if done? then return done query, 0, null
-                    # Get location data from OpenCalais for each story item
-                    _.each response.responseData.results, (story) ->
-                        self.addArticle story, map: 
-                            date: 'publishedDate'
-                            type: -> 'google'
-                catch
-                    console.error "Bad google response"
+                console.count "google news story set returned"
+                # parse the json
+                response = JSON.parse(response)
+                # Once google news is exhausted, execute yhoo
+                if response.responseDetails is "out of range start" or start > 8
+                    if done? then return done query, 0, null
+                # Get location data from OpenCalais for each story item
+                _.each response.responseData.results, (story) ->
+                    self.currentquery.addStory story, map: 
+                        date: ->
+                            new Date(this['publishedDate'])
+                        type: -> 'google'
                 if start < 64 then return self.getGoogleNews query, start + 32, done
             @
         getYahooNews: (query, start, done) ->
@@ -206,12 +246,13 @@ $ ->
                     # get the stories
                     stories = news.results
                     # get total results
-                    total = news.totalresults || 1000
+                    total = 10 #news.totalresults || 1000
                     _.each stories, (story) ->
-                        self.addArticle story, map:
+                        self.currentquery.addStory story, map:
                             content: 'abstract'
                             date: -> new Date(parseInt(story.date) * 1000)
                             type: -> 'yahoo'
+                            'publisher': 'source'
                     # 1000 is the length of results returned by Yahoo
                     # if start <= 1000
                     if start <= total
@@ -221,12 +262,12 @@ $ ->
                     if done? then done query, 0 , null
             @
         # expects a formatted story model and an optional callback
-        plot: (article) ->
-            @get("map").plot article
+        plot: (story) ->
+            @get("map").plot story
             @
 
     # The global collection of all maps for a user, 
     # retrieved at runtime by the "Fetch" method, below
-    window.collections.Maps = Backbone.Collection.extend
-        url: 'maps.json'
+    window.collections.StoryMaps = Backbone.Collection.extend
         model: models.StoryMap
+        index: 0

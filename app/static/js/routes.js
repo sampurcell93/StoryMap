@@ -12,16 +12,15 @@
         "settings": "settings"
       },
       saved: function(rt) {
-        var settings;
-        settings = new views.QueryThumbList({
+        var saved;
+        saved = new views.QueryThumbList({
           collection: this.user.get("queries")
         });
-        return launchModal(settings.render().el, {
+        return launchModal(saved.render().el, {
           destroyHash: true
         });
       },
       settings: function() {
-        cc("showing settings");
         return launchModal("<h2>Your Settings</h2>", {
           destroyHash: true
         });

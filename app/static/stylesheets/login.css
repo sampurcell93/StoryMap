@@ -1,4 +1,4 @@
-/* line 12, ../sass/_build.scss */
+/* line 11, ../sass/_build.scss */
 .clearfix:after {
   visibility: hidden;
   display: block;
@@ -8,313 +8,313 @@
   height: 0;
 }
 
-/* line 20, ../sass/_build.scss */
+/* line 19, ../sass/_build.scss */
 .clearfix {
   display: inline-block;
 }
 
 /* start commented backslash hack \*/
-/* line 22, ../sass/_build.scss */
+/* line 21, ../sass/_build.scss */
 * html .clearfix {
   height: 1%;
 }
 
-/* line 23, ../sass/_build.scss */
+/* line 22, ../sass/_build.scss */
 .clearfix {
   display: block;
 }
 
 /* close commented backslash hack */
-/* line 25, ../sass/_build.scss */
+/* line 24, ../sass/_build.scss */
 .center {
   text-align: center;
 }
 
-/* line 26, ../sass/_build.scss */
+/* line 25, ../sass/_build.scss */
 .relative {
   position: relative;
   display: block;
 }
 
-/* line 27, ../sass/_build.scss */
+/* line 26, ../sass/_build.scss */
 .absolute {
   position: absolute;
 }
 
-/* line 28, ../sass/_build.scss */
+/* line 27, ../sass/_build.scss */
 .sticky {
   position: fixed !important;
 }
 
-/* line 29, ../sass/_build.scss */
+/* line 28, ../sass/_build.scss */
 .fr {
   float: right;
 }
 
-/* line 30, ../sass/_build.scss */
+/* line 29, ../sass/_build.scss */
 .fl {
   float: left;
 }
 
-/* line 31, ../sass/_build.scss */
+/* line 30, ../sass/_build.scss */
 .m0 {
   margin: 0;
 }
 
-/* line 32, ../sass/_build.scss */
+/* line 31, ../sass/_build.scss */
 .m10 {
   margin: 10px !important;
 }
 
-/* line 33, ../sass/_build.scss */
+/* line 32, ../sass/_build.scss */
 .m20 {
   margin: 20px !important;
 }
 
-/* line 34, ../sass/_build.scss */
+/* line 33, ../sass/_build.scss */
 .m30 {
   margin: 30px !important;
 }
 
-/* line 35, ../sass/_build.scss */
+/* line 34, ../sass/_build.scss */
 .s9 {
   font-size: .9em !important;
 }
 
-/* line 36, ../sass/_build.scss */
+/* line 35, ../sass/_build.scss */
 .s8 {
   font-size: .8em !important;
 }
 
-/* line 37, ../sass/_build.scss */
+/* line 36, ../sass/_build.scss */
 .s7 {
   font-size: .7em !important;
 }
 
-/* line 38, ../sass/_build.scss */
+/* line 37, ../sass/_build.scss */
 .s6 {
   font-size: .6em !important;
 }
 
-/* line 39, ../sass/_build.scss */
+/* line 38, ../sass/_build.scss */
 .s5 {
   font-size: .5em !important;
 }
 
-/* line 40, ../sass/_build.scss */
+/* line 39, ../sass/_build.scss */
 .s4 {
   font-size: .4em !important;
 }
 
-/* line 41, ../sass/_build.scss */
+/* line 40, ../sass/_build.scss */
 .s3 {
   font-size: .3em !important;
 }
 
-/* line 42, ../sass/_build.scss */
+/* line 41, ../sass/_build.scss */
 .s2 {
   font-size: .2em !important;
 }
 
-/* line 43, ../sass/_build.scss */
+/* line 42, ../sass/_build.scss */
 .s1 {
   font-size: .1em !important;
 }
 
-/* line 44, ../sass/_build.scss */
+/* line 43, ../sass/_build.scss */
 .ml-0 {
   margin-left: 0px !important;
 }
 
-/* line 45, ../sass/_build.scss */
+/* line 44, ../sass/_build.scss */
 .mt-40 {
   margin-top: 40px !important;
 }
 
-/* line 46, ../sass/_build.scss */
+/* line 45, ../sass/_build.scss */
 .mauto {
   margin-left: auto !important;
   margin-right: auto !important;
 }
 
-/* line 47, ../sass/_build.scss */
+/* line 46, ../sass/_build.scss */
 .p0 {
   padding: 0 !important;
 }
 
-/* line 48, ../sass/_build.scss */
+/* line 47, ../sass/_build.scss */
 .p10 {
   padding: 10px !important;
 }
 
-/* line 49, ../sass/_build.scss */
+/* line 48, ../sass/_build.scss */
 .p15 {
   padding: 15px;
 }
 
-/* line 50, ../sass/_build.scss */
+/* line 49, ../sass/_build.scss */
 .p30 {
   padding: 30px !important;
 }
 
-/* line 51, ../sass/_build.scss */
+/* line 50, ../sass/_build.scss */
 .pointer {
   cursor: pointer;
 }
 
-/* line 52, ../sass/_build.scss */
+/* line 51, ../sass/_build.scss */
 .border-simple {
   border: 1px solid #ccc;
 }
 
-/* line 53, ../sass/_build.scss */
+/* line 52, ../sass/_build.scss */
 .no-show {
   filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
   opacity: 0;
 }
 
-/* line 54, ../sass/_build.scss */
+/* line 53, ../sass/_build.scss */
 .show {
   filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
   opacity: 1;
 }
 
-/* line 55, ../sass/_build.scss */
+/* line 54, ../sass/_build.scss */
 .noclick {
   pointer-events: none;
 }
 
-/* line 56, ../sass/_build.scss */
+/* line 55, ../sass/_build.scss */
 .inline {
   display: inline-block !important;
 }
 
-/* line 57, ../sass/_build.scss */
+/* line 56, ../sass/_build.scss */
 .block {
   display: block !important;
 }
 
-/* line 58, ../sass/_build.scss */
+/* line 57, ../sass/_build.scss */
 .hidden {
   display: none;
 }
 
-/* line 59, ../sass/_build.scss */
+/* line 58, ../sass/_build.scss */
 .visible {
   display: block;
 }
 
-/* line 60, ../sass/_build.scss */
+/* line 59, ../sass/_build.scss */
 .clear {
   clear: both;
 }
 
-/* line 61, ../sass/_build.scss */
+/* line 60, ../sass/_build.scss */
 .w1 {
   width: 10%;
 }
 
-/* line 62, ../sass/_build.scss */
+/* line 61, ../sass/_build.scss */
 .w15 {
   width: 15%;
 }
 
-/* line 63, ../sass/_build.scss */
+/* line 62, ../sass/_build.scss */
 .w2 {
   width: 20%;
 }
 
-/* line 64, ../sass/_build.scss */
+/* line 63, ../sass/_build.scss */
 .w25 {
   width: 25%;
 }
 
-/* line 65, ../sass/_build.scss */
+/* line 64, ../sass/_build.scss */
 .w3 {
   width: 30%;
 }
 
-/* line 66, ../sass/_build.scss */
+/* line 65, ../sass/_build.scss */
 .w35 {
   width: 35%;
 }
 
-/* line 67, ../sass/_build.scss */
+/* line 66, ../sass/_build.scss */
 .w4 {
   width: 40%;
 }
 
-/* line 68, ../sass/_build.scss */
+/* line 67, ../sass/_build.scss */
 .w45 {
   width: 45%;
 }
 
-/* line 69, ../sass/_build.scss */
+/* line 68, ../sass/_build.scss */
 .w5 {
   width: 50%;
 }
 
-/* line 70, ../sass/_build.scss */
+/* line 69, ../sass/_build.scss */
 .w55 {
   width: 55%;
 }
 
-/* line 71, ../sass/_build.scss */
+/* line 70, ../sass/_build.scss */
 .w6 {
   width: 60%;
 }
 
-/* line 72, ../sass/_build.scss */
+/* line 71, ../sass/_build.scss */
 .w65 {
   width: 65%;
 }
 
-/* line 73, ../sass/_build.scss */
+/* line 72, ../sass/_build.scss */
 .w7 {
   width: 70%;
 }
 
-/* line 74, ../sass/_build.scss */
+/* line 73, ../sass/_build.scss */
 .w75 {
   width: 75%;
 }
 
-/* line 75, ../sass/_build.scss */
+/* line 74, ../sass/_build.scss */
 .w8 {
   width: 80%;
 }
 
-/* line 76, ../sass/_build.scss */
+/* line 75, ../sass/_build.scss */
 .w85 {
   width: 85%;
 }
 
-/* line 77, ../sass/_build.scss */
+/* line 76, ../sass/_build.scss */
 .w9 {
   width: 90%;
 }
 
-/* line 78, ../sass/_build.scss */
+/* line 77, ../sass/_build.scss */
 .w95 {
   width: 94.5%;
 }
 
-/* line 79, ../sass/_build.scss */
+/* line 78, ../sass/_build.scss */
 .w10 {
   width: 100%;
 }
 
-/* line 80, ../sass/_build.scss */
+/* line 79, ../sass/_build.scss */
 .icon {
   font-family: 'icons';
 }
 
-/* line 81, ../sass/_build.scss */
+/* line 80, ../sass/_build.scss */
 .white {
   color: #fff;
 }
 
-/* line 82, ../sass/_build.scss */
+/* line 81, ../sass/_build.scss */
 .button, button {
   -webkit-box-shadow: 0px 0px 1px white inset;
   -moz-box-shadow: 0px 0px 1px white inset;
@@ -340,12 +340,12 @@
   cursor: pointer;
   outline: none;
 }
-/* line 97, ../sass/_build.scss */
+/* line 96, ../sass/_build.scss */
 .button:hover, button:hover {
   color: #fff;
   background: #18305B;
 }
-/* line 102, ../sass/_build.scss */
+/* line 101, ../sass/_build.scss */
 .button:focus, button:focus {
   background: #14213A;
 }
@@ -420,6 +420,11 @@ body.active-modal::after {
   display: block;
   width: 32px;
   height: 32px;
+}
+/* line 63, ../sass/_overlays.scss */
+.modal p {
+  padding: 20px;
+  font-size: 1.3em;
 }
 
 /* line 6, ../sass/login.scss */

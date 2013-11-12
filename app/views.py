@@ -1,3 +1,5 @@
+from dateutil import parser
+import datetime
 from pprint import pprint
 from app import app, models, db, lm, login_serializer
 import datetime
@@ -20,6 +22,12 @@ from flask.ext.login import login_user, logout_user, current_user, login_require
 bcrypt = Bcrypt(app)
 
 views = "./views"
+
+dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime)  or isinstance(obj, datetime.date) else None
+def _json_object_hook(d): 
+    return namedtuple('X', d.keys())(*d.values())
+def json2obj(data): 
+    return json.loads(data, object_hook=_json_object_hook)
 
 def to_json_list(results, is_query=False):
     output = []
@@ -240,14 +248,31 @@ def queries():
     queries = models.Queries.query.all()
     return flask.jsonify(queries=to_json_list(queries, True))
 
-# Get one query by id ##
-@app.route('/queries/<string:id>', methods=['GET'])
+# Get one query by id or by title ##
+@app.route('/queries/<string:identifier>', methods=['GET'])
 @login_required
-def getQueryById(id):
-    query = models.Queries.query.get(id)
-    if (query is None):
+def getQueryById(identifier):
+    digit = False
+    try:
+        digit = identifier.isdigit()
+    except Exception: 
+        digit = True
+    if digit is True:
+        print "digit"
+        query = models.Queries.query.get(identifier)
+        if (query is None):
+            return json.dumps({"exists": False})
+        return json.dumps(to_json(query, True), default=dthandler)
+    else:
+        return getQueryByTitle(identifier)
+@app.route('/title/query/<string:title>', methods=['GET'])
+def getQueryByTitle(title):
+    print "titling"
+    query = models.Queries.query.filter_by(title = title).all()
+    if not query:
         return json.dumps({"exists": False})
-    return flask.jsonify(query=to_json(query, True))
+    print query[0].id
+    return getQueryById(query[0].id)
 
 
 # Create a new query ##
@@ -266,7 +291,15 @@ def createQuery(title=None):
         query_id = query.id
     else: 
         query_id = existing[0].id
-    return json.dumps({'success': 'true', 'id': query_id})
+    # Return the ID of the query, whether new or old
+    return json.dumps({'id': query_id})
+
+
+@app.route('/queries/<string:id>', methods=['PUT'])
+@login_required
+def succeedPut(id):
+    return json.dumps({"success": True})
+
 
 ########################
 ## Story REST Methods ##
@@ -296,34 +329,45 @@ def getStory(id):
 
 
 @app.route('/stories', methods=['POST'])
-@app.route(('/stories/<string:title>/<string:publication>/'
-           '<string:date>/<string:author>/<string:url>/<float:lat>'
-           '/<float:lng>'))
+# @app.route(('/stories/<string:title>/<string:publication>/'
+#            '<string:date>/<string:author>/<string:url>/<float:lat>'
+#            '/<float:lng>'))
 @login_required
 def createStory(title=None, publication=None, date=None, author=None, url=None,
-                lat=None, lng=None):
+                lat=None, lng=None, content=None, query_id=None):
     if title is None:
-        title = request.form.get('title')
-        publication = request.form.get('publication')
-        date = request.form.get('date')
-        author = request.form.get('author')
-        url = request.form.get('url')
-        lat = request.form.get('lat')
-        lng = request.form.get('lng')
-    story = models.Stories(title=title, publication=publication, date=date,
-                           author=author, url=url, lat=lat, lng=lng)
-    db.session.add(story)
-    db.session.commit()
-    return 'Success!\n'
+        print "setting shit"
+        pprint(request.json)
+        title = request.json['title']
+        content = request.json['content']
+        publication = request.json['publisher']
+        date = parser.parse(request.json['date']).strftime('%Y-%m-%d %H:%M:%S')
+        url = request.json['url']
+        lat = request.json.get('lat')
+        lng = request.json.get('lng')
+        query_id = request.json.get('query_id')
+        print "query_id:"
+        print query_id
+    try:
+        story = models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content)
+        db.session.add(story)
+        db.session.commit()
+        if query_id is not None:
+            addStoryToQuery(query_id, story.id)
+        return json.dumps({"id": story.id})
+    except IntegrityError as e:
+        db.session.flush()
+        return json.dumps({"duplicate": True})
+
+@app.route('/stories/<string:id>', methods=['PUT'])
+@login_required
+def storyPut(id):
+    return json.dumps({"success": True})
 
 # Add story to an existing query ##
-
-
-@app.route('/addStoryToQuery', methods=['POST'])
+@app.route('/addStoryToQuery/<string:query_id>/<string:story_id>', methods=['POST'])
 @login_required
-def addStoryToQuery():
-    story_id = request.form.get('story_id')
-    query_id = request.form.get('query_id')
+def addStoryToQuery(query_id, story_id):
     story = models.Stories.query.get(story_id)
     if story is None:
         return 'Story does not exist\n'
@@ -335,13 +379,11 @@ def addStoryToQuery():
     return 'Success!\n'
 
 # Add a list of stories to an existing query ##
-
-
 @app.route('/addStoriesToQuery', methods=['POST'])
 @login_required
 def addStoriesToQuery():
-    story_list = request.args.getlist('stories')[0].split(",")
-    query_id = request.args.get('query_id')
+    story_list = request.form.getlist('stories')[0].split(",")
+    query_id = request.form.get('query_id')
     query = models.Queries.query.get(query_id)
     if query is None:
         return 'Query does not exist\n'
@@ -349,8 +391,8 @@ def addStoriesToQuery():
         story = models.Stories.query.get(story_id)
         if story is None:
             continue
-        story.queries.append(query)
-    db.session.commit()
+        # story.queries.append(query)
+    # db.session.commit()
     return 'Success!\n'
 
 @app.route("/externalNews", methods=['GET'])
@@ -394,6 +436,14 @@ def yahooNews():
     complete_url = oauth_request.to_url()
     response = urllib.urlopen(complete_url)
     return response.read()
+
+@app.route("/test", methods=['GET'])
+def test():
+    params = request.args.getlist("params")
+    for i in params:
+        val = json2obj(json.dumps(i))
+        print val['name']
+    return "Hello"
 
 @app.route("/calais", methods=['GET'])
 @login_required

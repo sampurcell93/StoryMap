@@ -8,9 +8,9 @@ $ ->
   # The view for a single instance of a map, that is, the full view with controllers, et cetera
   window.views.MapItem = Backbone.View.extend
     el: 'section.map'
+    typeahead: false
     url: -> '/favorite?user_id=' + @model.user.id + "&query_id=" + @currQuery.id
     initialize: ->
-      console.log @model.user.id
       _.bindAll @, "render", "toggleMarkers", "search"
       # Two way model view binding
       self = @
@@ -19,27 +19,41 @@ $ ->
         "loading": @createLoadingOverlay
         "doneloading": ->
           window.destroyModal()
+      window.mapObj = self.mapObj = @model.get("map")
+      $searchbar = self.$(".js-news-search")
+      if !@typeahead
+        Underscore = 
+                  compile: (template) ->
+                      compiled = _.template(template)
+                      render: (context) -> 
+                          compiled(context)
+        $searchbar.typeahead([
+          {
+              name: 'Queries'
+              template: $("#existing-query-item").html()
+              local: window.existingQueries.models
+              engine: Underscore
+              limit: 1000
+          }
+          ])
+        @typeahead = true
+      @storyList = new views.StoryList collection: @model.currentquery.get("stories"), map :@
+      @timeline = new views.Timeline collection: @model.currentquery.get("stories"), map: @
+      @
     render: ->
-      self = @
-      Underscore = 
-                compile: (template) ->
-                    compiled = _.template(template)
-                    render: (context) -> 
-                        compiled(context)
-      self.$(".js-news-search").typeahead([
-        {
-            name: 'Queries'
-            template: $("#existing-query-item").html()
-            local: window.existingQueries.models
-            engine: Underscore
-            limit: 1000
-        }
-        ])
-      # Instantiate a new google map
-      @model.set "map", self.mapObj = new window.GoogleMap @model
-      # A function to update the display value of the range
-      @articleList = new views.ArticleList collection: @model.get("articles"), map :@
-      @timeline = new views.Timeline collection: @model.get("articles"), map: @
+      $searchbar = self.$(".js-news-search")
+      if @model.get("title")?
+        $searchbar.typeahead('setQuery', @model.get("title"))
+      @renderComponents()
+      @plotAll()
+    plotAll: ->
+      _.each @model.currentquery.get("stories").models, (story) ->
+        window.mapObj.plot story
+        true
+      @
+    renderComponents: ->
+      if @storyList? then @storyList.render()
+      # if @timeline? then @timeline.render()
       @
     toggleMarkers: (markers) ->
       self = @
@@ -50,21 +64,47 @@ $ ->
           inlier.setMap self.mapObj.map
       @
     search: (query) ->
+      @$(".icon-in").css("visibility", "visible")
+      # @loadQuery new models.Query({title: query})
       self = @
-      map = @model
-      map.trigger "loading"
-      # When done with getting news, stop the loading 
-      map.getYahooNews(query).getGoogleNews query, 0, () ->
-        window.destroyModal()
-        _.each map.get("articles").models, (article) ->
-          console.log(article.toJSON())
-          article.getCalaisData()
-
+      controller = @model
+      controller.trigger "loading"
+      queryobj = controller.currentquery
+      queryobj.set("title", query)
+      # pass in a function for how to handle a new query, and one for an existing query
+      queryobj.exists(
+        ((query) ->
+          controller.getGoogleNews query, 0, () ->
+            window.destroyModal()
+            _.each queryobj.get("stories").models, (story) ->
+              story.getCalaisData()
+        ), 
+        ((model) ->
+          _.extend queryobj.attributes, model.attributes
+          window.existingQueries.add queryobj
+          self.loadQuery queryobj
+        ) 
+      )
+    # Expects a models.Query, loads and renders it if it exists, needs an id
+    loadQuery: (query) ->
+      model = query || @model.currentquery
+      model.fetch 
+        success: (model, resp, options) ->
+          formatted = model.attributes
+          formatted.stories = new collections.Stories(resp["stories"].models)
+          window.AllMaps.add newmap = new models.StoryMap(formatted)
+          window.AllMaps.index += 1
+          newmap.user = window.user
+          window.map.model = newmap
+          window.map.storyList.collection = window.map.timeline.collection = newmap.currentquery.get("stories")
+          window.map.render()
+          destroyModal()
+        error: ->
     events:
       "keydown .js-news-search": (e) ->
         key = e.keyCode || e.which
         val = $(e.currentTarget).val()
-        if key == 13 then @model.checkExistingQuery(val, @search)
+        if key == 13 then @search val
       "click .go": (e) ->
         @search @$(".js-news-search").val()
       "click [data-route]": (e) ->
@@ -72,8 +112,24 @@ $ ->
         route = $t.data "route"
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
-      "click .js-save-query": ->  
-
+      "click .js-save-query": (e) ->  
+        toSave = @model.currentquery
+        stories = toSave.get("stories")
+        # # There should be no distinction between saving and favoriting to the user - clicking save does both
+        toSave.save null, 
+          success: (resp,b, c) ->
+            toSave.favorite()
+            toSave.set("stories", stories)
+            _.each stories.models, (story) ->
+              story.set("query_id", toSave.id)
+              story.save(null, {
+                success: (model, resp) ->
+                  cc resp
+                error: (model, resp) ->
+                  cc resp
+              })
+            error: ->
+              cc "YOLo"
 
     # Args: none
     # Rets: this
@@ -108,7 +164,8 @@ $ ->
       @xoff = xOff = Math.random() * 0.1
       @yoff = yOff = Math.random() * 0.1
       # Make the new point
-      pt = new google.maps.LatLng(parseInt(@model.get("latitude")) + xOff, parseInt(@model.get("longitude")) + yOff)
+      pt = new google.maps.LatLng(parseInt(@model.get("lat")) + xOff, parseInt(@model.get("lng")) + yOff)
+      console.log pt
       @marker = new google.maps.Marker
         position: pt
         animation: google.maps.Animation.DROP
@@ -116,7 +173,7 @@ $ ->
         icon: redIcon
       @
 
-  window.views.ArticleListItem = Backbone.View.extend 
+  window.views.StoryListItem = Backbone.View.extend 
     template: $("#article-item").html()
     tagName: 'li'
     initialize: ->
@@ -132,8 +189,9 @@ $ ->
         "loading": ->
           cc "loading"
           self.$el.prepend("<img class='loader' src='static/images/loader.gif' />")
-        "change:hasLocation": -> 
-            @$el.addClass("has-location")
+        "change:hasLocation": ->
+          cc  "setting loaction"
+          @$el.addClass("has-location")
     render: ->
       @$el.append(_.template @template, @model.toJSON())
       @
@@ -147,7 +205,7 @@ $ ->
 
   
   # List of articles, regardless of location data, and controls for filtering
-  window.views.ArticleList = Backbone.View.extend
+  window.views.StoryList = Backbone.View.extend
     el: '.all-articles'
     list: 'ol.article-list'
     sortopts: '.sort-options-list'
@@ -162,23 +220,25 @@ $ ->
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
-      view = new views.ArticleListItem model: model
+      view = new views.StoryListItem model: model
       @$(@list).find(".placeholder").remove().end().append view.render().el
       @
     render: ->
       self = @
-      @$(@list).empty()
+      @$(@list).children().not(".placeholder").remove()
+      console.log @collection
       _.each @collection.models, (model) ->
         self.appendChild model
       @;
     filter: (query) ->
-      _.each @collection.models, (article) -> 
-        str = (article.toJSON().title + article.toJSON().content).toLowerCase()
+      _.each @collection.models, (story) -> 
+        str = (story.toJSON().title + story.toJSON().content).toLowerCase()
         if str.indexOf(query.toLowerCase()) == -1
-          article.trigger "hide"
+          story.trigger "hide"
         else 
-          article.trigger "show"
+          story.trigger "show"
     toggle: ->
+      cc "Toggling"
       this.hidden = !this.hidden
       @$el.toggleClass "away"
       map = @map.mapObj.map
@@ -219,15 +279,13 @@ $ ->
     el: 'footer'
     speeds: { forward : 32, back : 32 }
     dir: "forward"
-    min: new Date
-    max: new Date 0
     initialize: ->
       self = @
       @map = @options.map
-      _.bindAll @,  "updateMinMax", "changeValue", "updateHandles", "play"
-      @listenTo @collection, "add", (model) ->
-        self.updateMinMax model
-        self.updateHandles()
+      _.bindAll @, "render", "addMarker", "changeValue", "play", "stop", "updateHandles"
+      # @listenTo @collection, "add", (model) ->
+        # self.updateMinMax model
+        # self.updateHandles()
       # callback to run each time the timeline is changed
       update_val = (e, ui) ->
         handle = $ ui.handle
@@ -250,9 +308,9 @@ $ ->
       @
     render: ->
       self = @
-      _.each @collection.models, (article) ->
-        if article.get("latitude")? and article.get("longitude")?
-          self.addMarker article
+      _.each @collection.models, (story) ->
+        if story.get("lat")? and story.get("lng")?
+          self.addMarker story
       @
     addMarker: (model) ->
       cc "appending a RED MARKR ONTO TIMELINE"
@@ -263,17 +321,18 @@ $ ->
       @$(".slider-wrap").append(view.render().el)
       @
     play: ->
-      $timeline = @$timeline
-      values = $timeline.slider "values"
+      @updateHandles()
+      values = @$timeline.slider "values"
       lo = values[0]
       hi = values[1]
+      console.log values
       @isPlaying = true
-      dir = if @dir == "forward" then 1 else -1
+      dir = if @dir == "forward" then 1 else 1
       # start the tree
-      inc = dir*Math.ceil(Math.abs (hi - lo)/300)
-      cc @speeds[@dir]
-      @changeValue lo, hi, inc, (lo, hi) ->
-        lo <= hi
+      inc = dir*Math.ceil(Math.abs (hi - lo) / 300)
+      console.log inc
+      @changeValue lo, hi, inc, (locmp, hicmp) ->
+        locmp <= hicmp
       @
     stop: ->
       @isPlaying = false
@@ -291,30 +350,27 @@ $ ->
           self.stop()
       , @speeds[@dir]
       @
-    updateMinMax: (model) ->
-      if !model? then return @
-      cc "updating min max"
-      date = model.get "date"
-      if date < @min
-        @min = date
-      if date > @max
-        @max = date
-      @
+    # should only need to call once per session
     updateHandles: ->
-      cc "updating handles"
+      if @max? and @min? then return
+      prevcomparator = @collection.comparator
+      @collection.comparator = (model) ->
+        return model.get("date")
+      @collection.sort()
+      @min = min = @collection.first().get("date")
+      @max = max = @collection.last().get("date")
+      mindate = parseInt(min.getTime())
+      maxdate = parseInt(max.getTime())
       # cache the timeline obj
       $timeline = @$timeline
       # get handles and set their display data to clean dates
       handles = $timeline.find(".ui-slider-handle")
-      handles.first().data("display-date", @max.cleanFormat())
-      handles.last().data("display-date", @min.cleanFormat())
-       # Get the pure millisecond versions of the dates
-      mindate = @min.getTime()
-      maxdate = @max.getTime()
+      handles.first().data("display-date", min.cleanFormat())
+      handles.last().data("display-date", max.cleanFormat())
       # Set the slider values to each end of the spectrum and update the min and max
+      $timeline.slider("option", min: mindate, max: maxdate)
       $timeline.slider("values", 0, mindate)
       $timeline.slider("values", 1, maxdate)
-      $timeline.slider("option", min: mindate, max: maxdate)
       @
     setSpeed: (dir) ->
         rel = Math.pow 2, 5 # 32, min speed ratio
@@ -344,7 +400,7 @@ $ ->
       "click .js-fast-forward": "renderSpeed"
       "click .js-rewind": "renderSpeed"
       "mouseover .timeline-controls li": (e) ->
-        $t = $ e.currentTarget
+        $t = $ e.currentTarget  
 
 
   window.views.TimelineMarker = Backbone.View.extend
@@ -355,26 +411,33 @@ $ ->
       @$el.css('left', (num*100) + "%")
       @
 
-
-  window.views.QueryThumb = Backbone.View.extend
-    tagName: 'li'
-    template: $("#query-thumb").html()
-    searchComplete: ->
-      console.log arguments
-    render: ->
-      @$el.html(_.template @template, @model.toJSON())
-      @
+  ( ->
+    i = 0
+    randClasses = ["blueribbon", "green", "orangestuff", "pink", "purple", "tendrils"]
+    window.views.QueryThumb = Backbone.View.extend
+      tagName: 'li'
+      template: $("#query-thumb").html()
+      searchComplete: ->
+        console.log arguments
+      render: ->
+        @$el.html(_.template @template, @model.toJSON()).addClass(randClasses[i++ % 6])
+        @
+      events: 
+        "click .js-load-map": ->
+          window.map.loadQuery @model
+  )()
 
   window.views.QueryThumbList = Backbone.View.extend
     tagName: 'ul'
     className: 'query-thumb-list'
+    template: $("#query-list-help").html()
     appendChild: (model) ->
       thumb = new views.QueryThumb model: model
       @$el.append thumb.render().el
       @
     render: ->
       self = @
-      @$el.html("<h2>Your Saved Queries</h2>")
+      @$el.html(_.template @template, {})
       _.each @collection.models, (query) ->
         self.appendChild query
       @

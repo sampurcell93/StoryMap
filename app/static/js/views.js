@@ -7,54 +7,76 @@
     window.views = {};
     window.views.MapItem = Backbone.View.extend({
       el: 'section.map',
+      typeahead: false,
       url: function() {
         return '/favorite?user_id=' + this.model.user.id + "&query_id=" + this.currQuery.id;
       },
       initialize: function() {
-        var self;
-        console.log(this.model.user.id);
+        var $searchbar, Underscore, self;
         _.bindAll(this, "render", "toggleMarkers", "search");
         self = this;
         this.model.instance = this;
-        return this.listenTo(this.model, {
+        this.listenTo(this.model, {
           "loading": this.createLoadingOverlay,
           "doneloading": function() {
             return window.destroyModal();
           }
         });
-      },
-      render: function() {
-        var Underscore, self;
-        self = this;
-        Underscore = {
-          compile: function(template) {
-            var compiled;
-            compiled = _.template(template);
-            return {
-              render: function(context) {
-                return compiled(context);
-              }
-            };
-          }
-        };
-        self.$(".js-news-search").typeahead([
-          {
-            name: 'Queries',
-            template: $("#existing-query-item").html(),
-            local: window.existingQueries.models,
-            engine: Underscore,
-            limit: 1000
-          }
-        ]);
-        this.model.set("map", self.mapObj = new window.GoogleMap(this.model));
-        this.articleList = new views.ArticleList({
-          collection: this.model.get("articles"),
+        window.mapObj = self.mapObj = this.model.get("map");
+        $searchbar = self.$(".js-news-search");
+        if (!this.typeahead) {
+          Underscore = {
+            compile: function(template) {
+              var compiled;
+              compiled = _.template(template);
+              return {
+                render: function(context) {
+                  return compiled(context);
+                }
+              };
+            }
+          };
+          $searchbar.typeahead([
+            {
+              name: 'Queries',
+              template: $("#existing-query-item").html(),
+              local: window.existingQueries.models,
+              engine: Underscore,
+              limit: 1000
+            }
+          ]);
+          this.typeahead = true;
+        }
+        this.storyList = new views.StoryList({
+          collection: this.model.currentquery.get("stories"),
           map: this
         });
         this.timeline = new views.Timeline({
-          collection: this.model.get("articles"),
+          collection: this.model.currentquery.get("stories"),
           map: this
         });
+        return this;
+      },
+      render: function() {
+        var $searchbar;
+        $searchbar = self.$(".js-news-search");
+        if (this.model.get("title") != null) {
+          $searchbar.typeahead('setQuery', this.model.get("title"));
+        }
+        this.renderComponents();
+        return this.plotAll();
+      },
+      plotAll: function() {
+        _.each(this.model.currentquery.get("stories").models, function(story) {
+          window.mapObj.plot(story);
+          return true;
+        });
+        return this;
+      },
+      renderComponents: function() {
+        if (this.storyList != null) {
+          this.storyList.render();
+        }
         return this;
       },
       toggleMarkers: function(markers) {
@@ -71,16 +93,43 @@
         return this;
       },
       search: function(query) {
-        var map, self;
+        var controller, queryobj, self;
+        this.$(".icon-in").css("visibility", "visible");
         self = this;
-        map = this.model;
-        map.trigger("loading");
-        return map.getYahooNews(query).getGoogleNews(query, 0, function() {
-          window.destroyModal();
-          return _.each(map.get("articles").models, function(article) {
-            console.log(article.toJSON());
-            return article.getCalaisData();
+        controller = this.model;
+        controller.trigger("loading");
+        queryobj = controller.currentquery;
+        queryobj.set("title", query);
+        return queryobj.exists((function(query) {
+          return controller.getGoogleNews(query, 0, function() {
+            window.destroyModal();
+            return _.each(queryobj.get("stories").models, function(story) {
+              return story.getCalaisData();
+            });
           });
+        }), (function(model) {
+          _.extend(queryobj.attributes, model.attributes);
+          window.existingQueries.add(queryobj);
+          return self.loadQuery(queryobj);
+        }));
+      },
+      loadQuery: function(query) {
+        var model;
+        model = query || this.model.currentquery;
+        return model.fetch({
+          success: function(model, resp, options) {
+            var formatted, newmap;
+            formatted = model.attributes;
+            formatted.stories = new collections.Stories(resp["stories"].models);
+            window.AllMaps.add(newmap = new models.StoryMap(formatted));
+            window.AllMaps.index += 1;
+            newmap.user = window.user;
+            window.map.model = newmap;
+            window.map.storyList.collection = window.map.timeline.collection = newmap.currentquery.get("stories");
+            window.map.render();
+            return destroyModal();
+          },
+          error: function() {}
         });
       },
       events: {
@@ -89,7 +138,7 @@
           key = e.keyCode || e.which;
           val = $(e.currentTarget).val();
           if (key === 13) {
-            return this.model.checkExistingQuery(val, this.search);
+            return this.search(val);
           }
         },
         "click .go": function(e) {
@@ -104,7 +153,33 @@
             trigger: true
           });
         },
-        "click .js-save-query": function() {}
+        "click .js-save-query": function(e) {
+          var stories, toSave;
+          toSave = this.model.currentquery;
+          stories = toSave.get("stories");
+          return toSave.save(null, {
+            success: function(resp, b, c) {
+              toSave.favorite();
+              toSave.set("stories", stories);
+              _.each(stories.models, function(story) {
+                story.set("query_id", toSave.id);
+                return story.save(null, {
+                  success: function(model, resp) {
+                    return cc(resp);
+                  },
+                  error: function(model, resp) {
+                    return cc(resp);
+                  }
+                });
+              });
+              return {
+                error: function() {
+                  return cc("YOLo");
+                }
+              };
+            }
+          });
+        }
       },
       createLoadingOverlay: function() {
         var content;
@@ -148,7 +223,8 @@
         this.$el.html(_.template(this.template, this.model.toJSON()));
         this.xoff = xOff = Math.random() * 0.1;
         this.yoff = yOff = Math.random() * 0.1;
-        pt = new google.maps.LatLng(parseInt(this.model.get("latitude")) + xOff, parseInt(this.model.get("longitude")) + yOff);
+        pt = new google.maps.LatLng(parseInt(this.model.get("lat")) + xOff, parseInt(this.model.get("lng")) + yOff);
+        console.log(pt);
         this.marker = new google.maps.Marker({
           position: pt,
           animation: google.maps.Animation.DROP,
@@ -158,7 +234,7 @@
         return this;
       }
     });
-    window.views.ArticleListItem = Backbone.View.extend({
+    window.views.StoryListItem = Backbone.View.extend({
       template: $("#article-item").html(),
       tagName: 'li',
       initialize: function() {
@@ -179,6 +255,7 @@
             return self.$el.prepend("<img class='loader' src='static/images/loader.gif' />");
           },
           "change:hasLocation": function() {
+            cc("setting loaction");
             return this.$el.addClass("has-location");
           }
         });
@@ -199,7 +276,7 @@
         }
       }
     });
-    window.views.ArticleList = Backbone.View.extend({
+    window.views.StoryList = Backbone.View.extend({
       el: '.all-articles',
       list: 'ol.article-list',
       sortopts: '.sort-options-list',
@@ -220,7 +297,7 @@
       },
       appendChild: function(model) {
         var view;
-        view = new views.ArticleListItem({
+        view = new views.StoryListItem({
           model: model
         });
         this.$(this.list).find(".placeholder").remove().end().append(view.render().el);
@@ -229,25 +306,27 @@
       render: function() {
         var self;
         self = this;
-        this.$(this.list).empty();
+        this.$(this.list).children().not(".placeholder").remove();
+        console.log(this.collection);
         _.each(this.collection.models, function(model) {
           return self.appendChild(model);
         });
         return this;
       },
       filter: function(query) {
-        return _.each(this.collection.models, function(article) {
+        return _.each(this.collection.models, function(story) {
           var str;
-          str = (article.toJSON().title + article.toJSON().content).toLowerCase();
+          str = (story.toJSON().title + story.toJSON().content).toLowerCase();
           if (str.indexOf(query.toLowerCase()) === -1) {
-            return article.trigger("hide");
+            return story.trigger("hide");
           } else {
-            return article.trigger("show");
+            return story.trigger("show");
           }
         });
       },
       toggle: function() {
         var map, smoothRender, startTime;
+        cc("Toggling");
         this.hidden = !this.hidden;
         this.$el.toggleClass("away");
         map = this.map.mapObj.map;
@@ -301,17 +380,11 @@
         back: 32
       },
       dir: "forward",
-      min: new Date,
-      max: new Date(0),
       initialize: function() {
         var self, update_val;
         self = this;
         this.map = this.options.map;
-        _.bindAll(this, "updateMinMax", "changeValue", "updateHandles", "play");
-        this.listenTo(this.collection, "add", function(model) {
-          self.updateMinMax(model);
-          return self.updateHandles();
-        });
+        _.bindAll(this, "render", "addMarker", "changeValue", "play", "stop", "updateHandles");
         update_val = function(e, ui) {
           var cleaned, display, handle, pos, range;
           handle = $(ui.handle);
@@ -335,9 +408,9 @@
       render: function() {
         var self;
         self = this;
-        _.each(this.collection.models, function(article) {
-          if ((article.get("latitude") != null) && (article.get("longitude") != null)) {
-            return self.addMarker(article);
+        _.each(this.collection.models, function(story) {
+          if ((story.get("lat") != null) && (story.get("lng") != null)) {
+            return self.addMarker(story);
           }
         });
         return this;
@@ -354,17 +427,18 @@
         return this;
       },
       play: function() {
-        var $timeline, dir, hi, inc, lo, values;
-        $timeline = this.$timeline;
-        values = $timeline.slider("values");
+        var dir, hi, inc, lo, values;
+        this.updateHandles();
+        values = this.$timeline.slider("values");
         lo = values[0];
         hi = values[1];
+        console.log(values);
         this.isPlaying = true;
-        dir = this.dir === "forward" ? 1 : -1;
+        dir = this.dir === "forward" ? 1 : 1;
         inc = dir * Math.ceil(Math.abs((hi - lo) / 300));
-        cc(this.speeds[this.dir]);
-        this.changeValue(lo, hi, inc, function(lo, hi) {
-          return lo <= hi;
+        console.log(inc);
+        this.changeValue(lo, hi, inc, function(locmp, hicmp) {
+          return locmp <= hicmp;
         });
         return this;
       },
@@ -388,36 +462,30 @@
         }, this.speeds[this.dir]);
         return this;
       },
-      updateMinMax: function(model) {
-        var date;
-        if (model == null) {
-          return this;
-        }
-        cc("updating min max");
-        date = model.get("date");
-        if (date < this.min) {
-          this.min = date;
-        }
-        if (date > this.max) {
-          this.max = date;
-        }
-        return this;
-      },
       updateHandles: function() {
-        var $timeline, handles, maxdate, mindate;
-        cc("updating handles");
+        var $timeline, handles, max, maxdate, min, mindate, prevcomparator;
+        if ((this.max != null) && (this.min != null)) {
+          return;
+        }
+        prevcomparator = this.collection.comparator;
+        this.collection.comparator = function(model) {
+          return model.get("date");
+        };
+        this.collection.sort();
+        this.min = min = this.collection.first().get("date");
+        this.max = max = this.collection.last().get("date");
+        mindate = parseInt(min.getTime());
+        maxdate = parseInt(max.getTime());
         $timeline = this.$timeline;
         handles = $timeline.find(".ui-slider-handle");
-        handles.first().data("display-date", this.max.cleanFormat());
-        handles.last().data("display-date", this.min.cleanFormat());
-        mindate = this.min.getTime();
-        maxdate = this.max.getTime();
-        $timeline.slider("values", 0, mindate);
-        $timeline.slider("values", 1, maxdate);
+        handles.first().data("display-date", min.cleanFormat());
+        handles.last().data("display-date", max.cleanFormat());
         $timeline.slider("option", {
           min: mindate,
           max: maxdate
         });
+        $timeline.slider("values", 0, mindate);
+        $timeline.slider("values", 1, maxdate);
         return this;
       },
       setSpeed: function(dir) {
@@ -474,20 +542,31 @@
         return this;
       }
     });
-    window.views.QueryThumb = Backbone.View.extend({
-      tagName: 'li',
-      template: $("#query-thumb").html(),
-      searchComplete: function() {
-        return console.log(arguments);
-      },
-      render: function() {
-        this.$el.html(_.template(this.template, this.model.toJSON()));
-        return this;
-      }
-    });
+    (function() {
+      var i, randClasses;
+      i = 0;
+      randClasses = ["blueribbon", "green", "orangestuff", "pink", "purple", "tendrils"];
+      return window.views.QueryThumb = Backbone.View.extend({
+        tagName: 'li',
+        template: $("#query-thumb").html(),
+        searchComplete: function() {
+          return console.log(arguments);
+        },
+        render: function() {
+          this.$el.html(_.template(this.template, this.model.toJSON())).addClass(randClasses[i++ % 6]);
+          return this;
+        },
+        events: {
+          "click .js-load-map": function() {
+            return window.map.loadQuery(this.model);
+          }
+        }
+      });
+    })();
     return window.views.QueryThumbList = Backbone.View.extend({
       tagName: 'ul',
       className: 'query-thumb-list',
+      template: $("#query-list-help").html(),
       appendChild: function(model) {
         var thumb;
         thumb = new views.QueryThumb({
@@ -499,7 +578,7 @@
       render: function() {
         var self;
         self = this;
-        this.$el.html("<h2>Your Saved Queries</h2>");
+        this.$el.html(_.template(this.template, {}));
         _.each(this.collection.models, function(query) {
           return self.appendChild(query);
         });

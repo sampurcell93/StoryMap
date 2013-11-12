@@ -6,7 +6,7 @@ window.GoogleMap = ( @model ) ->
   @mapOptions =
     center: new google.maps.LatLng(35, -62)
     zoom: 2
-    styles: gMapRetro
+    styles: themes[window.user.mapStyle] || themes['gMapRetro']
     mapTypeControl: false
     mapTypeId: google.maps.MapTypeId.ROADMAP
     zoomControlOptions: 
@@ -20,7 +20,7 @@ window.GoogleMap = ( @model ) ->
   @infowindow = new google.maps.InfoWindow()
   # Link map to parent model if there is one
   # Point markers array to either the model's array, or make a new one.
-  @markers = model.get("markers") || []
+  @markers = @model.get("markers") || []
   @
 
 # Plot a single story on the map
@@ -28,7 +28,9 @@ window.GoogleMap = ( @model ) ->
 # rets: map obj
 window.GoogleMap::plot = (story) ->
   j = story.toJSON()
-  unless typeof j.latitude == "undefined" or j.longitude == "undefined"
+  # Difference between stuff returned null from DB, or things never set. typeof null = "object"; LOL
+  unless !j.lat? or !j.lng? or typeof j.lat == "undefined" or typeof j.lng == "undefined"
+    story.set("hasLocation", true)
     # A simple display string
     marker = new views.MapMarker({model: story, map: @map})
     display = marker.render().$el.html()
@@ -37,10 +39,11 @@ window.GoogleMap::plot = (story) ->
     @markers.push marker
     marker.setMap @map
     story.marker = marker
-    that = @
+    self = @
     # On click, show data
     google.maps.event.addListener marker, "click", ->
-      that.infowindow.setContent display
-      that.infowindow.open that.map, @
+      cc model.toJSON()
+      self.infowindow.setContent display
+      self.infowindow.open self.map, @
     story.trigger "doneloading"
   @

@@ -66,17 +66,17 @@ class Queries(db.Model):
     last_query = db.Column(TIMESTAMP)
     active = db.Column(TINYINT, default=ACTIVE)
 
-
 class Stories(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(45), index=True, unique=True)
-    publication = db.Column(db.String(45))
+    title = db.Column(db.String(300), index=True, unique=True)
+    publisher = db.Column(db.String(300))
     date = db.Column(DATETIME)
-    author = db.Column(db.String(45))
+    # author = db.Column(db.String(45))
     url = db.Column(db.String(255))
     created = db.Column(TIMESTAMP)
     active = db.Column(TINYINT, default=ACTIVE)
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
+    content = db.Column(db.Text)
     queries = db.relationship('Queries', secondary=queries_has_stories,
                               backref=db.backref('stories', lazy='dynamic'))

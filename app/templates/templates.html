@@ -21,5 +21,17 @@
     <%= value %>
 </script>
 <script type="text/template" id='query-thumb'>
-    <%= title %>
+    <% cleanDate = function(date) {return date.getDate() + "/" + parseInt(date.getMonth() + 1) + "/" + date.getFullYear()} %>
+    <div class='mask'>
+        <h2><%= title %></h2>
+        <i class='icon-cw js-load-map'>
+        Load</i>
+        <div class='created-date'>
+            <%= typeof created !== "undefined" && created !== null ? "Created: " + cleanDate(new Date(created)) : " " %>
+        </div>
+    </div>
 </script>
+<script type="text/template" id='query-list-help'>
+    <h2>Your Saved Queries</h2>
+    <p> These are the searches you've saved to your account. While you've been away, we've been making sure to update the map with the current news. Once you've saved a map, there's no need to save it again - it will just be there. Click on a map to see its progress! </p>
+    

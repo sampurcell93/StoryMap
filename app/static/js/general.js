@@ -59,22 +59,24 @@
         }
       } catch (_error) {}
       if (options.close !== false) {
-        modal.prepend("<i class='close-modal icon-untitled-7'></i>");
+        modal.prepend("<i class='close-modal icon-uni67'></i>");
         modal.find(".close-modal").on("click", function() {
-          $(document.body).removeClass("active-modal");
-          modal.remove();
-          if (options.destroyHash === true) {
-            return window.location.hash = "";
-          }
+          return destroyModal(null, options);
         });
       }
       $(document.body).addClass("active-modal").append(modal);
       return modal;
     };
-    return window.destroyModal = function(existing) {
+    return window.destroyModal = function(existing, options) {
+      options = $.extend({
+        destroyHash: true
+      }, options);
       return $(".modal").fadeOut("fast", function() {
         if (existing !== true) {
-          return $(document.body).removeClass("active-modal");
+          $(document.body).removeClass("active-modal");
+          if (options.destroyHash === true) {
+            return window.location.hash = "";
+          }
         }
       });
     };
