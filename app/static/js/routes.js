@@ -5,11 +5,13 @@
 
     return window.Workspace = Backbone.Router.extend({
       initialize: function(attrs) {
-        return this.user = attrs.user;
+        this.user = attrs.user;
+        return this.controller = attrs.controller;
       },
       routes: {
         "saved": "saved",
-        "settings": "settings"
+        "settings": "settings",
+        "query/:title": "gotomap"
       },
       saved: function(rt) {
         var saved;
@@ -24,6 +26,13 @@
         return launchModal("<h2>Your Settings</h2>", {
           destroyHash: true
         });
+      },
+      gotomap: function(title) {
+        cc(existingQueries._byTitle);
+        console.log(this);
+        if (existingQueries._byTitle.hasOwnProperty(title)) {
+          return this.controller.loadQuery(existingQueries._byTitle[title]);
+        }
       }
     });
   });

@@ -32,18 +32,24 @@ window.GoogleMap::plot = (story) ->
   unless !j.lat? or !j.lng? or typeof j.lat == "undefined" or typeof j.lng == "undefined"
     story.set("hasLocation", true)
     # A simple display string
-    marker = new views.MapMarker({model: story, map: @map})
+    unless story.marker?
+      marker = new views.MapMarker({model: story, map: @map})
+      story.marker = marker
+    else marker = story.marker
     display = marker.render().$el.html()
     marker = marker.marker
     # Push the marker to tha array
     @markers.push marker
     marker.setMap @map
-    story.marker = marker
     self = @
     # On click, show data
     google.maps.event.addListener marker, "click", ->
-      cc model.toJSON()
+      cc story
       self.infowindow.setContent display
       self.infowindow.open self.map, @
     story.trigger "doneloading"
   @
+
+window.GoogleMap::clear = ->
+  _.each @markers, (marker) ->
+    marker.setMap null

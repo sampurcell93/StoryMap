@@ -63,14 +63,20 @@ $ ->
         unless inlier.getMap()?
           inlier.setMap self.mapObj.map
       @
+    # accepts a query model and saves it in a global object
+    cacheQuery: (query) ->
+      existingQueries._byTitle[query.get("title")] = query
+      @
     search: (query) ->
       @$(".icon-in").css("visibility", "visible")
       # @loadQuery new models.Query({title: query})
       self = @
+      # window.mapObj.clear()
       queryobj = new models.Query({title: query})
       @model = queryobj
       @storyList.collection = @timeline.collection = queryobj.get("stories")
       @storyList.bindListeners()
+      @cacheQuery queryobj
       @trigger "loading"
       # pass in a function for how to handle a new query, and one for an existing query
       queryobj.exists(
@@ -93,6 +99,7 @@ $ ->
       self = @
       model.fetch 
         success: (model, resp, options) ->
+          window.mapObj.clear()
           formatted = model.attributes
           formatted.stories = new collections.Stories(resp["stories"].models)
           self.model = query
@@ -114,6 +121,7 @@ $ ->
         window.app.navigate route, {trigger: true}
       "click .js-save-query": (e) ->  
         toSave = @model
+        console.log toSave
         stories = toSave.get("stories")
         # # There should be no distinction between saving and favoriting to the user - clicking save does both
         toSave.save null, 
@@ -171,6 +179,7 @@ $ ->
         animation: google.maps.Animation.DROP
         title: @model.get "title"
         icon: redIcon
+        map: window.mapObj.map
       @
 
   window.views.StoryListItem = Backbone.View.extend 
@@ -429,7 +438,7 @@ $ ->
         @
       events: 
         "click .js-load-map": ->
-          window.map.loadQuery @model
+          window.app.navigate("/query/" + @model.get("title"), true)
   )()
 
   window.views.QueryThumbList = Backbone.View.extend

@@ -69,7 +69,7 @@
     };
     return window.destroyModal = function(existing, options) {
       options = $.extend({
-        destroyHash: true
+        destroyHash: false
       }, options);
       return $(".modal").fadeOut("fast", function() {
         if (existing !== true) {

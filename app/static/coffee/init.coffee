@@ -1,13 +1,14 @@
 $ ->
-
     window.user = new window.models.User id: window.userid
     window.existingQueries = new window.collections.Queries()
+    existingQueries._byTitle = {}
     window.AllMaps = new collections.Queries
     user.fetch({
         success: (model) ->
             existingQueries.fetch
                 success: (coll) ->
-                    console.log user.toJSON()
+                    _.each coll.models, (query) ->
+                        existingQueries._byTitle[query.get("title")] = query
                     # Make a new map view/controller and render it
                     map = new models.Query
                     AllMaps.add map

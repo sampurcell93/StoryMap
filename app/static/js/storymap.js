@@ -26,24 +26,34 @@
     j = story.toJSON();
     if (!((j.lat == null) || (j.lng == null) || typeof j.lat === "undefined" || typeof j.lng === "undefined")) {
       story.set("hasLocation", true);
-      marker = new views.MapMarker({
-        model: story,
-        map: this.map
-      });
+      if (story.marker == null) {
+        marker = new views.MapMarker({
+          model: story,
+          map: this.map
+        });
+        story.marker = marker;
+      } else {
+        marker = story.marker;
+      }
       display = marker.render().$el.html();
       marker = marker.marker;
       this.markers.push(marker);
       marker.setMap(this.map);
-      story.marker = marker;
       self = this;
       google.maps.event.addListener(marker, "click", function() {
-        cc(model.toJSON());
+        cc(story);
         self.infowindow.setContent(display);
         return self.infowindow.open(self.map, this);
       });
       story.trigger("doneloading");
     }
     return this;
+  };
+
+  window.GoogleMap.prototype.clear = function() {
+    return _.each(this.markers, function(marker) {
+      return marker.setMap(null);
+    });
   };
 
 }).call(this);

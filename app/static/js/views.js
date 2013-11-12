@@ -91,6 +91,10 @@
         });
         return this;
       },
+      cacheQuery: function(query) {
+        existingQueries._byTitle[query.get("title")] = query;
+        return this;
+      },
       search: function(query) {
         var queryobj, self;
         this.$(".icon-in").css("visibility", "visible");
@@ -101,6 +105,7 @@
         this.model = queryobj;
         this.storyList.collection = this.timeline.collection = queryobj.get("stories");
         this.storyList.bindListeners();
+        this.cacheQuery(queryobj);
         this.trigger("loading");
         return queryobj.exists((function(query) {
           return queryobj.getGoogleNews(query, 0, function() {
@@ -123,6 +128,7 @@
         return model.fetch({
           success: function(model, resp, options) {
             var formatted;
+            window.mapObj.clear();
             formatted = model.attributes;
             formatted.stories = new collections.Stories(resp["stories"].models);
             self.model = query;
@@ -157,6 +163,7 @@
         "click .js-save-query": function(e) {
           var stories, toSave;
           toSave = this.model;
+          console.log(toSave);
           stories = toSave.get("stories");
           return toSave.save(null, {
             success: function(resp, b, c) {
@@ -230,7 +237,8 @@
           position: pt,
           animation: google.maps.Animation.DROP,
           title: this.model.get("title"),
-          icon: redIcon
+          icon: redIcon,
+          map: window.mapObj.map
         });
         return this;
       }
@@ -566,7 +574,7 @@
         },
         events: {
           "click .js-load-map": function() {
-            return window.map.loadQuery(this.model);
+            return window.app.navigate("/query/" + this.model.get("title"), true);
           }
         }
       });

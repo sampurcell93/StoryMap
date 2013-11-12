@@ -105,6 +105,7 @@ $ ->
                         date: ->
                             new Date(this['publishedDate'])
                         type: -> 'google'
+                        url: 'unescapedUrl'
                 if start < 64 then return self.getGoogleNews query, start + 32, done
             @
         getYahooNews: (query, start, done) ->

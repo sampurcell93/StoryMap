@@ -131,7 +131,8 @@
                 },
                 type: function() {
                   return 'google';
-                }
+                },
+                url: 'unescapedUrl'
               }
             });
           });

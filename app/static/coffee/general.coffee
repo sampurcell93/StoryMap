@@ -59,7 +59,7 @@ $ ->
         $(document.body).addClass("active-modal").append(modal)
         modal
     window.destroyModal = (existing, options) ->
-        options = $.extend {destroyHash: true}, options
+        options = $.extend {destroyHash: false}, options
         $(".modal").fadeOut "fast", ->
             unless existing == true
                 $(document.body).removeClass("active-modal")
