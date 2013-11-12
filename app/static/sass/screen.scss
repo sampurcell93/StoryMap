@@ -289,12 +289,16 @@ section {
 				padding: 2px 0;
 			}
 
-			&.has-location a {
-				border-left: 4px solid $hasLocation;
+			&.has-location {
+				a,.mask {
+					border-left: 4px solid $hasLocation;
+				}
 			}
 
-			&.no-location a {
-				border-left: 4px solid #000;
+			&.no-location {
+				a, .mask {
+					border-left: 4px solid #000;
+				}
 			}
 
 			&:hover  {
@@ -317,7 +321,7 @@ section {
 				height: 100%;
 				position: absolute;
 				top: 0;
-				left: 0;
+				left: 2px;
 				display: none;
 				background: rgba(0,0,0,.4);
 				li {
@@ -482,13 +486,11 @@ footer {
 .timeline-slider {
 	position: relative;
 	border: 1px solid #111;
-	border-top-color: #444;
 	@include box-shadow(0px 0px 0px 0px #666);
 	// needs latest Compass, add '@import "compass"' to your scss
 	background-color: rgb(0,0,0); // Old browsers
 	@include filter-gradient(#000000, #303534, vertical); // IE6-9
 	@include background-image(linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(48,53,52,1) 100%));
-	@include transition(width $duration ease-in-out);
 	width: 100%;
 
 
@@ -496,7 +498,7 @@ footer {
 		position: absolute;
 		top: -40px;
 		background: #222;
-		background: rgba(0,0,0,.8);
+		background: rgba(0,0,0,.7);
 		padding: 3px 5px;
 		// border: 2px solid #f9f9f9;
 		color: #f9f9f9;
@@ -514,7 +516,7 @@ footer {
 			height: 0;
 			border: 10px solid transparent;
 			border-top-color: #222;
-			border-top-color: rgba(0,0,0,.8);
+			border-top-color: rgba(0,0,0,.7);
 
 		}
 
@@ -522,17 +524,20 @@ footer {
 	}
 
 	.ui-slider-handle {
-		
-		@include border-radius(50%);
+		border: none;
+		width: 24px;
+		height: 24px;
 
 		&:focus { outline: none; }
 		&:first-of-type  {
+			background: url("../images/ui-slider-min.png") no-repeat center;
 			.handle-display-value {
 				left: -10px;
 				&:before { left: 10px;}
 			}
 		}
 		&:last-of-type {
+			background: url("../images/ui-slider-max.png") no-repeat center;
 			.handle-display-value {
 				right: -10px;
 
@@ -545,12 +550,12 @@ footer {
 
 	.ui-slider-range {
 		border: 1px solid #111;
+		border-top-color: #405A6D;
 		@include box-shadow(0px 0px 0px 0px #666);
 		// needs latest Compass, add '@import "compass"' to your scss
-		background-color: rgb(0,0,0); // Old browsers
-		@include filter-gradient(#000000, #303534, vertical); // IE6-9
-		@include background-image(linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(48,53,52,1) 100%));
-
+		background-color: rgb(17,32,61); // Old browsers
+		@include filter-gradient(#11203d, #2c4254, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(17,32,61,1) 0%,rgba(44,66,84,1) 100%));
 	}
 }
 
