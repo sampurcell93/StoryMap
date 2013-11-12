@@ -9,7 +9,7 @@
 	font-style: normal;
 }
 
-[class*="icon-"] {
+[class^="icon-"], [class*=" icon-"] {
 	font-family: 'icomoon';
 	speak: none;
 	font-style: normal;
@@ -133,6 +133,27 @@
 .icon-circle:before {
 	content: "\e601";
 }
-.icon-ok-circle:before {
+.icon-screenshot:before {
 	content: "\e611";
+}
+.icon-location-arrow:before {
+	content: "\e615";
+}
+.icon-share-sign:before {
+	content: "\e616";
+}
+.icon-reply:before {
+	content: "\e617";
+}
+.icon-thumbs-up:before {
+	content: "\e618";
+}
+.icon-thumbs-down:before {
+	content: "\e619";
+}
+.icon-thumbs-down2:before {
+	content: "\e61a";
+}
+.icon-thumbs-up2:before {
+	content: "\e61b";
 }

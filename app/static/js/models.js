@@ -42,7 +42,9 @@
         this.tokens = [obj.title];
         stories = new collections.Stories();
         _.each(obj.stories, function(story) {
-          return stories.add(new models.Story(story));
+          return stories.add(new models.Story(story, {
+            parse: true
+          }));
         });
         obj.stories = stories;
         if (obj.created != null) {
@@ -212,11 +214,13 @@
         }
         return url;
       },
+      geocodeUrl: 'http://maps.googleapis.com/maps/api/geocode/json?sensor=true&address=',
       loading: false,
       defaults: {
         hasLoaded: false
       },
       initialize: function() {
+        _.bindAll(this, "geocode");
         return this.on({
           "loading": function() {
             return this.loading = true;
@@ -302,6 +306,41 @@
       },
       plot: function() {
         window.mapObj.plot(this);
+        return this;
+      },
+      geocode: function(address, callback) {
+        var self;
+        self = this;
+        console.log(self);
+        $.getJSON(this.geocodeUrl + encodeURIComponent(address), function(response) {
+          var coords;
+          try {
+            coords = response.results[0].geometry.location;
+            self.save({
+              lat: coords.lat,
+              lng: coords.lng
+            }, {
+              success: function(model, resp) {
+                console.log(model);
+                self.set("hasLocation", true);
+                self.plot();
+                return console.log(resp);
+              },
+              error: function(model, resp) {
+                console.log(model);
+                return console.log(resp);
+              }
+            });
+            if (callback != null) {
+              return callback(true, coords);
+            }
+          } catch (_error) {
+            console.log(_error);
+            if (callback != null) {
+              return callback(false, null);
+            }
+          }
+        });
         return this;
       }
     });

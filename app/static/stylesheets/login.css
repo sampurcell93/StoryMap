@@ -425,6 +425,14 @@ body.active-modal::after {
 .modal p {
   padding: 20px;
   font-size: 1.3em;
+  clear: both;
+}
+/* line 70, ../sass/_overlays.scss */
+.modal button.js-geocode-go {
+  margin: 0 0 0 10px;
+  float: left;
+  padding: 0 10px;
+  line-height: 1.9;
 }
 
 /* line 6, ../sass/login.scss */

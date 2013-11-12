@@ -112,17 +112,14 @@
         this.cacheQuery(queryobj);
         this.trigger("loading");
         return queryobj.exists((function(model) {
-          _.extend(queryobj.attributes, model.attributes);
-          window.existingQueries.add(queryobj);
-          return self.loadQuery(queryobj);
+          return app.navigate("query/" + model, true);
         }), (function(query) {
           return queryobj.getGoogleNews(0, queryobj.getYahooNews(0, function() {
             window.destroyModal();
             _.each(queryobj.get("stories").models, function(story) {
-              cc("getting calais");
               return story.getCalaisData();
             });
-            return self.plotAll();
+            return window.existingQueries.add(queryobj);
           }));
         }));
       },
@@ -254,6 +251,7 @@
     window.views.StoryListItem = Backbone.View.extend({
       template: $("#article-item").html(),
       tagName: 'li',
+      enterLocTemplate: $("#enter-loc").html(),
       initialize: function() {
         var self;
         _.bindAll(this, "render");
@@ -271,10 +269,12 @@
             return this.$el.addClass("loading");
           },
           "change:hasLocation": function(model, hasLocation) {
+            cc("CHANGED LOC");
+            console.log(model, hasLocation);
             if (hasLocation) {
-              return this.$el.addClass("has-location");
+              return this.$el.removeClass("no-location").addClass("has-location");
             } else {
-              return this.$el.addClass("no-location");
+              return this.$el.removeClass("has-location").addClass("no-location");
             }
           },
           "doneloading": function() {},
@@ -305,6 +305,32 @@
         },
         "mouseout": function() {
           return this.model.trigger("unhighlight");
+        },
+        "click .js-read-full-story": function() {
+          var url;
+          url = this.model.get("unescapedUrl") || this.model.get("url");
+          return window.open(url, "_blank");
+        },
+        "click .js-set-location": function() {
+          var iface, self;
+          iface = _.template(this.enterLocTemplate, {
+            title: this.model.escape("title").stripHTML()
+          });
+          iface = launchModal(iface);
+          self = this;
+          return iface.find(".js-geocode-go").on("click", function() {
+            var loader;
+            loader = $("<p/>").addClass("center loading-geocode-text").text("Loading.....");
+            iface.append(loader);
+            return self.model.geocode(iface.find(".js-address-value").val(), function(success, coords) {
+              if (!success) {
+                return loader.text("We couldn't find data for that address....");
+              } else {
+                loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude " + coords.lng);
+                return setTimeout(window.destroyModal, 1500);
+              }
+            });
+          });
         }
       }
     });
@@ -351,9 +377,6 @@
         return this;
       },
       filterFns: {
-        "title": function(story, closure) {
-          return story.get("title") === closure.title;
-        },
         "location": function(story) {
           return story.get("lat") !== null && story.get("lng") !== null;
         },
@@ -376,9 +399,9 @@
         _.each(this.collection.models, function(story) {
           var filter;
           filter = filterFn(story, closure);
-          if (filter && show === false) {
+          if (filter && show === true) {
             return story.trigger("hide");
-          } else if (filter && show === true) {
+          } else if (filter && show === false) {
             return story.trigger("show");
           }
         });
@@ -412,9 +435,13 @@
       events: {
         "keyup .js-filter-articles": function(e) {
           var $t, val;
-          val = ($t = $(e.currentTarget)).val();
-          return this.filter("title", true, {
-            title: val
+          val = ($t = $(e.currentTarget)).val().toLowerCase();
+          return _.each(this.collection.models, function(story) {
+            if (story.get("title").toLowerCase().indexOf(val) !== -1) {
+              return story.trigger("show");
+            } else {
+              return story.trigger("hide");
+            }
           });
         },
         "click .js-toggle-view": "toggle",
@@ -431,7 +458,7 @@
           $t = $(e.currentTarget);
           show = $t.data("showing");
           if (typeof show === "undefined") {
-            show = true;
+            show = false;
           }
           $t.data("showing", !show);
           return this.filter($t.data("param"), $t.data("showing"));
@@ -663,6 +690,7 @@
         },
         events: {
           "click .js-load-map": function() {
+            console.log(this.model);
             return window.app.navigate("/query/" + this.model.get("title"), true);
           }
         }

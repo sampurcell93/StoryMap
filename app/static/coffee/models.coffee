@@ -30,7 +30,7 @@ $ ->
             @tokens = [ obj.title ]
             stories = new collections.Stories()
             _.each obj.stories, (story) ->
-                stories.add new models.Story(story)
+                stories.add new models.Story(story, {parse: true})
             obj.stories = stories
             if obj.created? then obj.created = new Date(obj.created)
             if obj.last_query? then obj.last_query = new Date(obj.last_query)
@@ -166,10 +166,12 @@ $ ->
             url = "/stories"
             if @id then url += "/" + @id
             url
+        geocodeUrl: 'http://maps.googleapis.com/maps/api/geocode/json?sensor=true&address='
         loading: false
         defaults: 
             hasLoaded: false
         initialize: ->
+            _.bindAll @, "geocode"
             @on
                 "loading": ->
                     this.loading = true
@@ -233,6 +235,30 @@ $ ->
                 breakval
         plot: ->
             window.mapObj.plot @
+            @
+        # If a user has an address they can manually enter it and geocode
+        geocode: (address, callback) ->
+            self = @
+            console.log self
+            $.getJSON @geocodeUrl + encodeURIComponent(address), 
+                (response) ->
+                    try 
+                        coords = response.results[0].geometry.location
+                        self.save {lat: coords.lat, lng: coords.lng} , 
+                            success: (model, resp) ->
+                                console.log model
+                                self.set("hasLocation", true)
+                                self.plot()
+                                console.log resp
+                            error: (model, resp) ->
+                                console.log model
+                                console.log resp
+                        if callback? then callback(true,coords)
+                    catch
+                        console.log _error
+                        if callback? then callback(false,null)
+
+
             @
     ( ->
 

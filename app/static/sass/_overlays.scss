@@ -63,5 +63,16 @@ body {
     p {
         padding: 20px;
         font-size: 1.3em;
+        clear: both;
     }
+
+    button {
+        &.js-geocode-go {
+            margin: 0 0 0 10px;
+            float: left; 
+            padding: 0 10px;
+            line-height: 1.9;
+        }
+    }
+
 }

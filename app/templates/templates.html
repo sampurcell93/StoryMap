@@ -1,9 +1,25 @@
+<script type="text/template" id='enter-loc'>
+    <p>We weren't able to get location data for this story. If you found some, however, type in the address and we'll geocode it for you so you can have it in the future.</p>
+    <div class='mauto w8'>
+        <label class='w75 fl'>
+            <input type='text' placeholder="Address for '<%= title %>'" class='w10 js-address-value'>
+        </label>
+        <button class='js-geocode-go'>Geocode</button>
+    </div>
+
+</script>
+
 <script type="text/template" id="article-item">
     <% var u = "undefined" %>
-    <a class='article-title' target='_blank' href='<%= typeof unescapedUrl !== u ? unescapedUrl : url %>' title="<%= title %>">
+    <a class='article-title'>
         <%= title %>
     </a>
-    
+    <ul class='mask'>
+        <li class='js-set-location icon-location-arrow'></li>
+        <li class='js-favorite-story icon-thumbs-up'></li>
+        <li title="<%= title %>" class='js-read-full-story icon-reply'></li>
+        <li class='js-expand-story-modal icon-expand'></li>
+    </ul>
 </script>
 <script type="text/template" id='storymarker'>
     <% var u = "undefined" %>
@@ -34,4 +50,3 @@
 <script type="text/template" id='query-list-help'>
     <h2>Your Saved Queries</h2>
     <p> These are the searches you've saved to your account. While you've been away, we've been making sure to update the map with the current news. Once you've saved a map, there's no need to save it again - it will just be there. Click on a map to see its progress! </p>
-    

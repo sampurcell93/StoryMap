@@ -83,18 +83,15 @@ $ ->
       # pass in a function for how to handle a new query, and one for an existing query
       queryobj.exists(
         ((model) ->
-          _.extend queryobj.attributes, model.attributes
-          window.existingQueries.add queryobj
-          self.loadQuery queryobj
+          app.navigate("query/" + model, true)
         ),
         ((query) ->
           queryobj.getGoogleNews 0, 
             (queryobj.getYahooNews 0, () ->
               window.destroyModal()
               _.each queryobj.get("stories").models, (story) ->
-                cc "getting calais"
                 story.getCalaisData()
-              self.plotAll()
+              window.existingQueries.add queryobj
             )
           )
         )
@@ -165,6 +162,7 @@ $ ->
         "show": ->
           if @marker?
             @marker.setMap @map
+            # @marker.setzIndex(google.maps.Marker.MAX_ZINDEX + 1)
         "highlight": ->
           if @marker?
             @marker.setIcon blueIcon
@@ -191,6 +189,7 @@ $ ->
   window.views.StoryListItem = Backbone.View.extend 
     template: $("#article-item").html()
     tagName: 'li'
+    enterLocTemplate: $("#enter-loc").html()
     initialize: ->
       _.bindAll @, "render"
       self = @
@@ -204,8 +203,10 @@ $ ->
         "loading": ->
           @$el.addClass("loading")
         "change:hasLocation": (model, hasLocation)->
-          if hasLocation then @$el.addClass("has-location")
-          else @$el.addClass("no-location")
+          cc "CHANGED LOC"
+          console.log model, hasLocation
+          if hasLocation then @$el.removeClass("no-location").addClass("has-location")
+          else @$el.removeClass("has-location").addClass("no-location")
         "doneloading": ->
         "highlight": ->
           @$el.addClass("highlighted")
@@ -226,6 +227,22 @@ $ ->
         @model.trigger("highlight")
       "mouseout": ->
         @model.trigger("unhighlight")
+      "click .js-read-full-story": ->
+        url = @model.get("unescapedUrl") || @model.get("url")
+        window.open url, "_blank"
+      "click .js-set-location": ->
+        iface = _.template @enterLocTemplate, {title: @model.escape("title").stripHTML()}
+        iface = launchModal iface
+        self = @
+        iface.find(".js-geocode-go").on "click", ->
+          loader = $("<p/>").addClass("center loading-geocode-text").text("Loading.....")
+          iface.append loader
+          self.model.geocode iface.find(".js-address-value").val(), (success, coords) ->
+            if !success
+              loader.text("We couldn't find data for that address....")
+            else 
+              loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude "+ coords.lng)
+              setTimeout window.destroyModal, 1500
 
   
   # List of articles, regardless of location data, and controls for filtering
@@ -258,7 +275,6 @@ $ ->
         self.appendChild model
       @;
     filterFns:  
-      "title": (story, closure) -> story.get("title") == closure.title
       "location":(story) ->  story.get("lat") != null and story.get("lng") != null
       "nolocation":(story) -> story.get("lat") == null and story.get("lng") == null
       "favorite":(story) -> false
@@ -268,8 +284,8 @@ $ ->
       filterFn = @filterFns[param]
       _.each @collection.models, (story) -> 
         filter = filterFn(story, closure)
-        if filter and show == false then story.trigger("hide")
-        else if filter and show == true then story.trigger("show")
+        if filter and show == true then story.trigger("hide")
+        else if filter and show == false then story.trigger("show")
       @
     sortFns: 
       "newest": (model) -> model.get("date")
@@ -292,8 +308,11 @@ $ ->
       , 1
     events: 
       "keyup .js-filter-articles": (e) ->
-        val = ($t = $(e.currentTarget)).val()
-        @filter "title", true, {title: val}
+        val = ($t = $(e.currentTarget)).val().toLowerCase()
+        _.each @collection.models, (story) ->
+          if story.get("title").toLowerCase().indexOf(val) != -1
+            story.trigger("show")
+          else story.trigger "hide"
       "click .js-toggle-view": "toggle"
       "click .placeholder": ->
         @map.$(".js-news-search").focus()
@@ -304,7 +323,7 @@ $ ->
       'click .js-filter-param': (e) ->
         $t = $ e.currentTarget
         show = $t.data "showing"
-        if typeof show == "undefined" then show = true
+        if typeof show == "undefined" then show = false
         $t.data "showing", !show
         @filter $t.data("param"), $t.data("showing")
       'click .js-sort': (e) ->
@@ -489,6 +508,7 @@ $ ->
         @
       events: 
         "click .js-load-map": ->
+          console.log @model
           window.app.navigate("/query/" + @model.get("title"), true)
   )()
 

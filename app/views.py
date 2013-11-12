@@ -342,7 +342,7 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
         content = request.json['content']
         publication = request.json['publisher']
         date = parser.parse(request.json['date']).strftime('%Y-%m-%d %H:%M:%S')
-        url = request.json['url']
+        url = request.json.get('url')
         lat = request.json.get('lat')
         lng = request.json.get('lng')
         aggregator = request.json.get('type')
@@ -363,7 +363,11 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
 @app.route('/stories/<string:id>', methods=['PUT'])
 @login_required
 def storyPut(id):
-    return json.dumps({"success": True})
+    story = models.Stories.query.get(id)
+    story.lat = request.json.get("lat")
+    story.lng = request.json.get("lng")
+    db.session.commit()
+    return flask.jsonify(story=to_json(story))
 
 # Add story to an existing query ##
 @app.route('/addStoryToQuery/<string:query_id>/<string:story_id>', methods=['POST'])
