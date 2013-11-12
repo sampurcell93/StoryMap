@@ -287,6 +287,11 @@
         });
       },
       render: function() {
+        if (this.model.hasLocation()) {
+          this.$el.addClass("has-location");
+        } else {
+          this.$el.addClass("no-location");
+        }
         this.$el.append(_.template(this.template, this.model.toJSON()));
         return this;
       },
@@ -379,6 +384,14 @@
         });
         return this;
       },
+      sortFns: {
+        "newest": function(model) {
+          return model.get("date");
+        },
+        "oldest": function(model) {
+          return -model.get("date");
+        }
+      },
       toggle: function() {
         var map, smoothRender, startTime;
         cc("Toggling");
@@ -423,10 +436,17 @@
           $t.data("showing", !show);
           return this.filter($t.data("param"), $t.data("showing"));
         },
-        'click .js-sort-param': function(e) {
+        'click .js-sort': function(e) {
           var $siblings, $t;
           $t = $(e.currentTarget);
-          return $siblings = $t.siblings(".js-sort-param");
+          $t.addClass("active");
+          $siblings = $t.siblings(".active");
+          $siblings.each(function() {
+            return $(this).trigger("switch");
+          });
+          this.collection.comparator = this.sortFns[$t.data("sort")];
+          this.collection.sort();
+          return this.render();
         }
       }
     });

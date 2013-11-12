@@ -192,6 +192,8 @@ $ ->
             if plot == true
                 @plot()
             @
+        hasLocation: ->
+            @get("lat")? and @get("lng")
         # Expects a callback
         getCalaisData: (callback) ->
             self = @

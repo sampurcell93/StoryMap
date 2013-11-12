@@ -212,6 +212,10 @@ $ ->
         "unhighlight": ->
           @$el.removeClass("highlighted")
     render: ->
+      if @model.hasLocation()
+          @$el.addClass("has-location")
+      else 
+          @$el.addClass("no-location")
       @$el.append(_.template @template, @model.toJSON())
       @
     events:
@@ -267,6 +271,9 @@ $ ->
         if filter and show == false then story.trigger("hide")
         else if filter and show == true then story.trigger("show")
       @
+    sortFns: 
+      "newest": (model) -> model.get("date")
+      "oldest": (model) -> -model.get("date")
     toggle: ->
       cc "Toggling"
       this.hidden = !this.hidden
@@ -300,10 +307,15 @@ $ ->
         if typeof show == "undefined" then show = true
         $t.data "showing", !show
         @filter $t.data("param"), $t.data("showing")
-
-      'click .js-sort-param': (e) ->
+      'click .js-sort': (e) ->
         $t = $ e.currentTarget
-        $siblings = $t.siblings(".js-sort-param")
+        $t.addClass("active")
+        $siblings = $t.siblings(".active")
+        $siblings.each(->$(@).trigger("switch"))
+        @collection.comparator = @sortFns[$t.data("sort")]
+        @collection.sort()
+        @render()
+
 
 
   window.views.Timeline = Backbone.View.extend

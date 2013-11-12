@@ -248,6 +248,9 @@
         }
         return this;
       },
+      hasLocation: function() {
+        return (this.get("lat") != null) && this.get("lng");
+      },
       getCalaisData: function(callback) {
         var j, self, story_string;
         self = this;
