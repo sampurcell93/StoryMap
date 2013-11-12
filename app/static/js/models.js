@@ -61,7 +61,8 @@
           try {
             response = JSON.parse(response);
           } catch (_error) {}
-          if (response.exists === true && (exists_callback != null)) {
+          cc(response);
+          if (response.exists !== false && (exists_callback != null)) {
             self.id = response.id;
             self.set("id", response.id);
             console.log(self);

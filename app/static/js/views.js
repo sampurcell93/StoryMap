@@ -295,6 +295,7 @@
           return cc(this.model.toJSON());
         },
         "mouseover": function() {
+          cc(this.model.toJSON());
           return this.model.trigger("highlight");
         },
         "mouseout": function() {
@@ -339,22 +340,44 @@
         var self;
         self = this;
         this.$(this.list).children().not(".placeholder").remove();
-        console.log(this.collection);
         _.each(this.collection.models, function(model) {
           return self.appendChild(model);
         });
         return this;
       },
-      filter: function(query) {
-        return _.each(this.collection.models, function(story) {
-          var str;
-          str = (story.toJSON().title + story.toJSON().content).toLowerCase();
-          if (str.indexOf(query.toLowerCase()) === -1) {
+      filterFns: {
+        "title": function(story, closure) {
+          return story.get("title") === closure.title;
+        },
+        "location": function(story) {
+          return story.get("lat") !== null && story.get("lng") !== null;
+        },
+        "nolocation": function(story) {
+          return story.get("lat") === null && story.get("lng") === null;
+        },
+        "favorite": function(story) {
+          return false;
+        },
+        "google": function(story) {
+          return story.get("type") === "google";
+        },
+        "yahoo": function(story) {
+          return story.get("type") === "yahoo";
+        }
+      },
+      filter: function(param, show, closure) {
+        var filterFn;
+        filterFn = this.filterFns[param];
+        _.each(this.collection.models, function(story) {
+          var filter;
+          filter = filterFn(story, closure);
+          if (filter && show === false) {
             return story.trigger("hide");
-          } else {
+          } else if (filter && show === true) {
             return story.trigger("show");
           }
         });
+        return this;
       },
       toggle: function() {
         var map, smoothRender, startTime;
@@ -377,7 +400,9 @@
         "keyup .js-filter-articles": function(e) {
           var $t, val;
           val = ($t = $(e.currentTarget)).val();
-          return this.filter(val);
+          return this.filter("title", true, {
+            title: val
+          });
         },
         "click .js-toggle-view": "toggle",
         "click .placeholder": function() {
@@ -391,12 +416,12 @@
         'click .js-filter-param': function(e) {
           var $t, show;
           $t = $(e.currentTarget);
-          show = $t.data("filtered");
+          show = $t.data("showing");
           if (typeof show === "undefined") {
             show = true;
           }
-          $t.data("filtered", !show);
-          return cc($t.data("filtered"));
+          $t.data("showing", !show);
+          return this.filter($t.data("param"), $t.data("showing"));
         },
         'click .js-sort-param': function(e) {
           var $siblings, $t;

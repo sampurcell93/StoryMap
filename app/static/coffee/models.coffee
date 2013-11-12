@@ -40,8 +40,9 @@ $ ->
             self = @
             $.get("/queries/" + querytitle, {}, (response)->
                 try response = JSON.parse(response)
+                cc response
                 # the query exists then execute the success callback
-                if response.exists == true and exists_callback?
+                if response.exists != false and exists_callback?
                     self.id = response.id
                     self.set("id", response.id)
                     console.log self

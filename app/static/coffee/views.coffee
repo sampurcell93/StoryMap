@@ -218,6 +218,7 @@ $ ->
       "click": ->
         cc @model.toJSON()
       "mouseover": ->
+        cc @model.toJSON()
         @model.trigger("highlight")
       "mouseout": ->
         @model.trigger("unhighlight")
@@ -249,17 +250,23 @@ $ ->
     render: ->
       self = @
       @$(@list).children().not(".placeholder").remove()
-      console.log @collection
       _.each @collection.models, (model) ->
         self.appendChild model
       @;
-    filter: (query) ->
+    filterFns:  
+      "title": (story, closure) -> story.get("title") == closure.title
+      "location":(story) ->  story.get("lat") != null and story.get("lng") != null
+      "nolocation":(story) -> story.get("lat") == null and story.get("lng") == null
+      "favorite":(story) -> false
+      "google":(story) -> story.get("type") == "google"
+      "yahoo":(story) -> story.get("type") == "yahoo"
+    filter: (param, show, closure) ->
+      filterFn = @filterFns[param]
       _.each @collection.models, (story) -> 
-        str = (story.toJSON().title + story.toJSON().content).toLowerCase()
-        if str.indexOf(query.toLowerCase()) == -1
-          story.trigger "hide"
-        else 
-          story.trigger "show"
+        filter = filterFn(story, closure)
+        if filter and show == false then story.trigger("hide")
+        else if filter and show == true then story.trigger("show")
+      @
     toggle: ->
       cc "Toggling"
       this.hidden = !this.hidden
@@ -279,7 +286,7 @@ $ ->
     events: 
       "keyup .js-filter-articles": (e) ->
         val = ($t = $(e.currentTarget)).val()
-        @filter val
+        @filter "title", true, {title: val}
       "click .js-toggle-view": "toggle"
       "click .placeholder": ->
         @map.$(".js-news-search").focus()
@@ -289,10 +296,11 @@ $ ->
         e.preventDefault()
       'click .js-filter-param': (e) ->
         $t = $ e.currentTarget
-        show = $t.data "filtered"
+        show = $t.data "showing"
         if typeof show == "undefined" then show = true
-        $t.data "filtered", !show
-        cc($t.data "filtered")
+        $t.data "showing", !show
+        @filter $t.data("param"), $t.data("showing")
+
       'click .js-sort-param': (e) ->
         $t = $ e.currentTarget
         $siblings = $t.siblings(".js-sort-param")
