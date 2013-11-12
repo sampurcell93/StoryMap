@@ -24,32 +24,18 @@ window.GoogleMap = ( @model ) ->
   @
 
 # Plot a single story on the map
-# args: an article model
+# args: an story model
 # rets: map obj
 window.GoogleMap::plot = (story) ->
   j = story.toJSON()
   # Difference between stuff returned null from DB, or things never set. typeof null = "object"; LOL
   unless !j.lat? or !j.lng? or typeof j.lat == "undefined" or typeof j.lng == "undefined"
-    # A simple display string
-    unless story.marker?
-      marker = new views.MapMarker({model: story, map: @map})
-      story.marker = marker
-    else marker = story.marker
-    display = marker.render().$el.html()
-    marker = marker.marker
-    # Push the marker to tha array
-    cc "Plotting: marker to map"
-    cc marker
-    cc " to "
-    cc @map
-    @markers.push marker
-    marker.setMap @map
+    story.marker = new views.MapMarker({model: story, map: @map}).render()
+    markerIcon = story.marker.marker
+    @bindEvents story.marker
+    markerIcon.setMap @map
+    @markers.push markerIcon
     self = @
-    # On click, show data
-    google.maps.event.addListener marker, "click", ->
-      # cc story
-      self.infowindow.setContent display
-      self.infowindow.open self.map, @
     story.set("hasLocation", true)
   else 
     story.set("hasLocation", false)
@@ -59,3 +45,18 @@ window.GoogleMap::plot = (story) ->
 window.GoogleMap::clear = ->
   _.each @markers, (marker) ->
     marker.setMap null
+  @
+
+window.GoogleMap::bindEvents = (markerObj) ->
+  display = markerObj.$el.html()
+  self = @
+  # On click, show data
+  google.maps.event.addListener markerObj.marker, "click", ->
+    # cc story
+    self.infowindow.setContent display
+    self.infowindow.open self.map, @
+  google.maps.event.addListener markerObj.marker, "mouseover", ->
+    markerObj.model.trigger("highlight")
+  google.maps.event.addListener markerObj.marker, "mouseout", ->
+    markerObj.model.trigger("unhighlight")
+  @

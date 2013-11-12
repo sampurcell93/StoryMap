@@ -76,6 +76,9 @@
         if (this.storyList != null) {
           this.storyList.render();
         }
+        if (this.timeline != null) {
+          this.timeline.render().updateHandles();
+        }
         return this;
       },
       toggleMarkers: function(markers) {
@@ -132,7 +135,9 @@
             var formatted;
             window.mapObj.clear();
             formatted = model.attributes;
-            formatted.stories = new collections.Stories(resp["stories"].models);
+            formatted.stories = new collections.Stories(resp["stories"].models, {
+              parse: true
+            });
             self.model = query;
             self.storyList.collection = self.timeline.collection = formatted.stories;
             self.render();
@@ -205,6 +210,7 @@
       template: $("#storymarker").html(),
       initialize: function() {
         this.map = this.options.map || window.map;
+        _.bindAll(this, "render");
         return this.listenTo(this.model, {
           "hide": function() {
             if (this.marker != null) {
@@ -271,7 +277,13 @@
               return this.$el.addClass("no-location");
             }
           },
-          "doneloading": function() {}
+          "doneloading": function() {},
+          "highlight": function() {
+            return this.$el.addClass("highlighted");
+          },
+          "unhighlight": function() {
+            return this.$el.removeClass("highlighted");
+          }
         });
       },
       render: function() {
@@ -437,6 +449,7 @@
       },
       addMarker: function(model) {
         var pos, view;
+        return this;
         cc("appending a RED MARKR ONTO TIMELINE");
         pos = model.get("date").getTime();
         view = new views.TimelineMarker({
@@ -467,6 +480,22 @@
         this.$(".js-pause-timeline").trigger("switch");
         return this;
       },
+      toEnd: function() {
+        var $tl, end;
+        $tl = this.$timeline;
+        this.stop();
+        end = $tl.slider("option", "max");
+        $tl.slider("values", 1, end);
+        return end;
+      },
+      toStart: function() {
+        var $tl, start;
+        $tl = this.$timeline;
+        this.stop();
+        start = $tl.slider("values", 0);
+        $tl.slider("values", 1, start);
+        return start;
+      },
       changeValue: function(lo, hi, increment, comparator) {
         var self;
         self = this;
@@ -484,9 +513,12 @@
       },
       updateHandles: function() {
         var $timeline, handles, max, maxdate, min, mindate, prevcomparator;
-        if ((this.max != null) && (this.min != null)) {
+        cc("trying updating handles");
+        cc(this.max, this.min, this.collection);
+        if (((this.max != null) && (this.min != null)) || this.collection.length < 2) {
           return;
         }
+        cc("updating handles");
         prevcomparator = this.collection.comparator;
         this.collection.comparator = function(model) {
           return model.get("date");
@@ -552,6 +584,8 @@
         },
         "click .js-fast-forward": "renderSpeed",
         "click .js-rewind": "renderSpeed",
+        "click .js-to-end": "toEnd",
+        "click .js-to-start": "toStart",
         "mouseover .timeline-controls li": function(e) {
           var $t;
           return $t = $(e.currentTarget);

@@ -22,31 +22,18 @@
   };
 
   window.GoogleMap.prototype.plot = function(story) {
-    var display, j, marker, self;
+    var j, markerIcon, self;
     j = story.toJSON();
     if (!((j.lat == null) || (j.lng == null) || typeof j.lat === "undefined" || typeof j.lng === "undefined")) {
-      if (story.marker == null) {
-        marker = new views.MapMarker({
-          model: story,
-          map: this.map
-        });
-        story.marker = marker;
-      } else {
-        marker = story.marker;
-      }
-      display = marker.render().$el.html();
-      marker = marker.marker;
-      cc("Plotting: marker to map");
-      cc(marker);
-      cc(" to ");
-      cc(this.map);
-      this.markers.push(marker);
-      marker.setMap(this.map);
+      story.marker = new views.MapMarker({
+        model: story,
+        map: this.map
+      }).render();
+      markerIcon = story.marker.marker;
+      this.bindEvents(story.marker);
+      markerIcon.setMap(this.map);
+      this.markers.push(markerIcon);
       self = this;
-      google.maps.event.addListener(marker, "click", function() {
-        self.infowindow.setContent(display);
-        return self.infowindow.open(self.map, this);
-      });
       story.set("hasLocation", true);
     } else {
       story.set("hasLocation", false);
@@ -56,9 +43,27 @@
   };
 
   window.GoogleMap.prototype.clear = function() {
-    return _.each(this.markers, function(marker) {
+    _.each(this.markers, function(marker) {
       return marker.setMap(null);
     });
+    return this;
+  };
+
+  window.GoogleMap.prototype.bindEvents = function(markerObj) {
+    var display, self;
+    display = markerObj.$el.html();
+    self = this;
+    google.maps.event.addListener(markerObj.marker, "click", function() {
+      self.infowindow.setContent(display);
+      return self.infowindow.open(self.map, this);
+    });
+    google.maps.event.addListener(markerObj.marker, "mouseover", function() {
+      return markerObj.model.trigger("highlight");
+    });
+    google.maps.event.addListener(markerObj.marker, "mouseout", function() {
+      return markerObj.model.trigger("unhighlight");
+    });
+    return this;
   };
 
 }).call(this);

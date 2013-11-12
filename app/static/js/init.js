@@ -6,7 +6,6 @@
     });
     window.existingQueries = new window.collections.Queries();
     existingQueries._byTitle = {};
-    window.AllMaps = new collections.Queries;
     return user.fetch({
       success: function(model) {
         return existingQueries.fetch({
@@ -16,7 +15,6 @@
               return existingQueries._byTitle[query.get("title")] = query;
             });
             map = new models.Query;
-            AllMaps.add(map);
             map.user = user;
             window.map = map = new views.MapItem({
               model: map

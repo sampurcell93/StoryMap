@@ -53,7 +53,8 @@ $ ->
       @
     renderComponents: ->
       if @storyList? then @storyList.render()
-      # if @timeline? then @timeline.render()
+      if @timeline?
+        @timeline.render().updateHandles()
       @
     toggleMarkers: (markers) ->
       console.log markers
@@ -105,7 +106,7 @@ $ ->
         success: (model, resp, options) ->
           window.mapObj.clear()
           formatted = model.attributes
-          formatted.stories = new collections.Stories(resp["stories"].models)
+          formatted.stories = new collections.Stories(resp["stories"].models, {parse: true})
           self.model = query
           self.storyList.collection = self.timeline.collection = formatted.stories
           self.render()
@@ -156,6 +157,7 @@ $ ->
     template: $("#storymarker").html()
     initialize: ->
       @map = @options.map || window.map
+      _.bindAll @, "render"
       @listenTo @model,
         "hide": ->
           if @marker?
@@ -205,6 +207,10 @@ $ ->
           if hasLocation then @$el.addClass("has-location")
           else @$el.addClass("no-location")
         "doneloading": ->
+        "highlight": ->
+          @$el.addClass("highlighted")
+        "unhighlight": ->
+          @$el.removeClass("highlighted")
     render: ->
       @$el.append(_.template @template, @model.toJSON())
       @
@@ -330,6 +336,7 @@ $ ->
           self.addMarker story
       @
     addMarker: (model) ->
+      return @
       cc "appending a RED MARKR ONTO TIMELINE"
       # Get the article's position in the range 
       pos = model.get("date").getTime()
@@ -355,6 +362,18 @@ $ ->
       @isPlaying = false
       @$(".js-pause-timeline").trigger "switch"
       @
+    toEnd: ->
+      $tl = @$timeline
+      @stop()
+      end = $tl.slider("option", "max")
+      $tl.slider("values", 1, end)
+      end
+    toStart: ->
+      $tl = @$timeline
+      @stop()
+      start = $tl.slider("values", 0)
+      $tl.slider("values", 1, start)
+      start
     # Recursive function animates slider to auto play!
     changeValue: (lo, hi, increment, comparator) ->
       self = @
@@ -369,7 +388,10 @@ $ ->
       @
     # should only need to call once per session
     updateHandles: ->
-      if @max? and @min? then return
+      cc "trying updating handles"
+      cc @max, @min, @collection
+      if (@max? and @min?) or @collection.length < 2 then return
+      cc "updating handles"
       prevcomparator = @collection.comparator
       @collection.comparator = (model) ->
         return model.get("date")
@@ -420,6 +442,8 @@ $ ->
         $(e.currentTarget).removeClass("js-pause-timeline").addClass "js-play-timeline"
       "click .js-fast-forward": "renderSpeed"
       "click .js-rewind": "renderSpeed"
+      "click .js-to-end": "toEnd"
+      "click .js-to-start": "toStart"
       "mouseover .timeline-controls li": (e) ->
         $t = $ e.currentTarget  
 
