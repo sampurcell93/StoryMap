@@ -18,7 +18,9 @@
       url: function() {
         return "/queries/" + (this.get("id") || this.get("title"));
       },
+      external_url: '/externalNews',
       initialize: function(attrs, options) {
+        this.set("map", new window.GoogleMap(this));
         try {
           return this.get("stories").parent_map = options.map;
         } catch (_error) {}
@@ -54,7 +56,7 @@
         var querytitle, self;
         querytitle = this.get("title");
         self = this;
-        $.get("/title/query/" + querytitle, {}, function(response) {
+        $.get("/queries/" + querytitle, {}, function(response) {
           try {
             response = JSON.parse(response);
           } catch (_error) {}
@@ -89,6 +91,7 @@
         stories = this.get("stories");
         title = story.title.toLowerCase().stripHTML();
         if (!stories._byTitle.hasOwnProperty(title)) {
+          cc("adding story");
           options = _.extend({}, opts);
           stories.add(story = new models.Story(format(story, options.map)), options);
           id = this.get("id") || this.id;
@@ -99,6 +102,90 @@
         } else {
           cc("story exists");
         }
+        return this;
+      },
+      getGoogleNews: function(query, start, done) {
+        var self;
+        if (query == null) {
+          return false;
+        }
+        self = this;
+        start || (start = 0);
+        $.get(this.external_url, {
+          source: 'google',
+          q: query.toLowerCase(),
+          start: start
+        }, function(response) {
+          console.count("google news story set returned");
+          response = JSON.parse(response);
+          if (response.responseDetails === "out of range start" || start > 8) {
+            if (done != null) {
+              return done(query, 0, null);
+            }
+          }
+          _.each(response.responseData.results, function(story) {
+            return self.addStory(story, {
+              map: {
+                date: function() {
+                  return new Date(this['publishedDate']);
+                },
+                type: function() {
+                  return 'google';
+                }
+              }
+            });
+          });
+          if (start < 64) {
+            return self.getGoogleNews(query, start + 32, done);
+          }
+        });
+        return this;
+      },
+      getYahooNews: function(query, start, done) {
+        var self;
+        if (query == null) {
+          return false;
+        }
+        query = '"' + query.toLowerCase() + '"';
+        start || (start = 0);
+        self = this;
+        $.get(this.external_url, {
+          source: 'yahoo',
+          q: query,
+          start: start
+        }, function(response) {
+          var news, stories, total;
+          response = JSON.parse(response);
+          try {
+            console.count("yahoo news story set returned");
+            news = response.bossresponse.news;
+            stories = news.results;
+            total = 10;
+            _.each(stories, function(story) {
+              return self.addStory(story, {
+                map: {
+                  content: 'abstract',
+                  date: function() {
+                    return new Date(parseInt(story.date) * 1000);
+                  },
+                  type: function() {
+                    return 'yahoo';
+                  },
+                  'publisher': 'source'
+                }
+              });
+            });
+            if (start <= total) {
+              return self.getYahooNews(query, start + 50, done);
+            } else if (done != null) {
+              return done(query, 0, null);
+            }
+          } catch (_error) {
+            if (done != null) {
+              return done(query, 0, null);
+            }
+          }
+        });
         return this;
       }
     });
@@ -152,7 +239,7 @@
           return _.extend(self.attributes, obj);
         });
         if (plot === true) {
-          this.collection.parent_map.get("map").plot(this);
+          this.plot();
         }
         return this;
       },
@@ -204,9 +291,13 @@
             return breakval;
           }
         });
+      },
+      plot: function() {
+        window.mapObj.plot(this);
+        return this;
       }
     });
-    (function() {
+    return (function() {
       var sortMethods;
       sortMethods = {
         "newest": function(story) {
@@ -253,109 +344,6 @@
         }
       });
     })();
-    window.models.StoryMap = Backbone.Model.extend({
-      saved: false,
-      external_url: '/externalNews',
-      initialize: function(attrs) {
-        this.currentquery = new models.Query(attrs, {
-          map: this
-        });
-        _.bindAll(this, "getGoogleNews", "getYahooNews", "plot");
-        return this.set("map", new window.GoogleMap(this));
-      },
-      getGoogleNews: function(query, start, done) {
-        var self;
-        if (query == null) {
-          return false;
-        }
-        self = this;
-        start || (start = 0);
-        $.get(this.external_url, {
-          source: 'google',
-          q: query.toLowerCase(),
-          start: start
-        }, function(response) {
-          console.count("google news story set returned");
-          response = JSON.parse(response);
-          if (response.responseDetails === "out of range start" || start > 8) {
-            if (done != null) {
-              return done(query, 0, null);
-            }
-          }
-          _.each(response.responseData.results, function(story) {
-            return self.currentquery.addStory(story, {
-              map: {
-                date: function() {
-                  return new Date(this['publishedDate']);
-                },
-                type: function() {
-                  return 'google';
-                }
-              }
-            });
-          });
-          if (start < 64) {
-            return self.getGoogleNews(query, start + 32, done);
-          }
-        });
-        return this;
-      },
-      getYahooNews: function(query, start, done) {
-        var self;
-        if (query == null) {
-          return false;
-        }
-        query = '"' + query.toLowerCase() + '"';
-        start || (start = 0);
-        self = this;
-        $.get(this.external_url, {
-          source: 'yahoo',
-          q: query,
-          start: start
-        }, function(response) {
-          var news, stories, total;
-          response = JSON.parse(response);
-          try {
-            console.count("yahoo news story set returned");
-            news = response.bossresponse.news;
-            stories = news.results;
-            total = 10;
-            _.each(stories, function(story) {
-              return self.currentquery.addStory(story, {
-                map: {
-                  content: 'abstract',
-                  date: function() {
-                    return new Date(parseInt(story.date) * 1000);
-                  },
-                  type: function() {
-                    return 'yahoo';
-                  },
-                  'publisher': 'source'
-                }
-              });
-            });
-            if (start <= total) {
-              return self.getYahooNews(query, start + 50, done);
-            } else if (done != null) {
-              return done(query, 0, null);
-            }
-          } catch (_error) {
-            if (done != null) {
-              return done(query, 0, null);
-            }
-          }
-        });
-        return this;
-      },
-      plot: function(story) {
-        this.get("map").plot(story);
-        return this;
-      }
-    });
-    return window.collections.StoryMaps = Backbone.Collection.extend({
-      model: models.StoryMap,
-      index: 0
-    });
   });
 
 }).call(this);

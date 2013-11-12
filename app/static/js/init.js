@@ -5,16 +5,14 @@
       id: window.userid
     });
     window.existingQueries = new window.collections.Queries();
-    window.AllMaps = new collections.StoryMaps;
+    window.AllMaps = new collections.Queries;
     return user.fetch({
       success: function(model) {
         return existingQueries.fetch({
           success: function(coll) {
             var map;
             console.log(user.toJSON());
-            map = new models.StoryMap({
-              queries: existingQueries
-            });
+            map = new models.Query;
             AllMaps.add(map);
             map.user = user;
             window.map = map = new views.MapItem({

@@ -16,11 +16,14 @@
         _.bindAll(this, "render", "toggleMarkers", "search");
         self = this;
         this.model.instance = this;
-        this.listenTo(this.model, {
+        this.on({
           "loading": this.createLoadingOverlay,
           "doneloading": function() {
             return window.destroyModal();
           }
+        });
+        this.listenTo(this.model, "change:title", function(model, title) {
+          return self.$(".js-news-search").typeahead('setQuery', title);
         });
         window.mapObj = self.mapObj = this.model.get("map");
         $searchbar = self.$(".js-news-search");
@@ -48,28 +51,24 @@
           this.typeahead = true;
         }
         this.storyList = new views.StoryList({
-          collection: this.model.currentquery.get("stories"),
+          collection: this.model.get("stories"),
           map: this
         });
         this.timeline = new views.Timeline({
-          collection: this.model.currentquery.get("stories"),
+          collection: this.model.get("stories"),
           map: this
         });
+        this.render();
         return this;
       },
       render: function() {
-        var $searchbar;
-        $searchbar = self.$(".js-news-search");
-        if (this.model.get("title") != null) {
-          $searchbar.typeahead('setQuery', this.model.get("title"));
-        }
+        this.$(".js-news-search").typeahead('setQuery', this.model.get("title") || "");
         this.renderComponents();
         return this.plotAll();
       },
       plotAll: function() {
-        _.each(this.model.currentquery.get("stories").models, function(story) {
-          window.mapObj.plot(story);
-          return true;
+        _.each(this.model.get("stories").models, function(story) {
+          return story.plot();
         });
         return this;
       },
@@ -93,16 +92,20 @@
         return this;
       },
       search: function(query) {
-        var controller, queryobj, self;
+        var queryobj, self;
         this.$(".icon-in").css("visibility", "visible");
         self = this;
-        controller = this.model;
-        controller.trigger("loading");
-        queryobj = controller.currentquery;
-        queryobj.set("title", query);
+        queryobj = new models.Query({
+          title: query
+        });
+        this.model = queryobj;
+        this.storyList.collection = this.timeline.collection = queryobj.get("stories");
+        this.storyList.bindListeners();
+        this.trigger("loading");
         return queryobj.exists((function(query) {
-          return controller.getGoogleNews(query, 0, function() {
+          return queryobj.getGoogleNews(query, 0, function() {
             window.destroyModal();
+            console.log(queryobj);
             return _.each(queryobj.get("stories").models, function(story) {
               return story.getCalaisData();
             });
@@ -114,19 +117,17 @@
         }));
       },
       loadQuery: function(query) {
-        var model;
-        model = query || this.model.currentquery;
+        var model, self;
+        model = query || this.model;
+        self = this;
         return model.fetch({
           success: function(model, resp, options) {
-            var formatted, newmap;
+            var formatted;
             formatted = model.attributes;
             formatted.stories = new collections.Stories(resp["stories"].models);
-            window.AllMaps.add(newmap = new models.StoryMap(formatted));
-            window.AllMaps.index += 1;
-            newmap.user = window.user;
-            window.map.model = newmap;
-            window.map.storyList.collection = window.map.timeline.collection = newmap.currentquery.get("stories");
-            window.map.render();
+            self.model = query;
+            self.storyList.collection = self.timeline.collection = formatted.stories;
+            self.render();
             return destroyModal();
           },
           error: function() {}
@@ -155,7 +156,7 @@
         },
         "click .js-save-query": function(e) {
           var stories, toSave;
-          toSave = this.model.currentquery;
+          toSave = this.model;
           stories = toSave.get("stories");
           return toSave.save(null, {
             success: function(resp, b, c) {
@@ -291,6 +292,13 @@
         self = this;
         this.map = this.options.map;
         _.bindAll(this, "render", "appendChild", "toggle", "filter");
+        return this.bindListeners();
+      },
+      bindListeners: function() {
+        var self;
+        console.log("binding listeners");
+        console.log(this.collection);
+        self = this;
         return this.listenTo(this.collection, "add", function(model) {
           return self.appendChild(model);
         });

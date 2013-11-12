@@ -15,10 +15,12 @@ $ ->
       # Two way model view binding
       self = @
       @model.instance = @
-      @listenTo @model,
+      @on
         "loading": @createLoadingOverlay
         "doneloading": ->
           window.destroyModal()
+      @listenTo @model, "change:title", (model, title) ->
+        self.$(".js-news-search").typeahead('setQuery', title)
       window.mapObj = self.mapObj = @model.get("map")
       $searchbar = self.$(".js-news-search")
       if !@typeahead
@@ -37,19 +39,17 @@ $ ->
           }
           ])
         @typeahead = true
-      @storyList = new views.StoryList collection: @model.currentquery.get("stories"), map :@
-      @timeline = new views.Timeline collection: @model.currentquery.get("stories"), map: @
+      @storyList = new views.StoryList collection: @model.get("stories"), map :@
+      @timeline = new views.Timeline collection: @model.get("stories"), map: @
+      @render()
       @
     render: ->
-      $searchbar = self.$(".js-news-search")
-      if @model.get("title")?
-        $searchbar.typeahead('setQuery', @model.get("title"))
+      @$(".js-news-search").typeahead('setQuery', @model.get("title") || "")
       @renderComponents()
       @plotAll()
     plotAll: ->
-      _.each @model.currentquery.get("stories").models, (story) ->
-        window.mapObj.plot story
-        true
+      _.each @model.get("stories").models, (story) ->
+        story.plot()
       @
     renderComponents: ->
       if @storyList? then @storyList.render()
@@ -67,15 +67,17 @@ $ ->
       @$(".icon-in").css("visibility", "visible")
       # @loadQuery new models.Query({title: query})
       self = @
-      controller = @model
-      controller.trigger "loading"
-      queryobj = controller.currentquery
-      queryobj.set("title", query)
+      queryobj = new models.Query({title: query})
+      @model = queryobj
+      @storyList.collection = @timeline.collection = queryobj.get("stories")
+      @storyList.bindListeners()
+      @trigger "loading"
       # pass in a function for how to handle a new query, and one for an existing query
       queryobj.exists(
         ((query) ->
-          controller.getGoogleNews query, 0, () ->
+          queryobj.getGoogleNews query, 0, () ->
             window.destroyModal()
+            console.log queryobj
             _.each queryobj.get("stories").models, (story) ->
               story.getCalaisData()
         ), 
@@ -87,17 +89,15 @@ $ ->
       )
     # Expects a models.Query, loads and renders it if it exists, needs an id
     loadQuery: (query) ->
-      model = query || @model.currentquery
+      model = query || @model
+      self = @
       model.fetch 
         success: (model, resp, options) ->
           formatted = model.attributes
           formatted.stories = new collections.Stories(resp["stories"].models)
-          window.AllMaps.add newmap = new models.StoryMap(formatted)
-          window.AllMaps.index += 1
-          newmap.user = window.user
-          window.map.model = newmap
-          window.map.storyList.collection = window.map.timeline.collection = newmap.currentquery.get("stories")
-          window.map.render()
+          self.model = query
+          self.storyList.collection = self.timeline.collection = formatted.stories
+          self.render()
           destroyModal()
         error: ->
     events:
@@ -113,7 +113,7 @@ $ ->
         current_route = Backbone.history.fragment
         window.app.navigate route, {trigger: true}
       "click .js-save-query": (e) ->  
-        toSave = @model.currentquery
+        toSave = @model
         stories = toSave.get("stories")
         # # There should be no distinction between saving and favoriting to the user - clicking save does both
         toSave.save null, 
@@ -217,6 +217,11 @@ $ ->
       self = @
       @map = @options.map
       _.bindAll @, "render", "appendChild", "toggle", "filter"
+      @bindListeners()
+    bindListeners: ->
+      console.log "binding listeners"
+      console.log @collection
+      self = @
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
