@@ -16,7 +16,8 @@ $ ->
         url: -> "/queries/" + (@get("id") || @get("title"))
         external_url: '/externalNews'
         initialize: (attrs, options) ->
-            @set "map",  new window.GoogleMap @
+            _.bindAll @, "getYahooNews", "getGoogleNews", "exists"
+            @map = new window.GoogleMap @
             try @get("stories").parent_map = options.map
         defaults: ->
             stories: new collections.Stories
@@ -39,8 +40,8 @@ $ ->
             self = @
             $.get("/queries/" + querytitle, {}, (response)->
                 try response = JSON.parse(response)
-                # the query doesn't exist - execute the success callback
-                if response.exists == false 
+                # the query exists then execute the success callback
+                if response.exists == true and exists_callback?
                     self.id = response.id
                     self.set("id", response.id)
                     console.log self
@@ -50,6 +51,7 @@ $ ->
             )
             @
         favorite: ->
+            user.get("queries").add @
             user_id = window.user.id
             query_id = @id || @get("id")
             $.post "/favorite", {
@@ -84,9 +86,9 @@ $ ->
         # A note on infinitely chained callback sequences - 
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
-        getGoogleNews: (query, start, done) ->
-            if !query? then return false
+        getGoogleNews: (start, done) ->
             self = @
+            query = @get("title")
             start || (start = 0)
             $.get @external_url,
                 source: 'google'
@@ -95,23 +97,25 @@ $ ->
             , (response) ->
                 console.count "google news story set returned"
                 # parse the json
-                response = JSON.parse(response)
-                # Once google news is exhausted, execute yhoo
-                if response.responseDetails is "out of range start" or start > 8
-                    if done? then return done query, 0, null
-                # Get location data from OpenCalais for each story item
-                _.each response.responseData.results, (story) ->
-                    self.addStory story, map: 
-                        date: ->
-                            new Date(this['publishedDate'])
-                        type: -> 'google'
-                        url: 'unescapedUrl'
-                if start < 64 then return self.getGoogleNews query, start + 32, done
+                try 
+                    response = JSON.parse(response)
+                    console.log response
+                    # Once google news is exhausted, execute yhoo
+                    if response.responseDetails is "out of range start" or response.responseDetails is "Invalid start" or start > 64
+                        if done? 
+                            console.log done
+                            done 0, null
+                    # Get location data from OpenCalais for each story item
+                    _.each response.responseData.results, (story) ->
+                        self.addStory story, map: 
+                            date: ->
+                                new Date(this['publishedDate'])
+                            type: -> 'google'
+                            url: 'unescapedUrl'
+                    if start < 64 then return self.getGoogleNews start + 32, done
             @
-        getYahooNews: (query, start, done) ->
-            # cc "Getting Yahoo " + query + " " + start
-            if !query? then return false
-            query = '"' + query.toLowerCase() + '"'
+        getYahooNews: (start, done) ->
+            query = '"' + @get("title").toLowerCase() + '"'
             start || (start = 0)
             self = @
             $.get @external_url,
@@ -127,7 +131,7 @@ $ ->
                     # get the stories
                     stories = news.results
                     # get total results
-                    total = 10 #news.totalresults || 1000
+                    total = 200 #news.totalresults
                     _.each stories, (story) ->
                         self.addStory story, map:
                             content: 'abstract'
@@ -137,11 +141,15 @@ $ ->
                     # 1000 is the length of results returned by Yahoo
                     # if start <= 1000
                     if start <= total
-                        self.getYahooNews query, start + 50, done
-                    else if done? then done query, 0, null
+                        self.getYahooNews start + 50, done
+                    else if done? 
+                        console.log done
+                        done 0, null
                 catch 
-                    if done? then done query, 0 , null
-            @
+                    if done? 
+                        console.log done
+                        done 0 , null
+            return @
 
     window.collections.Queries = Backbone.Collection.extend
         model: models.Query
@@ -249,8 +257,9 @@ $ ->
                     date = story.get("date")
                     if date instanceof Date == false
                         story.set "date", new Date(date)
-                    marker = story.marker
-                    if marker?
+                    markerObj = story.marker
+                    if markerObj?
+                        marker = markerObj.marker
                         if date < hidate and date > lodate
                             inrange.push marker
                         else

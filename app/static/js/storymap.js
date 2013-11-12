@@ -25,7 +25,6 @@
     var display, j, marker, self;
     j = story.toJSON();
     if (!((j.lat == null) || (j.lng == null) || typeof j.lat === "undefined" || typeof j.lng === "undefined")) {
-      story.set("hasLocation", true);
       if (story.marker == null) {
         marker = new views.MapMarker({
           model: story,
@@ -37,16 +36,22 @@
       }
       display = marker.render().$el.html();
       marker = marker.marker;
+      cc("Plotting: marker to map");
+      cc(marker);
+      cc(" to ");
+      cc(this.map);
       this.markers.push(marker);
       marker.setMap(this.map);
       self = this;
       google.maps.event.addListener(marker, "click", function() {
-        cc(story);
         self.infowindow.setContent(display);
         return self.infowindow.open(self.map, this);
       });
-      story.trigger("doneloading");
+      story.set("hasLocation", true);
+    } else {
+      story.set("hasLocation", false);
     }
+    story.trigger("doneloading");
     return this;
   };
 

@@ -25,7 +25,7 @@
         this.listenTo(this.model, "change:title", function(model, title) {
           return self.$(".js-news-search").typeahead('setQuery', title);
         });
-        window.mapObj = self.mapObj = this.model.get("map");
+        window.mapObj = self.mapObj = this.model.map;
         $searchbar = self.$(".js-news-search");
         if (!this.typeahead) {
           Underscore = {
@@ -80,6 +80,7 @@
       },
       toggleMarkers: function(markers) {
         var self;
+        console.log(markers);
         self = this;
         _.each(markers.outrange, function(outlier) {
           return outlier.setMap(null);
@@ -107,18 +108,19 @@
         this.storyList.bindListeners();
         this.cacheQuery(queryobj);
         this.trigger("loading");
-        return queryobj.exists((function(query) {
-          return queryobj.getGoogleNews(query, 0, function() {
-            window.destroyModal();
-            console.log(queryobj);
-            return _.each(queryobj.get("stories").models, function(story) {
-              return story.getCalaisData();
-            });
-          });
-        }), (function(model) {
+        return queryobj.exists((function(model) {
           _.extend(queryobj.attributes, model.attributes);
           window.existingQueries.add(queryobj);
           return self.loadQuery(queryobj);
+        }), (function(query) {
+          return queryobj.getGoogleNews(0, queryobj.getYahooNews(0, function() {
+            window.destroyModal();
+            _.each(queryobj.get("stories").models, function(story) {
+              cc("getting calais");
+              return story.getCalaisData();
+            });
+            return self.plotAll();
+          }));
         }));
       },
       loadQuery: function(query) {
@@ -231,7 +233,7 @@
         this.$el.html(_.template(this.template, this.model.toJSON()));
         this.xoff = xOff = Math.random() * 0.1;
         this.yoff = yOff = Math.random() * 0.1;
-        pt = new google.maps.LatLng(parseInt(this.model.get("lat")) + xOff, parseInt(this.model.get("lng")) + yOff);
+        pt = new google.maps.LatLng(parseFloat(this.model.get("lat")) + xOff, parseFloat(this.model.get("lng")) + yOff);
         console.log(pt);
         this.marker = new google.maps.Marker({
           position: pt,
@@ -260,13 +262,16 @@
             return this.$el.show();
           },
           "loading": function() {
-            cc("loading");
-            return self.$el.prepend("<img class='loader' src='static/images/loader.gif' />");
+            return this.$el.addClass("loading");
           },
-          "change:hasLocation": function() {
-            cc("setting loaction");
-            return this.$el.addClass("has-location");
-          }
+          "change:hasLocation": function(model, hasLocation) {
+            if (hasLocation) {
+              return this.$el.addClass("has-location");
+            } else {
+              return this.$el.addClass("no-location");
+            }
+          },
+          "doneloading": function() {}
         });
       },
       render: function() {
@@ -304,9 +309,8 @@
       },
       bindListeners: function() {
         var self;
-        console.log("binding listeners");
-        console.log(this.collection);
         self = this;
+        this.render();
         return this.listenTo(this.collection, "add", function(model) {
           return self.appendChild(model);
         });
@@ -490,6 +494,12 @@
         this.collection.sort();
         this.min = min = this.collection.first().get("date");
         this.max = max = this.collection.last().get("date");
+        if (max instanceof Date === false) {
+          this.max = max = new Date(max);
+        }
+        if (min instanceof Date === false) {
+          this.min = min = new Date(min);
+        }
         mindate = parseInt(min.getTime());
         maxdate = parseInt(max.getTime());
         $timeline = this.$timeline;

@@ -293,7 +293,7 @@ section {
 			}
 
 			&.no-location a {
-				border-left: 2px solid $highlightblue;
+				border-left: 2px solid $shadeblue;
 			}
 
 			&:hover {
@@ -305,11 +305,7 @@ section {
 				}
 			}
 
-			.loader {
-				width: 15px;
-				height: 15px;
-				display: none;
-			}
+			
 		}
 
 		.placeholder { 

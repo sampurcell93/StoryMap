@@ -21,7 +21,7 @@ $ ->
           window.destroyModal()
       @listenTo @model, "change:title", (model, title) ->
         self.$(".js-news-search").typeahead('setQuery', title)
-      window.mapObj = self.mapObj = @model.get("map")
+      window.mapObj = self.mapObj = @model.map
       $searchbar = self.$(".js-news-search")
       if !@typeahead
         Underscore = 
@@ -56,6 +56,7 @@ $ ->
       # if @timeline? then @timeline.render()
       @
     toggleMarkers: (markers) ->
+      console.log markers
       self = @
       _.each markers.outrange, (outlier) ->
         outlier.setMap null
@@ -80,19 +81,22 @@ $ ->
       @trigger "loading"
       # pass in a function for how to handle a new query, and one for an existing query
       queryobj.exists(
-        ((query) ->
-          queryobj.getGoogleNews query, 0, () ->
-            window.destroyModal()
-            console.log queryobj
-            _.each queryobj.get("stories").models, (story) ->
-              story.getCalaisData()
-        ), 
         ((model) ->
           _.extend queryobj.attributes, model.attributes
           window.existingQueries.add queryobj
           self.loadQuery queryobj
-        ) 
-      )
+        ),
+        ((query) ->
+          queryobj.getGoogleNews 0, 
+            (queryobj.getYahooNews 0, () ->
+              window.destroyModal()
+              _.each queryobj.get("stories").models, (story) ->
+                cc "getting calais"
+                story.getCalaisData()
+              self.plotAll()
+            )
+          )
+        )
     # Expects a models.Query, loads and renders it if it exists, needs an id
     loadQuery: (query) ->
       model = query || @model
@@ -172,7 +176,7 @@ $ ->
       @xoff = xOff = Math.random() * 0.1
       @yoff = yOff = Math.random() * 0.1
       # Make the new point
-      pt = new google.maps.LatLng(parseInt(@model.get("lat")) + xOff, parseInt(@model.get("lng")) + yOff)
+      pt = new google.maps.LatLng(parseFloat(@model.get("lat")) + xOff, parseFloat(@model.get("lng")) + yOff)
       console.log pt
       @marker = new google.maps.Marker
         position: pt
@@ -196,11 +200,11 @@ $ ->
           console.log("showing")
           this.$el.show()
         "loading": ->
-          cc "loading"
-          self.$el.prepend("<img class='loader' src='static/images/loader.gif' />")
-        "change:hasLocation": ->
-          cc  "setting loaction"
-          @$el.addClass("has-location")
+          @$el.addClass("loading")
+        "change:hasLocation": (model, hasLocation)->
+          if hasLocation then @$el.addClass("has-location")
+          else @$el.addClass("no-location")
+        "doneloading": ->
     render: ->
       @$el.append(_.template @template, @model.toJSON())
       @
@@ -228,9 +232,8 @@ $ ->
       _.bindAll @, "render", "appendChild", "toggle", "filter"
       @bindListeners()
     bindListeners: ->
-      console.log "binding listeners"
-      console.log @collection
       self = @
+      @render()
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
@@ -373,6 +376,10 @@ $ ->
       @collection.sort()
       @min = min = @collection.first().get("date")
       @max = max = @collection.last().get("date")
+      if max instanceof Date == false
+        @max = max = new Date max
+      if min instanceof Date == false
+        @min = min = new Date min
       mindate = parseInt(min.getTime())
       maxdate = parseInt(max.getTime())
       # cache the timeline obj

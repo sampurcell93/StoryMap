@@ -30,7 +30,6 @@ window.GoogleMap::plot = (story) ->
   j = story.toJSON()
   # Difference between stuff returned null from DB, or things never set. typeof null = "object"; LOL
   unless !j.lat? or !j.lng? or typeof j.lat == "undefined" or typeof j.lng == "undefined"
-    story.set("hasLocation", true)
     # A simple display string
     unless story.marker?
       marker = new views.MapMarker({model: story, map: @map})
@@ -39,15 +38,22 @@ window.GoogleMap::plot = (story) ->
     display = marker.render().$el.html()
     marker = marker.marker
     # Push the marker to tha array
+    cc "Plotting: marker to map"
+    cc marker
+    cc " to "
+    cc @map
     @markers.push marker
     marker.setMap @map
     self = @
     # On click, show data
     google.maps.event.addListener marker, "click", ->
-      cc story
+      # cc story
       self.infowindow.setContent display
       self.infowindow.open self.map, @
-    story.trigger "doneloading"
+    story.set("hasLocation", true)
+  else 
+    story.set("hasLocation", false)
+  story.trigger "doneloading"
   @
 
 window.GoogleMap::clear = ->
