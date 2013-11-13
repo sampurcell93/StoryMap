@@ -15,10 +15,10 @@
         <%= title %>
     </a>
     <ul class='mask'>
-        <li class='js-set-location icon-location-arrow'></li>
+        <li class='js-show-model icon-expand'></li>
         <li class='js-favorite-story icon-thumbs-up'></li>
+        <li class='js-set-location icon-location-arrow'></li>
         <li title="<%= title %>" class='js-read-full-story icon-reply'></li>
-        <li class='js-expand-story-modal icon-expand'></li>
     </ul>
 </script>
 <script type="text/template" id='storymarker'>
@@ -49,4 +49,23 @@
 </script>
 <script type="text/template" id='query-list-help'>
     <h2>Your Saved Queries</h2>
-    <p> These are the searches you've saved to your account. While you've been away, we've been making sure to update the map with the current news. Once you've saved a map, there's no need to save it again - it will just be there. Click on a map to see its progress! </p>
+    <p> These are the searches you've saved to your account. While you've been away, we've been making sure to update the map with the current news. Once you've saved a map, there's no need to save it again - it'll just be there. Click on a map to see its progress! </p>
+</script>
+
+
+<script type='text/template' id='quick-story-popup'>
+    <dt>Title:</dt>
+        <dd><%= title %></dd>
+    <% if (typeof location !== "undefined" && location != null) { %>
+    <dt>Location:</dt>
+        <dd><%= location %></dd>
+    <% } %>
+    <dt>Abstract:</dt>
+        <dd>
+            <p><%= content %></p>
+        </dd>
+    <dt>Publisher:</dt>
+        <dd><%= publisher %></dd> 
+    <dt>Aggregator:</dt>
+        <dd><%= aggregator %></dd>
+</script>

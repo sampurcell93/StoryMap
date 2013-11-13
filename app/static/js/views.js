@@ -248,6 +248,15 @@
         return this;
       }
     });
+    window.views.QuickStory = Backbone.View.extend({
+      template: $("#quick-story-popup").html(),
+      className: 'quick-story',
+      tagName: 'dl',
+      render: function() {
+        this.$el.html(_.template(this.template, this.model.toJSON()));
+        return this;
+      }
+    });
     window.views.StoryListItem = Backbone.View.extend({
       template: $("#article-item").html(),
       tagName: 'li',
@@ -269,8 +278,6 @@
             return this.$el.addClass("loading");
           },
           "change:hasLocation": function(model, hasLocation) {
-            cc("CHANGED LOC");
-            console.log(model, hasLocation);
             if (hasLocation) {
               return this.$el.removeClass("no-location").addClass("has-location");
             } else {
@@ -286,6 +293,27 @@
           }
         });
       },
+      showPopup: function() {
+        var popup, self;
+        self = this;
+        if (this.popup != null) {
+          return this.popup.$el.slideUp("fast", function() {
+            self.popup.remove();
+            self.popup = void 0;
+            return delete self.popup;
+          });
+        } else {
+          this.popup = popup = new views.QuickStory({
+            model: this.model
+          });
+          popup.render().$el.hide();
+          $(".quick-story").slideUp("fast", function() {
+            return this.remove();
+          });
+          this.$el.append(popup.el);
+          return popup.$el.slideDown("fast");
+        }
+      },
       render: function() {
         if (this.model.hasLocation()) {
           this.$el.addClass("has-location");
@@ -300,7 +328,6 @@
           return cc(this.model.toJSON());
         },
         "mouseover": function() {
-          cc(this.model.toJSON());
           return this.model.trigger("highlight");
         },
         "mouseout": function() {
@@ -331,7 +358,8 @@
               }
             });
           });
-        }
+        },
+        "click .js-show-model": "showPopup"
       }
     });
     window.views.StoryList = Backbone.View.extend({

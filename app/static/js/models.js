@@ -135,7 +135,7 @@
                   date: function() {
                     return new Date(this['publishedDate']);
                   },
-                  type: function() {
+                  aggregator: function() {
                     return 'google';
                   },
                   url: 'unescapedUrl'
@@ -173,7 +173,7 @@
                   date: function() {
                     return new Date(parseInt(story.date) * 1000);
                   },
-                  type: function() {
+                  aggregator: function() {
                     return 'yahoo';
                   },
                   'publisher': 'source'
@@ -285,9 +285,11 @@
         return _.each(json.entities, function(entity) {
           var breakval;
           if (entity.hasOwnProperty("resolutions")) {
+            console.log(entity);
             breakval = true;
             _.each(entity.resolutions, function(coords) {
               if ((coords.latitude != null) && (coords.longitude != null)) {
+                self.set("location", coords.name);
                 self.attach([
                   {
                     applyfun: parseFloat,
@@ -318,7 +320,8 @@
             coords = response.results[0].geometry.location;
             self.save({
               lat: coords.lat,
-              lng: coords.lng
+              lng: coords.lng,
+              location: response.results[0].formatted_address
             }, {
               success: function(model, resp) {
                 console.log(model);

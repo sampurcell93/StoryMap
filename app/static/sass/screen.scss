@@ -211,6 +211,8 @@ section {
 	color: #eee;
 	line-height: 1.8;
 	bottom: 0;
+	overflow: hidden;
+	z-index: 9999;
 
 	input.js-filter-articles {
 		width: 84%;
@@ -263,17 +265,15 @@ section {
 	.article-list {
 		overflow: auto;
 		height: 100%;
+		overflow: hidden;
 
 		> li {
 			text-indent: 1.2em;
-			padding:0px 7px 0px 2px;
-			text-overflow: ellipsis;
-			overflow: hidden;
-			white-space: nowrap;
 			cursor: pointer;
 			border-bottom: 1px solid $shadeblue;
 			border-top: 1px solid $highlightblue;
 			position: relative;
+			overflow: hidden;
 
 			&:first-of-type { border-top: none; }
 			&:last-of-type { border-bottom: none; }
@@ -321,7 +321,6 @@ section {
 				height: 100%;
 				position: absolute;
 				top: 0;
-				left: 2px;
 				display: none;
 				background: rgba(0,0,0,.4);
 				li {
@@ -354,6 +353,47 @@ section {
 				text-align: center;
 			}
 		}
+	}
+}
+
+.quick-story {
+	width: 100%;
+	background: rgba(0,0,0,.9);
+	white-space: normal;
+
+	width: 100%;
+	position: relative;
+	max-height: 500px;
+	color: #ccc;
+	overflow: auto;
+
+	dt {
+		border-bottom: 1px solid $mainblue;
+		font-size: 1.2em;
+	}
+
+
+	dd {
+		text-indent: 0;
+		padding:  0 15px;	
+		color: #ccc;
+	} 
+
+	p {
+		color: #ddd;
+	}
+
+	&:before {
+		content: "";
+		position: absolute;
+		display: block;
+		width: 0;
+		padding: 0;
+		border: 6px solid transparent;
+		border-bottom-color: rgba(0,0,0,.9);
+		top: -12px;
+		left: 50%;
+		margin-left: -6px;
 	}
 }
 

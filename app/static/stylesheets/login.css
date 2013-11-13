@@ -451,7 +451,7 @@ html, body {
 body {
   font-family: "Lato", sans-serif;
   position: relative;
-  background: url("../images/connections.png") center fixed;
+  background: url("../images/flatmap.jpg") center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -466,6 +466,9 @@ body {
   -ms-border-radius: 3px;
   -o-border-radius: 3px;
   border-radius: 3px;
+  -webkit-box-shadow: 0px 0px 20px #111111, 0px 0px 1px white inset;
+  -moz-box-shadow: 0px 0px 20px #111111, 0px 0px 1px white inset;
+  box-shadow: 0px 0px 20px #111111, 0px 0px 1px white inset;
   width: 500px;
   max-width: 100%;
   position: absolute;
@@ -474,14 +477,15 @@ body {
   margin-left: -250px;
   margin-top: -150px;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(255, 255, 255, 0.65);
+  background: rgba(60, 67, 84, 0.73);
 }
-/* line 33, ../sass/login.scss */
+/* line 34, ../sass/login.scss */
 .login-wrap .button, .error .button {
-  margin-left: 6px;
+  margin-left: -1px;
 }
 
-/* line 54, ../sass/login.scss */
+/* line 55, ../sass/login.scss */
 .button {
   -webkit-box-shadow: 0px 0px 1px white inset;
   -moz-box-shadow: 0px 0px 1px white inset;
@@ -507,42 +511,42 @@ body {
   cursor: pointer;
   outline: none;
 }
-/* line 69, ../sass/login.scss */
+/* line 70, ../sass/login.scss */
 .button:hover {
   color: #fff;
   text-decoration: underline;
   background: #18305B;
 }
-/* line 75, ../sass/login.scss */
+/* line 76, ../sass/login.scss */
 .button:focus {
   background: #14213A;
 }
 
-/* line 80, ../sass/login.scss */
+/* line 81, ../sass/login.scss */
 a {
   float: right;
   margin-top: 10px;
   color: #5976B7;
   padding: 0 10px;
 }
-/* line 86, ../sass/login.scss */
+/* line 87, ../sass/login.scss */
 a:hover {
   color: #769AE8;
 }
 
-/* line 91, ../sass/login.scss */
+/* line 92, ../sass/login.scss */
 label span {
   color: #769AE8;
   display: block;
   padding: 0px 0 5px 0;
 }
 
-/* line 97, ../sass/login.scss */
+/* line 98, ../sass/login.scss */
 .none {
   display: none;
 }
 
-/* line 99, ../sass/login.scss */
+/* line 100, ../sass/login.scss */
 input[type='text'], input[type='password'] {
   outline: none;
   -webkit-border-radius: 3px;
@@ -562,7 +566,7 @@ input[type='text'], input[type='password'] {
   border-bottom: 1px solid #3B4E77;
   border-top: 1px solid transparent;
 }
-/* line 115, ../sass/login.scss */
+/* line 116, ../sass/login.scss */
 input[type='text']:focus, input[type='password']:focus {
   border-top: 1px solid #3B4E77;
   background-color: #0e0e0e;
@@ -575,33 +579,33 @@ input[type='text']:focus, input[type='password']:focus {
   background-image: linear-gradient(top, #0e0e0e 0%, #272a3d 100%);
 }
 
-/* line 125, ../sass/login.scss */
+/* line 126, ../sass/login.scss */
 .modal p {
   padding: 10px;
   text-align: center;
 }
-/* line 130, ../sass/login.scss */
+/* line 131, ../sass/login.scss */
 .modal label {
   display: block;
 }
-/* line 133, ../sass/login.scss */
+/* line 134, ../sass/login.scss */
 .modal label span {
   color: #222;
 }
-/* line 138, ../sass/login.scss */
+/* line 139, ../sass/login.scss */
 .modal .inline {
   margin: 0 15px 0 0;
 }
-/* line 142, ../sass/login.scss */
+/* line 143, ../sass/login.scss */
 .modal .button {
   margin: 0 0 0 10px;
 }
-/* line 146, ../sass/login.scss */
+/* line 147, ../sass/login.scss */
 .modal input[type='text'], .modal input[type='password'] {
   background: #aaa;
 }
 
-/* line 151, ../sass/login.scss */
+/* line 152, ../sass/login.scss */
 .error {
   top: 100px;
   margin-top: 0px;

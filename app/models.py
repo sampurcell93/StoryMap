@@ -76,6 +76,7 @@ class Stories(db.Model):
     created = db.Column(TIMESTAMP)
     active = db.Column(TINYINT, default=ACTIVE)
     aggregator = db.Column(db.String(255))
+    location = db.Column(db.String(255))
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
     content = db.Column(db.Text)

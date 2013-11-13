@@ -345,12 +345,13 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
         url = request.json.get('url')
         lat = request.json.get('lat')
         lng = request.json.get('lng')
-        aggregator = request.json.get('type')
+        location = request.json.get('location')
+        aggregator = request.json.get('aggregator')
         query_id = request.json.get('query_id')
         print "query_id:"
         print query_id
     try:
-        story = models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content, aggregator=aggregator)
+        story = models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content, aggregator=aggregator, location=location)
         db.session.add(story)
         db.session.commit()
         if query_id is not None:

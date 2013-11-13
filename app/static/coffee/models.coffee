@@ -111,7 +111,7 @@ $ ->
                         self.addStory story, map: 
                             date: ->
                                 new Date(this['publishedDate'])
-                            type: -> 'google'
+                            aggregator: -> 'google'
                             url: 'unescapedUrl'
                     if start < 64 then return self.getGoogleNews start + 32, done
             @
@@ -137,7 +137,7 @@ $ ->
                         self.addStory story, map:
                             content: 'abstract'
                             date: -> new Date(parseInt(story.date) * 1000)
-                            type: -> 'yahoo'
+                            aggregator: -> 'yahoo'
                             'publisher': 'source'
                     # 1000 is the length of results returned by Yahoo
                     # if start <= 1000
@@ -220,9 +220,11 @@ $ ->
             _.each json.entities, (entity) ->
               # If it contains a "resolutions" key, it has latitude and longitude
               if entity.hasOwnProperty("resolutions")
+                console.log entity
                 breakval = true
                 _.each entity.resolutions, (coords) ->
                     if coords.latitude? and coords.longitude?
+                        self.set("location", coords.name)
                         self.attach [{
                             applyfun: parseFloat
                             lat: coords.latitude 
@@ -244,7 +246,7 @@ $ ->
                 (response) ->
                     try 
                         coords = response.results[0].geometry.location
-                        self.save {lat: coords.lat, lng: coords.lng} , 
+                        self.save {lat: coords.lat, lng: coords.lng, location: response.results[0].formatted_address} , 
                             success: (model, resp) ->
                                 console.log model
                                 self.set("hasLocation", true)

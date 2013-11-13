@@ -186,6 +186,14 @@ $ ->
         map: window.mapObj.map
       @
 
+  window.views.QuickStory = Backbone.View.extend
+    template: $("#quick-story-popup").html()
+    className: 'quick-story'
+    tagName: 'dl'
+    render: ->
+      @$el.html(_.template(@template, @model.toJSON()))
+      @
+
   window.views.StoryListItem = Backbone.View.extend 
     template: $("#article-item").html()
     tagName: 'li'
@@ -203,8 +211,6 @@ $ ->
         "loading": ->
           @$el.addClass("loading")
         "change:hasLocation": (model, hasLocation)->
-          cc "CHANGED LOC"
-          console.log model, hasLocation
           if hasLocation then @$el.removeClass("no-location").addClass("has-location")
           else @$el.removeClass("has-location").addClass("no-location")
         "doneloading": ->
@@ -212,6 +218,20 @@ $ ->
           @$el.addClass("highlighted")
         "unhighlight": ->
           @$el.removeClass("highlighted")
+    showPopup: ->
+      self = @
+      if @popup?
+        @popup.$el.slideUp "fast", ->
+          self.popup.remove()
+          self.popup = undefined
+          delete self.popup
+      else
+        @popup = popup = new views.QuickStory model: @model
+        popup.render().$el.hide()
+        $(".quick-story").slideUp "fast", ->
+          do @remove
+        @$el.append popup.el
+        popup.$el.slideDown("fast")
     render: ->
       if @model.hasLocation()
           @$el.addClass("has-location")
@@ -223,7 +243,6 @@ $ ->
       "click": ->
         cc @model.toJSON()
       "mouseover": ->
-        cc @model.toJSON()
         @model.trigger("highlight")
       "mouseout": ->
         @model.trigger("unhighlight")
@@ -243,6 +262,7 @@ $ ->
             else 
               loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude "+ coords.lng)
               setTimeout window.destroyModal, 1500
+      "click .js-show-model": "showPopup"
 
   
   # List of articles, regardless of location data, and controls for filtering
