@@ -80,21 +80,22 @@ $ ->
       @storyList.bindListeners()
       @cacheQuery queryobj
       @trigger "loading"
-      # pass in a function for how to handle a new query, and one for an existing query
-      queryobj.exists(
-        ((model) ->
-          app.navigate("query/" + model, true)
-        ),
-        ((query) ->
-          queryobj.getGoogleNews 0, 
-            (queryobj.getYahooNews 0, () ->
-              window.destroyModal()
-              _.each queryobj.get("stories").models, (story) ->
-                story.getCalaisData()
-              window.existingQueries.add queryobj
-            )
-          )
-        )
+      app.navigate("query/" + query, true)
+      # # pass in a function for how to handle a new query, and one for an existing query
+      # queryobj.exists(
+      #   ((model) ->
+      #     app.navigate("query/" + model, true)
+      #   ),
+      #   ((query) ->
+      #     queryobj.getGoogleNews 0, 
+      #       (queryobj.getYahooNews 0, () ->
+      #         window.destroyModal()
+      #         _.each queryobj.get("stories").models, (story) ->
+      #           story.getCalaisData()
+      #         window.existingQueries.add queryobj
+      #       )
+      #     )
+      #   )
     # Expects a models.Query, loads and renders it if it exists, needs an id
     loadQuery: (query) ->
       model = query || @model
@@ -258,10 +259,14 @@ $ ->
           iface.append loader
           self.model.geocode iface.find(".js-address-value").val(), (success, coords) ->
             if !success
-              loader.text("We couldn't find data for that address....")
+              setTimeout ->
+                loader.text("We couldn't find data for that address....")
+              , 1000
             else 
-              loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude "+ coords.lng)
-              setTimeout window.destroyModal, 1500
+              setTimeout ->
+                loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude "+ coords.lng)
+                setTimeout window.destroyModal, 1500
+              , 1000
       "click .js-show-model": "showPopup"
 
   

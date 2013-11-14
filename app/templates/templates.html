@@ -54,8 +54,11 @@
 
 
 <script type='text/template' id='quick-story-popup'>
+    <% cleanDate = function(date) {return date.getDate() + "/" + parseInt(date.getMonth() + 1) + "/" + date.getFullYear()} %>
     <dt>Title:</dt>
         <dd><%= title %></dd>
+    <dt>Date:</dt>
+        <dd><%= cleanDate(date) %></dd>
     <% if (typeof location !== "undefined" && location != null) { %>
     <dt>Location:</dt>
         <dd><%= location %></dd>

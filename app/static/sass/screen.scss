@@ -211,7 +211,6 @@ section {
 	color: #eee;
 	line-height: 1.8;
 	bottom: 0;
-	overflow: hidden;
 	z-index: 9999;
 
 	input.js-filter-articles {
@@ -265,8 +264,7 @@ section {
 	.article-list {
 		overflow: auto;
 		height: 100%;
-		overflow: hidden;
-
+		
 		> li {
 			text-indent: 1.2em;
 			cursor: pointer;
@@ -360,7 +358,6 @@ section {
 	width: 100%;
 	background: rgba(0,0,0,.9);
 	white-space: normal;
-
 	width: 100%;
 	position: relative;
 	max-height: 500px;
