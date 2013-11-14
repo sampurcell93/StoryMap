@@ -227,6 +227,12 @@
           },
           "doneloading": function() {
             return this.loading = false;
+          },
+          "change:hasLocation": function(model, value) {
+            if (value === true) {
+              this.collection._withLocation[this.get("title")] = this;
+              return console.log(this.collection);
+            }
           }
         });
       },
@@ -360,6 +366,7 @@
       return window.collections.Stories = Backbone.Collection.extend({
         model: models.Story,
         _byTitle: {},
+        _withLocation: {},
         initialize: function(opts) {
           if ((opts != null) && opts.parent_map) {
             this.parent_map = opts.parent_map;

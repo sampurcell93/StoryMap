@@ -177,6 +177,10 @@ $ ->
                     this.loading = true
                 "doneloading": ->
                     this.loading = false
+                "change:hasLocation": (model, value) ->
+                    if value == true
+                        this.collection._withLocation[this.get("title")] = this
+                        console.log this.collection
         # args: an array of objects to attach to the model, and whether to plot the model after
         # the applyfun pair of each object can hold a mapping function to apply to each of the other values
         # rets: the story with coords added in
@@ -274,6 +278,7 @@ $ ->
         window.collections.Stories = Backbone.Collection.extend
             model: models.Story
             _byTitle: {}
+            _withLocation: {}
             initialize: (opts) ->
                 # If the collection is the child of a news map, save a reference to the map
                 if opts? and opts.parent_map then @parent_map = opts.parent_map

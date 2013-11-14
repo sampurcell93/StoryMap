@@ -263,8 +263,9 @@ section {
 
 	.article-list {
 		overflow: auto;
-		height: 100%;
-		
+		height: calc(100% - 30px);
+
+
 		> li {
 			text-indent: 1.2em;
 			cursor: pointer;

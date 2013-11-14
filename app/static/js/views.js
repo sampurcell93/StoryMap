@@ -77,7 +77,7 @@
           this.storyList.render();
         }
         if (this.timeline != null) {
-          this.timeline.render().updateHandles();
+          this.timeline.render().updateHandles(true);
         }
         return this;
       },
@@ -351,10 +351,14 @@
             iface.append(loader);
             return self.model.geocode(iface.find(".js-address-value").val(), function(success, coords) {
               if (!success) {
-                return loader.text("We couldn't find data for that address....");
+                return setTimeout(function() {
+                  return loader.text("We couldn't find data for that address....");
+                }, 1000);
               } else {
-                loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude " + coords.lng);
-                return setTimeout(window.destroyModal, 1500);
+                return setTimeout(function() {
+                  loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude " + coords.lng);
+                  return setTimeout(window.destroyModal, 1500);
+                }, 1000);
               }
             });
           });
@@ -437,10 +441,10 @@
       },
       sortFns: {
         "newest": function(model) {
-          return model.get("date");
+          return -model.get("date");
         },
         "oldest": function(model) {
-          return -model.get("date");
+          return model.get("date");
         }
       },
       toggle: function() {
@@ -614,8 +618,8 @@
       updateHandles: function() {
         var $timeline, handles, max, maxdate, min, mindate, prevcomparator;
         cc("trying updating handles");
-        cc(this.max, this.min, this.collection);
-        if (((this.max != null) && (this.min != null)) || this.collection.length < 2) {
+        console.log(this.collection, this.min, this.max);
+        if (this.collection.length < 2) {
           return;
         }
         cc("updating handles");

@@ -54,7 +54,7 @@ $ ->
     renderComponents: ->
       if @storyList? then @storyList.render()
       if @timeline?
-        @timeline.render().updateHandles()
+        @timeline.render().updateHandles(true)
       @
     toggleMarkers: (markers) ->
       console.log markers
@@ -80,22 +80,21 @@ $ ->
       @storyList.bindListeners()
       @cacheQuery queryobj
       @trigger "loading"
-      app.navigate("query/" + query, true)
-      # # pass in a function for how to handle a new query, and one for an existing query
-      # queryobj.exists(
-      #   ((model) ->
-      #     app.navigate("query/" + model, true)
-      #   ),
-      #   ((query) ->
-      #     queryobj.getGoogleNews 0, 
-      #       (queryobj.getYahooNews 0, () ->
-      #         window.destroyModal()
-      #         _.each queryobj.get("stories").models, (story) ->
-      #           story.getCalaisData()
-      #         window.existingQueries.add queryobj
-      #       )
-      #     )
-      #   )
+      # pass in a function for how to handle a new query, and one for an existing query
+      queryobj.exists(
+        ((model) ->
+          app.navigate("query/" + model, true)
+        ),
+        ((query) ->
+          queryobj.getGoogleNews 0, 
+            (queryobj.getYahooNews 0, () ->
+              window.destroyModal()
+              _.each queryobj.get("stories").models, (story) ->
+                story.getCalaisData()
+              window.existingQueries.add queryobj
+            )
+          )
+        )
     # Expects a models.Query, loads and renders it if it exists, needs an id
     loadQuery: (query) ->
       model = query || @model
@@ -313,8 +312,8 @@ $ ->
         else if filter and show == false then story.trigger("show")
       @
     sortFns: 
-      "newest": (model) -> model.get("date")
-      "oldest": (model) -> -model.get("date")
+      "newest": (model) -> -model.get("date")
+      "oldest": (model) -> model.get("date")
     toggle: ->
       cc "Toggling"
       this.hidden = !this.hidden
@@ -450,11 +449,11 @@ $ ->
           self.stop()
       , @speeds[@dir]
       @
-    # should only need to call once per session
-    updateHandles: ->
+    # Usually, if we already have a mn and a max set, we don't need to do this. If the force param is true, do it anyway
+    updateHandles: () ->
       cc "trying updating handles"
-      cc @max, @min, @collection
-      if (@max? and @min?) or @collection.length < 2 then return
+      console.log @collection, @min, @max
+      if @collection.length < 2 then return
       cc "updating handles"
       prevcomparator = @collection.comparator
       @collection.comparator = (model) ->
