@@ -198,7 +198,10 @@ def load_token(token):
 def login():
     username = request.form['username']
     password = request.form['password']
+    print username
+    print password
     user = models.Users.query.filter_by(username=username).first()
+    print "query done"
     if user is None:
         return redirect("/?error=0")
     if not bcrypt.check_password_hash(getattr(user, 'password'), password):
