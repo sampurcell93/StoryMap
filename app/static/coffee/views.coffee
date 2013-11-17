@@ -521,7 +521,7 @@ $ ->
 
   ( ->
     i = 0
-    randClasses = ["blueribbon", "green", "orangestuff", "pink", "purple", "tendrils"]
+    randClasses = ["blueribbon", "green", "orangestuff", "pink", "purple", "angle"]
     window.views.QueryThumb = Backbone.View.extend
       tagName: 'li'
       template: $("#query-thumb").html()

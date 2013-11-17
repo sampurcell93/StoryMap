@@ -114,11 +114,7 @@ input[type='text'], input[type='password'] {
 
 
     &:focus {
-        border-top: 1px solid #3B4E77;
-        // needs latest Compass, add '@import "compass"' to your scss
-        background-color: rgb(14,14,14); // Old browsers
-        @include filter-gradient(#0e0e0e, #272a3d, vertical); // IE6-9
-        @include background-image(linear-gradient(top,  rgba(14,14,14,1) 0%,rgba(39,42,61,1) 100%));
+        
     }
 }
 

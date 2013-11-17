@@ -729,6 +729,9 @@ $maskduration: .33s;
 			text-align: right;
 			padding-right: 10px;
 		}	
+		&.angle {
+			background: url("../images/angle.jpg")
+		}
 
 		&.green {
 			background: url("../images/green.jpg")
