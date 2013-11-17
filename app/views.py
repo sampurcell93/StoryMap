@@ -164,7 +164,7 @@ def createUser():
             last_login=datetime.datetime.now())
         db.session.add(user)
         db.session.commit()
-        return 'User successfully created'
+        return redirect("/");
     except IntegrityError as e:
         db.session.flush()
         error = {'error_code': e.orig[0], 'error_string': e.orig[1]}
@@ -200,7 +200,7 @@ def login():
     password = request.form['password']
     print username
     print password
-    user = models.Users.query.filter_by(username=username).first()
+    user = models.Users.query.filter_by(username=username).all[0]
     print "query done"
     if user is None:
         return redirect("/?error=0")

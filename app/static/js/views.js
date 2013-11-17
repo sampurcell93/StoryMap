@@ -419,10 +419,10 @@
           return false;
         },
         "google": function(story) {
-          return story.get("type") === "google";
+          return story.get("aggregator") === "google";
         },
         "yahoo": function(story) {
-          return story.get("type") === "yahoo";
+          return story.get("aggregator") === "yahoo";
         }
       },
       filter: function(param, show, closure) {

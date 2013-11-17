@@ -302,8 +302,8 @@ $ ->
       "location":(story) ->  story.get("lat") != null and story.get("lng") != null
       "nolocation":(story) -> story.get("lat") == null and story.get("lng") == null
       "favorite":(story) -> false
-      "google":(story) -> story.get("type") == "google"
-      "yahoo":(story) -> story.get("type") == "yahoo"
+      "google":(story) -> story.get("aggregator") == "google"
+      "yahoo":(story) -> story.get("aggregator") == "yahoo"
     filter: (param, show, closure) ->
       filterFn = @filterFns[param]
       _.each @collection.models, (story) -> 
