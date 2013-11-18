@@ -238,6 +238,27 @@ def favorite():
         print traceback.format_exc()
         return json.dumps({"success": False})
 
+# User 'liked' a story ##
+
+@app.route('/favoriteStory', methods=['POST'])
+@login_required
+def favoriteStory():
+  try:
+    user_id = request.form.get('user_id')
+    story_id = request.form.get('story_id')
+    user = models.Users.query.get(user_id)
+    story = models.Stories.query.get(story_id)
+    if story is not None:
+      pprint(db.session.query(models.users_has_stories).filtery_by(users_id=user_id, stories_id=story_id).all())
+      if not db.session.query(models.users_has_stories).filtery_by(users_id=user_id, stories_id=story_id).all():
+        print "adding"
+        users.stories.append(query)
+        db.session.commit()
+      return json.dumps({"success": True})
+  except Exception, err:
+    print traceback.format_exc()
+    return json.dumps({"success": False})
+
 ########################
 ## Query REST Methods ##
 ########################
