@@ -320,17 +320,29 @@ section {
 				height: 100%;
 				position: absolute;
 				top: 0;
+				left: 0;
+				text-indent: 0;
 				display: none;
 				background: rgba(0,0,0,.4);
 				li {
-					font-size: 1.5em;
-					line-height: 1.5;
+					font-size: .9em;
+					line-height: 1.9;
 					display: inline-block;
-					width: 25%;
+					width: 33.333%;
 					margin: 0 -2px;
+					font-family: $lato;
+					// border: 1px solid red;
+
+					&:first-of-type { margin-left: 0;}
+
+					&:before {
+						padding: 0 10px 0 5px;
+						font-size: 1.2em;
+						font-family: 'icomoon';
+					}
 				}
 
-				li.icon-expand {font-size: 1.3em; vertical-align: 2px;}
+				// li.icon-expand::before {font-size: 1.3em; vertical-align: 2px;}
 			}
 
 		}
