@@ -17,7 +17,7 @@ $ ->
         external_url: '/externalNews'
         initialize: (attrs, options) ->
             _.bindAll @, "getYahooNews", "getGoogleNews", "exists"
-            @map = new window.GoogleMap @
+            @map = window.mapObj
             try @get("stories").parent_map = options.map
         defaults: ->
             stories: new collections.Stories
@@ -132,7 +132,7 @@ $ ->
                     # get the stories
                     stories = news.results
                     # get total results
-                    total = 200 #news.totalresults
+                    total = 10 #news.totalresults
                     _.each stories, (story) ->
                         self.addStory story, map:
                             content: 'abstract'

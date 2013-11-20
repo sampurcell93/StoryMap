@@ -149,7 +149,6 @@ def deactiveUser():
 
 
 @app.route('/users', methods=['POST'])
-@login_required
 def createUser():
     try:
         username = request.form['username']
@@ -157,6 +156,9 @@ def createUser():
         email = request.form['email']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+        print username
+        print password
+        print email
         # The db only accepts a certain pass length
         user = models.Users(
             username=username, email=email, first_name=first_name,
@@ -164,6 +166,7 @@ def createUser():
             last_login=datetime.datetime.now())
         db.session.add(user)
         db.session.commit()
+        print "OK!"
         return redirect("/");
     except IntegrityError as e:
         db.session.flush()
@@ -200,7 +203,7 @@ def login():
     password = request.form['password']
     print username
     print password
-    user = models.Users.query.filter_by(username=username).all[0]
+    user = models.Users.query.filter_by(username=username).all()[0]
     print "query done"
     if user is None:
         return redirect("/?error=0")

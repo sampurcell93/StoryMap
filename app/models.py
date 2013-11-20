@@ -24,16 +24,6 @@ queries_has_stories = db.Table('queries_has_stories',
                                db.Column('active', TINYINT, default=ACTIVE)
                                )
 
-users_has_stories = db.Table('users_has_stories',
-                            db.Column(
-                                'stories_id', db.Integer,
-                                db.ForeignKey('stories.id')),
-                            db.Column(
-                                'users_id', db.Integer,
-                                db.ForeignKey('users.id')),
-                            db.Column('active', TINYINT, default=ACTIVE)
-                            )
-
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(45), index=True, unique=True)
@@ -44,8 +34,6 @@ class Users(db.Model):
     password = db.Column(db.String(255))
     last_login = db.Column(DATETIME)
     queries = db.relationship('Queries', secondary=users_has_queries,
-                              backref=db.backref('users', lazy='dynamic'))
-    stories = db.relationship('Stories', secondary=users_has_stories,
                               backref=db.backref('users', lazy='dynamic'))
 
     def is_authenticated(self):

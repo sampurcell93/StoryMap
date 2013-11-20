@@ -1,139 +1,204 @@
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+-- MySQL dump 10.13  Distrib 5.6.13, for osx10.7 (x86_64)
+--
+-- Host: localhost    Database: newsmaps
+-- ------------------------------------------------------
+-- Server version	5.6.13
 
-CREATE SCHEMA IF NOT EXISTS `newsmaps` DEFAULT CHARACTER SET latin1 ;
-USE `newsmaps` ;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- -----------------------------------------------------
--- Table `newsmaps`.`queries`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `newsmaps`.`queries` (
-  `id` INT(11) NOT NULL,
-  `title` VARCHAR(45) NOT NULL,
-  `created` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_query` TIMESTAMP NULL DEFAULT NULL,
-  `active` TINYINT(4) NULL DEFAULT '1',
+--
+-- Table structure for table `queries`
+--
+
+DROP TABLE IF EXISTS `queries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `queries` (
+  `id` int(11) NOT NULL,
+  `title` varchar(45) NOT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_query` timestamp NULL DEFAULT NULL,
+  `active` tinyint(4) DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `title_UNIQUE` (`title` ASC))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+  UNIQUE KEY `title_UNIQUE` (`title`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `queries`
+--
 
--- -----------------------------------------------------
--- Table `newsmaps`.`stories`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `newsmaps`.`stories` (
-  `id` INT(11) NOT NULL,
-  `title` VARCHAR(300) NULL DEFAULT NULL,
-  `publisher` VARCHAR(300) NULL DEFAULT NULL,
-  `date` DATETIME NULL DEFAULT NULL,
-  `url` VARCHAR(255) NOT NULL,
-  `created` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  `active` TINYINT(4) NULL DEFAULT '1',
-  `lat` FLOAT NULL DEFAULT NULL,
-  `lng` FLOAT NULL DEFAULT NULL,
-  `content` TEXT NULL DEFAULT NULL,
-  `aggregator` VARCHAR(255) NULL DEFAULT NULL,
-  `location` VARCHAR(255) NULL DEFAULT NULL,
+LOCK TABLES `queries` WRITE;
+/*!40000 ALTER TABLE `queries` DISABLE KEYS */;
+/*!40000 ALTER TABLE `queries` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `queries_has_stories`
+--
+
+DROP TABLE IF EXISTS `queries_has_stories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `queries_has_stories` (
+  `queries_id` int(11) NOT NULL,
+  `stories_id` int(11) NOT NULL,
+  `active` tinyint(4) DEFAULT '1',
+  PRIMARY KEY (`queries_id`,`stories_id`),
+  KEY `fk_queries_has_stories_stories1_idx` (`stories_id`),
+  KEY `fk_queries_has_stories_queries1_idx` (`queries_id`),
+  CONSTRAINT `fk_queries_has_stories_queries1` FOREIGN KEY (`queries_id`) REFERENCES `queries` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_queries_has_stories_stories1` FOREIGN KEY (`stories_id`) REFERENCES `stories` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `queries_has_stories`
+--
+
+LOCK TABLES `queries_has_stories` WRITE;
+/*!40000 ALTER TABLE `queries_has_stories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `queries_has_stories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `stories`
+--
+
+DROP TABLE IF EXISTS `stories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `stories` (
+  `id` int(11) NOT NULL,
+  `title` varchar(300) DEFAULT NULL,
+  `publisher` varchar(300) DEFAULT NULL,
+  `date` datetime DEFAULT NULL,
+  `url` varchar(255) NOT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `active` tinyint(4) DEFAULT '1',
+  `lat` float DEFAULT NULL,
+  `lng` float DEFAULT NULL,
+  `content` text,
+  `aggregator` varchar(255) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `url_UNIQUE` (`url` ASC))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+  UNIQUE KEY `url_UNIQUE` (`url`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `stories`
+--
 
--- -----------------------------------------------------
--- Table `newsmaps`.`queries_has_stories`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `newsmaps`.`queries_has_stories` (
-  `queries_id` INT(11) NOT NULL,
-  `stories_id` INT(11) NOT NULL,
-  `active` TINYINT(4) NULL DEFAULT '1',
-  PRIMARY KEY (`queries_id`, `stories_id`),
-  INDEX `fk_queries_has_stories_stories1_idx` (`stories_id` ASC),
-  INDEX `fk_queries_has_stories_queries1_idx` (`queries_id` ASC),
-  CONSTRAINT `fk_queries_has_stories_queries1`
-    FOREIGN KEY (`queries_id`)
-    REFERENCES `newsmaps`.`queries` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_queries_has_stories_stories1`
-    FOREIGN KEY (`stories_id`)
-    REFERENCES `newsmaps`.`stories` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+LOCK TABLES `stories` WRITE;
+/*!40000 ALTER TABLE `stories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `stories` ENABLE KEYS */;
+UNLOCK TABLES;
 
+--
+-- Table structure for table `users`
+--
 
--- -----------------------------------------------------
--- Table `newsmaps`.`users`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `newsmaps`.`users` (
-  `id` INT(11) NOT NULL,
-  `username` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `active` TINYINT(4) NULL DEFAULT '1',
-  `created` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_login` DATETIME NULL DEFAULT NULL,
-  `password` VARCHAR(255) NULL DEFAULT NULL,
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(45) NOT NULL,
+  `email` varchar(45) NOT NULL,
+  `first_name` varchar(45) NOT NULL,
+  `last_name` varchar(45) NOT NULL,
+  `active` tinyint(4) DEFAULT '1',
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_login` datetime DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `username_UNIQUE` (`username` ASC),
-  UNIQUE INDEX `email_UNIQUE` (`email` ASC))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+  UNIQUE KEY `username_UNIQUE` (`username`),
+  UNIQUE KEY `email_UNIQUE` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `users`
+--
 
--- -----------------------------------------------------
--- Table `newsmaps`.`users_has_queries`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `newsmaps`.`users_has_queries` (
-  `users_id` INT(11) NOT NULL,
-  `queries_id` INT(11) NOT NULL,
-  `active` TINYINT(4) NULL DEFAULT '1',
-  PRIMARY KEY (`users_id`, `queries_id`),
-  INDEX `fk_users_has_queries_queries1_idx` (`queries_id` ASC),
-  INDEX `fk_users_has_queries_users_idx` (`users_id` ASC),
-  CONSTRAINT `fk_users_has_queries_queries1`
-    FOREIGN KEY (`queries_id`)
-    REFERENCES `newsmaps`.`queries` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_users_has_queries_users`
-    FOREIGN KEY (`users_id`)
-    REFERENCES `newsmaps`.`users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
 
+--
+-- Table structure for table `users_has_queries`
+--
 
--- -----------------------------------------------------
--- Table `newsmaps`.`users_has_stories`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `newsmaps`.`users_has_stories` (
-  `users_id` INT(11) NOT NULL,
-  `stories_id` INT(11) NOT NULL,
-  `active` TINYINT(4) NULL,
-  PRIMARY KEY (`users_id`, `stories_id`),
-  INDEX `fk_users_has_stories_stories1_idx` (`stories_id` ASC),
-  INDEX `fk_users_has_stories_users1_idx` (`users_id` ASC),
-  CONSTRAINT `fk_users_has_stories_users1`
-    FOREIGN KEY (`users_id`)
-    REFERENCES `newsmaps`.`users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_users_has_stories_stories1`
-    FOREIGN KEY (`stories_id`)
-    REFERENCES `newsmaps`.`stories` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+DROP TABLE IF EXISTS `users_has_queries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users_has_queries` (
+  `users_id` int(11) NOT NULL,
+  `queries_id` int(11) NOT NULL,
+  `active` tinyint(4) DEFAULT '1',
+  PRIMARY KEY (`users_id`,`queries_id`),
+  KEY `fk_users_has_queries_queries1_idx` (`queries_id`),
+  KEY `fk_users_has_queries_users_idx` (`users_id`),
+  CONSTRAINT `fk_users_has_queries_queries1` FOREIGN KEY (`queries_id`) REFERENCES `queries` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_users_has_queries_users` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `users_has_queries`
+--
 
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+LOCK TABLES `users_has_queries` WRITE;
+/*!40000 ALTER TABLE `users_has_queries` DISABLE KEYS */;
+/*!40000 ALTER TABLE `users_has_queries` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users_has_stories`
+--
+
+DROP TABLE IF EXISTS `users_has_stories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users_has_stories` (
+  `users_id` int(11) NOT NULL,
+  `stories_id` int(11) NOT NULL,
+  `active` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`users_id`,`stories_id`),
+  KEY `fk_users_has_stories_stories1_idx` (`stories_id`),
+  KEY `fk_users_has_stories_users1_idx` (`users_id`),
+  CONSTRAINT `fk_users_has_stories_users1` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_users_has_stories_stories1` FOREIGN KEY (`stories_id`) REFERENCES `stories` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users_has_stories`
+--
+
+LOCK TABLES `users_has_stories` WRITE;
+/*!40000 ALTER TABLE `users_has_stories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `users_has_stories` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2013-11-19 12:35:48
