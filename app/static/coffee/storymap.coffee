@@ -1,7 +1,7 @@
 # Define the map object
 # args: optional model
 # rets: themap obj
-window.GoogleMap = ( @model ) ->
+window.GoogleMap =  ->
   # Set default map options
   @mapOptions =
     center: new google.maps.LatLng(35, -62)
@@ -20,7 +20,7 @@ window.GoogleMap = ( @model ) ->
   @infowindow = new google.maps.InfoWindow()
   # Link map to parent model if there is one
   # Point markers array to either the model's array, or make a new one.
-  @markers = @model.get("markers") || []
+  @markers = []
   @
 
 # Plot a single story on the map

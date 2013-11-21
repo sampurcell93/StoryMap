@@ -6,6 +6,7 @@
     });
     window.existingQueries = new window.collections.Queries();
     existingQueries._byTitle = {};
+    window.mapObj = new window.GoogleMap;
     return user.fetch({
       success: function(model) {
         return existingQueries.fetch({

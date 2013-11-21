@@ -21,7 +21,7 @@
       external_url: '/externalNews',
       initialize: function(attrs, options) {
         _.bindAll(this, "getYahooNews", "getGoogleNews", "exists");
-        this.map = new window.GoogleMap(this);
+        this.map = window.mapObj;
         try {
           return this.get("stories").parent_map = options.map;
         } catch (_error) {}
@@ -165,7 +165,7 @@
             console.count("yahoo news story set returned");
             news = response.bossresponse.news;
             stories = news.results;
-            total = 200;
+            total = 10;
             _.each(stories, function(story) {
               return self.addStory(story, {
                 map: {

@@ -2,6 +2,7 @@ $ ->
     window.user = new window.models.User id: window.userid
     window.existingQueries = new window.collections.Queries()
     existingQueries._byTitle = {}
+    window.mapObj = new window.GoogleMap
     user.fetch({
         success: (model) ->
             existingQueries.fetch

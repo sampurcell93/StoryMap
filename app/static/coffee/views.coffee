@@ -87,7 +87,7 @@ $ ->
         ),
         ((query) ->
           queryobj.getGoogleNews 0, 
-            (queryobj.getYahooNews 0, () ->
+            (queryobj.getGoogleNews 0, () ->
               window.destroyModal()
               _.each queryobj.get("stories").models, (story) ->
                 story.getCalaisData()

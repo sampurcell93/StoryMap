@@ -156,6 +156,9 @@ def createUser():
         email = request.form['email']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+        print username
+        print password
+        print email
         # The db only accepts a certain pass length
         user = models.Users(
             username=username, email=email, first_name=first_name,
@@ -163,6 +166,7 @@ def createUser():
             last_login=datetime.datetime.now())
         db.session.add(user)
         db.session.commit()
+        print "OK!"
         return redirect("/");
     except IntegrityError as e:
         db.session.flush()
