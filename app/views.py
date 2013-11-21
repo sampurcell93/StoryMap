@@ -29,6 +29,13 @@ def _json_object_hook(d):
 def json2obj(data): 
     return json.loads(data, object_hook=_json_object_hook)
 
+def tryConnection (applyfun): 
+    try:
+        return applyfun()
+    except OperationalError:
+        print "operation error"
+        return applyfun()
+
 def to_json_list(results, is_query=False):
     output = []
     for result in results:
@@ -174,7 +181,8 @@ def createUser():
         return redirect("/?error=2&username=" + username + "&email=" + email + "&first_name=" + first_name + "&last_name=" + last_name)
     except Exception as e:
         db.session.flush()
-        return 'Error\n'
+        raise e
+        #return 'Error\n'
 
 # User login ##
 @lm.user_loader
@@ -203,8 +211,7 @@ def login():
     password = request.form['password']
     print username
     print password
-    user = models.Users.query.filter_by(username=username).all()[0]
-    print "query done"
+    user = tryConnection(lambda: models.Users.query.filter_by(username=username).all()[0])
     if user is None:
         return redirect("/?error=0")
     if not bcrypt.check_password_hash(getattr(user, 'password'), password):
@@ -312,6 +319,7 @@ def createQuery(title=None):
     existing = models.Queries.query.filter_by(title = title).all()
     query_id = None
     if not existing: 
+        print "hello"
         query = models.Queries(title=title, last_query=last_query, created=last_query)
         db.session.add(query)
         db.session.commit()

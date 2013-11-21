@@ -20,3 +20,6 @@ $ ->
                     window.app = new window.Workspace({user: user, controller: map})
                     Backbone.history.start()
         })
+
+    $.get("/static/images/redpoi.png", {}, (res) ->
+        cc res)
