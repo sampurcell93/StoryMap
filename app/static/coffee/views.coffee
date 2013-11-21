@@ -54,7 +54,7 @@ $ ->
     renderComponents: ->
       if @storyList? then @storyList.render()
       if @timeline?
-        @timeline.render().updateHandles(true)
+        @timeline.render().reset().updateHandles(true)
       @
     toggleMarkers: (markers) ->
       console.log markers
@@ -80,6 +80,7 @@ $ ->
       @storyList.bindListeners()
       @cacheQuery queryobj
       @trigger "loading"
+      mapObj.clear()
       # pass in a function for how to handle a new query, and one for an existing query
       queryobj.exists(
         ((model) ->
@@ -87,11 +88,14 @@ $ ->
         ),
         ((query) ->
           queryobj.getGoogleNews 0, 
-            (queryobj.getGoogleNews 0, () ->
-              window.destroyModal()
-              _.each queryobj.get("stories").models, (story) ->
-                story.getCalaisData()
-              window.existingQueries.add queryobj
+            (queryobj.getFeedZilla(
+              (queryobj.getYahooNews 0, () ->
+                window.destroyModal()
+                _.each queryobj.get("stories").models, (story) ->
+                  story.getCalaisData()
+                window.existingQueries.add queryobj
+              )
+              )
             )
           )
         )
@@ -110,6 +114,8 @@ $ ->
           destroyModal()
         error: ->
     events:
+      "click .js-toggle-analytics": (e) ->
+        cc "ana"
       "keydown .js-news-search": (e) ->
         key = e.keyCode || e.which
         val = $(e.currentTarget).val()
@@ -391,6 +397,9 @@ $ ->
         step: 10000
         slide: update_val
         change: update_val
+      @
+    reset: ->
+      @min = @max = undefined
       @
     render: ->
       self = @

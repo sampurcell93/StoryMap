@@ -151,13 +151,27 @@ $ ->
                         console.log done
                         done 0 , null
             return @
+        getFeedZilla: (done) ->
+            self = @
+            $.get "http://api.feedzilla.com/v1/articles.json", {
+                q: @get("title")
+                count: 100
+            }, (response) ->
+                _.each response.articles, (story) ->
+                    cc "adding feedzilla sroy"
+                    self.addStory story, map: 
+                        content: 'summary'
+                        publisher: 'source'
+                        date: -> new Date(story.publish_date)
+                        aggregator: -> 'FeedZilla'
+                console.log(res)
 
     window.collections.Queries = Backbone.Collection.extend
         model: models.Query
         url: "/queries"
         parse: (response) -> 
-            cc response.queries[0]
-            cc "parsing collection"
+            # cc response.queries[0]
+            # cc "parsing collection"
             response.queries
 
 

@@ -17,7 +17,10 @@
     <ul class='mask'>
         <li class='js-show-model icon-expand'>Info</li>
         <!-- <li class='js-favorite-story icon-thumbs-up'></li> -->
+        <% console.log(location) %>
+        <% if (typeof location === "undefined" || location == window.location || location == "" || location == null) { %>
         <li class='js-set-location icon-location-arrow'>Locate</li>
+        <% } %>
         <li title="<%= title %>" class='js-read-full-story icon-reply'>Story</li>
     </ul>
 </script>
@@ -59,7 +62,7 @@
         <dd><%= title %></dd>
     <dt>Date:</dt>
         <dd><%= cleanDate(date) %></dd>
-    <% if (typeof location !== "undefined" && location != null) { %>
+    <% if (typeof location !== "undefined" && location != window.location) { %>
     <dt>Location:</dt>
         <dd><%= location %></dd>
     <% } %>

@@ -77,7 +77,7 @@
           this.storyList.render();
         }
         if (this.timeline != null) {
-          this.timeline.render().updateHandles(true);
+          this.timeline.render().reset().updateHandles(true);
         }
         return this;
       },
@@ -111,16 +111,17 @@
         this.storyList.bindListeners();
         this.cacheQuery(queryobj);
         this.trigger("loading");
+        mapObj.clear();
         return queryobj.exists((function(model) {
           return app.navigate("query/" + model, true);
         }), (function(query) {
-          return queryobj.getGoogleNews(0, queryobj.getGoogleNews(0, function() {
+          return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
             window.destroyModal();
             _.each(queryobj.get("stories").models, function(story) {
               return story.getCalaisData();
             });
             return window.existingQueries.add(queryobj);
-          }));
+          })));
         }));
       },
       loadQuery: function(query) {
@@ -144,6 +145,9 @@
         });
       },
       events: {
+        "click .js-toggle-analytics": function(e) {
+          return cc("ana");
+        },
         "keydown .js-news-search": function(e) {
           var key, val;
           key = e.keyCode || e.which;
@@ -539,6 +543,10 @@
           slide: update_val,
           change: update_val
         });
+        return this;
+      },
+      reset: function() {
+        this.min = this.max = void 0;
         return this;
       },
       render: function() {

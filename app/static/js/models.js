@@ -194,14 +194,37 @@
           }
         });
         return this;
+      },
+      getFeedZilla: function(done) {
+        var self;
+        self = this;
+        return $.get("http://api.feedzilla.com/v1/articles.json", {
+          q: this.get("title"),
+          count: 100
+        }, function(response) {
+          _.each(response.articles, function(story) {
+            cc("adding feedzilla sroy");
+            return self.addStory(story, {
+              map: {
+                content: 'summary',
+                publisher: 'source',
+                date: function() {
+                  return new Date(story.publish_date);
+                },
+                aggregator: function() {
+                  return 'FeedZilla';
+                }
+              }
+            });
+          });
+          return console.log(res);
+        });
       }
     });
     window.collections.Queries = Backbone.Collection.extend({
       model: models.Query,
       url: "/queries",
       parse: function(response) {
-        cc(response.queries[0]);
-        cc("parsing collection");
         return response.queries;
       }
     });

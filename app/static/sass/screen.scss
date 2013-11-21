@@ -150,7 +150,7 @@ ul.control-panel{
 				display: inline-block;
 				font-family: 'icomoon';
 				vertical-align: -3px;
-				padding: 0 6px;
+				padding: 0 6px 3px 6px;
 			}
 			&:after {
 				content: attr(title);
@@ -322,6 +322,7 @@ section {
 				top: 0;
 				left: 0;
 				text-indent: 0;
+				padding-left: 10px;
 				display: none;
 				background: rgba(0,0,0,.4);
 				li {
