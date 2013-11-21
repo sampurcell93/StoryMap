@@ -149,7 +149,6 @@ def deactiveUser():
 
 
 @app.route('/users', methods=['POST'])
-@login_required
 def createUser():
     try:
         username = request.form['username']
@@ -171,7 +170,8 @@ def createUser():
         return redirect("/?error=2&username=" + username + "&email=" + email + "&first_name=" + first_name + "&last_name=" + last_name)
     except Exception as e:
         db.session.flush()
-        return 'Error\n'
+        raise e
+        #return 'Error\n'
 
 # User login ##
 @lm.user_loader
@@ -200,7 +200,7 @@ def login():
     password = request.form['password']
     print username
     print password
-    user = models.Users.query.filter_by(username=username).all[0]
+    user = models.Users.query.filter_by(username=username).all()[0]
     print "query done"
     if user is None:
         return redirect("/?error=0")

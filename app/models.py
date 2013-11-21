@@ -25,17 +25,17 @@ queries_has_stories = db.Table('queries_has_stories',
                                )
 
 users_has_stories = db.Table('users_has_stories',
-                            db.Column(
-                                'stories_id', db.Integer,
-                                db.ForeignKey('stories.id')),
-                            db.Column(
-                                'users_id', db.Integer,
-                                db.ForeignKey('users.id')),
-                            db.Column('active', TINYINT, default=ACTIVE)
-                            )
+                               db.Column(
+                                   'stories_id', db.Integer,
+                                   db.ForeignKey('stories.id')),
+                               db.Column(
+                                   'users_id', db.Integer,
+                                   db.ForeignKey('users.id')),
+                               db.Column('active', TINYINT, default=ACTIVE)
+                               )
 
 class Users(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     username = db.Column(db.String(45), index=True, unique=True)
     email = db.Column(db.String(45), index=True, unique=True)
     first_name = db.Column(db.String(45))
