@@ -1,22 +1,11 @@
 $ ->
-
-    # desc: takes an object (not a model) and formats its attributes by modifying its key structure (never destructive)
-    # rets: the formatted article, with all key mappings
-    format = (story, map) ->
-        _.each map, (val, key) ->
-            unless typeof val == "function"
-                story[key] = story[val]
-            else
-                story[key] = val.call story
-        story
-
     ### Data Models ###
 
     window.models.Query = Backbone.Model.extend
         url: -> "/queries/" + (@get("id") || @get("title"))
         external_url: '/externalNews'
         initialize: (attrs, options) ->
-            _.bindAll @, "getYahooNews", "getGoogleNews", "exists"
+            _.bindAll @, "getYahooNews", "getGoogleNews", "exists", "addStory"
             @map = window.mapObj
             try @get("stories").parent_map = options.map
         defaults: ->
@@ -65,19 +54,19 @@ $ ->
          # desc: checks if a story has been looked at by seeing if its title exists in the hashtable
         # If new, add it to collection
         # ret: this
-        addStory: (story, opts) ->
+        addStory: (story) ->
             stories = @get("stories")
+            story.date = new Date(story.date)
             # ignore case for title
             title = story.title.toLowerCase().stripHTML()
             # check if the story exists
             unless stories._byTitle.hasOwnProperty(title)
-                cc "adding story"
                 # if it doesn't add it and set it in the titles hashtable
-                options = _.extend {}, opts
-                stories.add story = new models.Story(format(story, options.map)), options
+                stories.add story = new models.Story story
                 id = @get("id") || @id
                 if id then story.set("query_id", id)
                 stories._byTitle[title] = story
+                story.plot()
             else 
                 cc "story exists"
             @
@@ -88,6 +77,7 @@ $ ->
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
         getGoogleNews: (start, done) ->
+            cc "calling gnews"
             self = @
             query = @get("title")
             start || (start = 0)
@@ -95,25 +85,16 @@ $ ->
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
-            , (response) ->
+            , (stories) ->
                 console.count "google news story set returned"
-                # parse the json
-                try 
-                    response = JSON.parse(response)
-                    console.log response
-                    # Once google news is exhausted, execute yhoo
-                    if response.responseDetails is "out of range start" or response.responseDetails is "Invalid start" or start > 64
-                        if done? 
-                            console.log done
-                            done 0, null
-                    # Get location data from OpenCalais for each story item
-                    _.each response.responseData.results, (story) ->
-                        self.addStory story, map: 
-                            date: ->
-                                new Date(this['publishedDate'])
-                            aggregator: -> 'google'
-                            url: 'unescapedUrl'
-                    if start < 64 then return self.getGoogleNews start + 32, done
+                stories = JSON.parse(stories)
+                cc stories
+                # Once google news is exhausted, execute callback 
+                if (start > 64 or !stories.length) and done? then done 0, null
+                # Get location data from OpenCalais for each story item
+                _.each stories, self.addStory
+                # Otherwise, call self and keep going
+                if start < 64 then self.getGoogleNews start + 8, done
             @
         getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
@@ -123,34 +104,16 @@ $ ->
                 source: 'yahoo'
                 q: query
                 start: start
-            , (response) ->
-                response = JSON.parse response
-                try 
-                    console.count "yahoo news story set returned"
-                    # get all news, including metadata
-                    news = response.bossresponse.news
-                    # get the stories
-                    stories = news.results
-                    # get total results
-                    total = 10 #news.totalresults
-                    _.each stories, (story) ->
-                        self.addStory story, map:
-                            content: 'abstract'
-                            date: -> new Date(parseInt(story.date) * 1000)
-                            aggregator: -> 'yahoo'
-                            'publisher': 'source'
-                    # 1000 is the length of results returned by Yahoo
-                    # if start <= 1000
-                    if start <= total
-                        self.getYahooNews start + 50, done
-                    else if done? 
-                        console.log done
-                        done 0, null
-                catch 
-                    if done? 
-                        console.log done
-                        done 0 , null
-            return @
+            , (stories) ->
+                stories = JSON.parse stories
+                console.count "yahoo news story set returned"
+                # get all news, including metadata
+                total = 10 #news.totalresults
+                _.each stories, self.addStory
+                # if start <= 1000
+                if start <= total then self.getYahooNews start + 50, done
+                else if done? then done 0, null
+                return @
         getFeedZilla: (done) ->
             self = @
             $.get "http://api.feedzilla.com/v1/articles.json", {
@@ -164,7 +127,6 @@ $ ->
                         publisher: 'source'
                         date: -> new Date(story.publish_date)
                         aggregator: -> 'FeedZilla'
-                console.log(res)
 
     window.collections.Queries = Backbone.Collection.extend
         model: models.Query
@@ -195,64 +157,8 @@ $ ->
                     if value == true
                         this.collection._withLocation[this.get("title")] = this
                         console.log this.collection
-        # args: an array of objects to attach to the model, and whether to plot the model after
-        # the applyfun pair of each object can hold a mapping function to apply to each of the other values
-        # rets: the story with coords added in
-        attach: (objects, plot) ->
-            self = @
-            @trigger("loading")
-            _.each objects, (obj) ->
-                applyfun = obj.applyfun
-                if applyfun?
-                    for i of obj
-                        cc i
-                        unless obj[i] == applyfun
-                            obj[i] = applyfun.apply(self,[obj[i]])
-                _.extend self.attributes, obj
-            if plot == true
-                @plot()
-            @
         hasLocation: ->
             @get("lat")? and @get("lng")
-        # Expects a callback
-        getCalaisData: (callback) ->
-            self = @
-            try 
-                j = @toJSON()
-                story_string = j.title + j.content
-            catch 
-                return console.error("Badly formatted model passed to calais")
-            # Pass the title and the story body into calais
-            $.get "/calais",
-                content: story_string
-            , (calaisjson) ->
-                unless !calaisjson?
-                    console.count "calais data returned for " + j.title
-                    self.parseCalais calaisjson, {plot: true}
-
-            @
-        parseCalais: (json, opts) ->
-            options = _.extend {plot: true}, opts
-            self = @
-             # Check each entity property of the returned calais object searching for locations
-            _.each json.entities, (entity) ->
-              # If it contains a "resolutions" key, it has latitude and longitude
-              if entity.hasOwnProperty("resolutions")
-                console.log entity
-                breakval = true
-                _.each entity.resolutions, (coords) ->
-                    if coords.latitude? and coords.longitude?
-                        self.set("location", coords.name)
-                        self.attach [{
-                            applyfun: parseFloat
-                            lat: coords.latitude 
-                            lng: coords.longitude
-                        }], options.plot
-                        # Mark this as a model with a location
-                        self.set("hasLocation", true)
-                        return breakval = false
-                    true
-                breakval
         plot: ->
             window.mapObj.plot @
             @
@@ -266,13 +172,9 @@ $ ->
                         coords = response.results[0].geometry.location
                         self.save {lat: coords.lat, lng: coords.lng, location: response.results[0].formatted_address} , 
                             success: (model, resp) ->
-                                console.log model
                                 self.set("hasLocation", true)
                                 self.plot()
-                                console.log resp
                             error: (model, resp) ->
-                                console.log model
-                                console.log resp
                         if callback? then callback(true,coords)
                     catch
                         console.log _error

@@ -5,7 +5,7 @@ $ ->
     window.mapObj = new window.GoogleMap
     query = new models.Query
     window.map = new views.MapItem model: query
-    launchModal "<h2>loading....</h2>", {close: false}
+    # launchModal "<h2>loading....</h2>", {close: false}
     user.fetch({
         success: (model) ->
             existingQueries.fetch
@@ -20,6 +20,3 @@ $ ->
                     window.app = new window.Workspace({user: user, controller: map})
                     Backbone.history.start()
         })
-
-    $.get("/static/images/redpoi.png", {}, (res) ->
-        cc res)

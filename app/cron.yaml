@@ -1,4 +1,4 @@
 cron:
 - description: test
   schedule: every 5 seconds
-  url: /app/test
+  url: test.py

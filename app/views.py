@@ -4,6 +4,7 @@ from pprint import pprint
 from app import app, models, db, lm, login_serializer
 import datetime
 import traceback
+import time
 import flask
 from flaskext.bcrypt import Bcrypt
 from flask_oauth import OAuth
@@ -15,13 +16,13 @@ import urllib
 import urllib2
 import httplib2
 import json
-from calais import Calais
+from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from flask.ext.login import login_user, logout_user, current_user, login_required
-bcrypt = Bcrypt(app)
+import news
 
-views = "./views"
+bcrypt = Bcrypt(app)
 
 dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime)  or isinstance(obj, datetime.date) else None
 def _json_object_hook(d): 
@@ -32,8 +33,9 @@ def json2obj(data):
 def tryConnection (applyfun): 
     try:
         return applyfun()
-    except OperationalError:
+    except exc.SQLAlchemyError:
         print "operation error"
+        time.sleep(.1)
         return applyfun()
 
 def to_json_list(results, is_query=False):
@@ -114,7 +116,7 @@ def map():
 @app.route('/users', methods=['GET'])
 @login_required
 def users():
-    users = models.Users.query.all()
+    users = tryConnection(lambda: models.Users.query.all())
     return flask.jsonify(users=to_json_list(users))
 
 # Get one user by their id ##
@@ -136,7 +138,7 @@ def getUser(id):
 @login_required
 def deleteUser():
     id = request.args.get('id')
-    user = models.Users.query.get(id)
+    user = tryConnection(lambda: models.Users.query.get(id))
     db.session.delete(user)
     db.session.commit()
     return 'User successfully deleted'
@@ -147,7 +149,7 @@ def deleteUser():
 @app.route('/deactive', methods=['POST'])
 def deactiveUser():
     user_id = request.args.get('user_id')
-    user = models.Users.query.get(user_id)
+    user = tryConnection(lambda: models.Users.query.get(user_id))
     user.active = models.INACTIVE
     db.session.commit()
     return 'User successfully deactivated\n'
@@ -167,10 +169,10 @@ def createUser():
         print password
         print email
         # The db only accepts a certain pass length
-        user = models.Users(
+        user = tryConnection(lambda: models.Users(
             username=username, email=email, first_name=first_name,
             last_name=last_name, password=bcrypt.generate_password_hash(password),
-            last_login=datetime.datetime.now())
+            last_login=datetime.datetime.now()))
         db.session.add(user)
         db.session.commit()
         print "OK!"
@@ -187,7 +189,7 @@ def createUser():
 # User login ##
 @lm.user_loader
 def load_user(userid):
-    return models.Users.query.get(userid)
+    return tryConnection(lambda: models.Users.query.get(userid))
  
 @lm.token_loader
 def load_token(token):
@@ -238,8 +240,7 @@ def favorite():
         user = models.Users.query.get(user_id)
         query = models.Queries.query.get(query_id)
         if query is not None:
-            pprint(db.session.query(models.users_has_queries).filter_by(users_id=user_id, queries_id=query_id).all())
-            if not db.session.query(models.users_has_queries).filter_by(users_id=user_id, queries_id=query_id).all():
+            if not tryConnection(lambda: db.session.query(models.users_has_queries).filter_by(users_id=user_id, queries_id=query_id).all()):
                 print "adding"
                 user.queries.append(query)
                 db.session.commit()
@@ -259,8 +260,7 @@ def favoriteStory():
     user = models.Users.query.get(user_id)
     story = models.Stories.query.get(story_id)
     if story is not None:
-      pprint(db.session.query(models.users_has_stories).filtery_by(users_id=user_id, stories_id=story_id).all())
-      if not db.session.query(models.users_has_stories).filtery_by(users_id=user_id, stories_id=story_id).all():
+      if not tryConnection(lambda: db.session.query(models.users_has_stories).filtery_by(users_id=user_id, stories_id=story_id).all()):
         print "adding"
         users.stories.append(query)
         db.session.commit()
@@ -279,7 +279,7 @@ def favoriteStory():
 @app.route('/queries', methods=['GET'])
 @login_required
 def queries():
-    queries = models.Queries.query.all()
+    queries = tryConnection(lambda: models.Queries.query.all())
     return flask.jsonify(queries=to_json_list(queries, True))
 
 # Get one query by id or by title ##
@@ -292,8 +292,7 @@ def getQueryById(identifier):
     except Exception: 
         digit = True
     if digit is True:
-        print "digit"
-        query = models.Queries.query.get(identifier)
+        query = tryConnection(lambda: models.Queries.query.get(identifier))
         if (query is None):
             return json.dumps({"exists": False})
         return json.dumps(to_json(query, True), default=dthandler)
@@ -301,8 +300,7 @@ def getQueryById(identifier):
         return getQueryByTitle(identifier)
 @app.route('/title/query/<string:title>', methods=['GET'])
 def getQueryByTitle(title):
-    print "titling"
-    query = models.Queries.query.filter_by(title = title).all()
+    query = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
     if not query:
         return json.dumps({"exists": False})
     print query[0].id
@@ -316,7 +314,7 @@ def createQuery(title=None):
     if title is None:
         title = request.form.get('title')
     last_query = datetime.datetime.now()
-    existing = models.Queries.query.filter_by(title = title).all()
+    existing = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
     query_id = None
     if not existing: 
         print "hello"
@@ -355,7 +353,7 @@ def stories():
 @app.route('/stories/<string:id>', methods=['GET'])
 @login_required
 def getStory(id):
-    story = models.Stories.query.get(id)
+    story = tryConnection(lambda: models.Stories.query.get(id))
     if (story is None):
         return flask.jsonify()
     return flask.jsonify(story=to_json(story))
@@ -386,7 +384,7 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
         print "query_id:"
         print query_id
     try:
-        story = models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content, aggregator=aggregator, location=location)
+        story = tryConnection(lambda: models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content, aggregator=aggregator, location=location))
         db.session.add(story)
         db.session.commit()
         if query_id is not None:
@@ -409,7 +407,7 @@ def storyPut(id):
 @app.route('/addStoryToQuery/<string:query_id>/<string:story_id>', methods=['POST'])
 @login_required
 def addStoryToQuery(query_id, story_id):
-    story = models.Stories.query.get(story_id)
+    story = tryConnection(lambda: models.Stories.query.get(story_id))
     if story is None:
         return 'Story does not exist\n'
     query = models.Queries.query.get(query_id)
@@ -425,7 +423,7 @@ def addStoryToQuery(query_id, story_id):
 def addStoriesToQuery():
     story_list = request.form.getlist('stories')[0].split(",")
     query_id = request.form.get('query_id')
-    query = models.Queries.query.get(query_id)
+    query = tryConnection(lambda: models.Queries.query.get(query_id))
     if query is None:
         return 'Query does not exist\n'
     for story_id in story_list:
@@ -435,62 +433,3 @@ def addStoriesToQuery():
         # story.queries.append(query)
     # db.session.commit()
     return 'Success!\n'
-
-@app.route("/externalNews", methods=['GET'])
-@login_required
-def getNews():
-    sources = {
-        'google': googleNews,
-        'yahoo': yahooNews,
-    }
-    return sources[request.args['source']]()
-
-def googleNews():
-    # Query and offset of stories
-    query = request.args['q']
-    start = request.args['start']
-    data = {'start':start, 'q':query}
-    url = "https://ajax.googleapis.com/ajax/services/search/news?v=1.0&rsz=8&"+urllib.urlencode(data)
-    # Curl request headers
-    req = urllib2.Request(url)
-    req.add_header('Accept', 'application/json')
-    req.add_header("Content-type", "application/x-www-form-urlencoded")
-    # Issue request
-    res = urllib2.urlopen(req)
-    return res.read()
-def yahooNews():
-    URL = "http://yboss.yahooapis.com/ysearch/news"
-    OAUTH_CONSUMER_KEY = "dj0yJmk9RHp0ckM1NnRMUmk1JmQ9WVdrOVdUbHdOMkZLTTJVbWNHbzlNakV5TXpReE1EazJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD0xMg--"
-    OAUTH_CONSUMER_SECRET = "626da2d06d0b80dbd90799715961dce4e13b8ba1"
-    data = {
-        "q": request.args["q"],
-        "start": request.args["start"],
-        "sort": "date",
-        "age": "1000d",
-        "format":"json"
-    }
-    consumer = oauth.OAuthConsumer(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET)
-    signature_method_plaintext = oauth.OAuthSignatureMethod_PLAINTEXT()
-    signature_method_hmac_sha1 = oauth.OAuthSignatureMethod_HMAC_SHA1()
-    oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, token=None, http_method='GET', http_url=URL, parameters=data)
-    oauth_request.sign_request(signature_method_hmac_sha1, consumer, "")
-    complete_url = oauth_request.to_url()
-    response = urllib.urlopen(complete_url)
-    return response.read()
-
-@app.route("/test", methods=['GET'])
-def test():
-    params = request.args.getlist("params")
-    for i in params:
-        val = json2obj(json.dumps(i))
-        print val['name']
-    return "Hello"
-
-@app.route("/calais", methods=['GET'])
-@login_required
-def calais():
-    key = "c3wjfrkfmrsft3r5wgxm5skr"
-    calais = Calais(key, submitter="Sam Purcell")
-    print request.args['content'].encode("utf-8")
-    resp = vars(calais.analyze(request.args['content'].encode("utf-8")))
-    return flask.jsonify(**resp)

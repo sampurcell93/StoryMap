@@ -87,18 +87,16 @@ $ ->
           app.navigate("query/" + model, true)
         ),
         ((query) ->
-          queryobj.getGoogleNews 0, 
-            (queryobj.getFeedZilla(
-              (queryobj.getYahooNews 0, () ->
-                window.destroyModal()
-                _.each queryobj.get("stories").models, (story) ->
-                  story.getCalaisData()
-                window.existingQueries.add queryobj
-              )
-              )
+          queryobj.getGoogleNews 0,
+            # (queryobj.getFeedZilla(
+            (queryobj.getYahooNews 0, () ->
+              window.destroyModal()
+              window.existingQueries.add queryobj
+              # )
+              # )
             )
-          )
         )
+      )
     # Expects a models.Query, loads and renders it if it exists, needs an id
     loadQuery: (query) ->
       model = query || @model
@@ -207,7 +205,9 @@ $ ->
     initialize: ->
       _.bindAll @, "render"
       self = @
-      @listenTo @model, 
+      @listenTo @model,
+        "save" : ->
+          cc "SAVED THIS BITCH"
         "hide": ->
           console.log("hiding")
           this.$el.hide()

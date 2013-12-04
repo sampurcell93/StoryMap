@@ -115,13 +115,10 @@
         return queryobj.exists((function(model) {
           return app.navigate("query/" + model, true);
         }), (function(query) {
-          return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
+          return queryobj.getGoogleNews(0, queryobj.getYahooNews(0, function() {
             window.destroyModal();
-            _.each(queryobj.get("stories").models, function(story) {
-              return story.getCalaisData();
-            });
             return window.existingQueries.add(queryobj);
-          })));
+          }));
         }));
       },
       loadQuery: function(query) {
@@ -270,6 +267,9 @@
         _.bindAll(this, "render");
         self = this;
         return this.listenTo(this.model, {
+          "save": function() {
+            return cc("SAVED THIS BITCH");
+          },
           "hide": function() {
             console.log("hiding");
             return this.$el.hide();

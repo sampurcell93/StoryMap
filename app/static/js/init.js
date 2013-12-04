@@ -12,10 +12,7 @@
     window.map = new views.MapItem({
       model: query
     });
-    launchModal("<h2>loading....</h2>", {
-      close: false
-    });
-    user.fetch({
+    return user.fetch({
       success: function(model) {
         return existingQueries.fetch({
           success: function(coll) {
@@ -33,9 +30,6 @@
           }
         });
       }
-    });
-    return $.get("/static/images/redpoi.png", {}, function(res) {
-      return cc(res);
     });
   });
 

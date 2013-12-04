@@ -292,6 +292,7 @@ section {
 				a,.mask {
 					border-left: 4px solid $hasLocation;
 				}
+				.js-favorite-story { display: none; }
 			}
 
 			&.no-location {
