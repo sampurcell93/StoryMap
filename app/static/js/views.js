@@ -77,13 +77,12 @@
           this.storyList.render();
         }
         if (this.timeline != null) {
-          this.timeline.render().reset().updateHandles(true);
+          this.timeline.reset().updateHandles(true).render();
         }
         return this;
       },
       toggleMarkers: function(markers) {
         var self;
-        console.log(markers);
         self = this;
         _.each(markers.outrange, function(outlier) {
           return outlier.setMap(null);
@@ -143,7 +142,7 @@
       },
       events: {
         "click .js-toggle-analytics": function(e) {
-          return cc("ana");
+          return cc("analytics on the way thoooo");
         },
         "keydown .js-news-search": function(e) {
           var key, val;
@@ -168,7 +167,6 @@
         "click .js-save-query": function(e) {
           var stories, toSave;
           toSave = this.model;
-          console.log(toSave);
           stories = toSave.get("stories");
           return toSave.save(null, {
             success: function(resp, b, c) {
@@ -238,7 +236,6 @@
         this.xoff = xOff = Math.random() * 0.1;
         this.yoff = yOff = Math.random() * 0.1;
         pt = new google.maps.LatLng(parseFloat(this.model.get("lat")) + xOff, parseFloat(this.model.get("lng")) + yOff);
-        console.log(pt);
         this.marker = new google.maps.Marker({
           position: pt,
           animation: google.maps.Animation.DROP,
@@ -549,26 +546,37 @@
         this.min = this.max = void 0;
         return this;
       },
+      clearMarkers: function() {
+        this.$(".timeline-marker").remove();
+        return this;
+      },
       render: function() {
         var self;
         self = this;
+        this.clearMarkers();
         _.each(this.collection.models, function(story) {
-          if ((story.get("lat") != null) && (story.get("lng") != null)) {
+          if (story.hasLocation()) {
             return self.addMarker(story);
           }
         });
         return this;
       },
       addMarker: function(model) {
-        var pos, view;
-        return this;
+        var $slider, pixeladdition, pos, range, view, width;
         cc("appending a RED MARKR ONTO TIMELINE");
-        pos = model.get("date").getTime();
+        $slider = this.$(".slider-wrap");
+        width = $slider.width();
+        pos = new Date(model.get("date")).getTime();
+        range = this.max - this.min;
+        pos -= this.min;
+        pos /= range;
+        pixeladdition = 10 / width;
+        pos += pixeladdition;
         view = new views.TimelineMarker({
           model: model,
-          left: pos / this.max
+          left: pos
         });
-        this.$(".slider-wrap").append(view.render().el);
+        $slider.append(view.render().el);
         return this;
       },
       play: function() {
@@ -577,11 +585,9 @@
         values = this.$timeline.slider("values");
         lo = values[0];
         hi = values[1];
-        console.log(values);
         this.isPlaying = true;
         dir = this.dir === "forward" ? 1 : 1;
         inc = dir * Math.ceil(Math.abs((hi - lo) / 300));
-        console.log(inc);
         this.changeValue(lo, hi, inc, function(locmp, hicmp) {
           return locmp <= hicmp;
         });
@@ -625,12 +631,9 @@
       },
       updateHandles: function() {
         var $timeline, handles, max, maxdate, min, mindate, prevcomparator;
-        cc("trying updating handles");
-        console.log(this.collection, this.min, this.max);
         if (this.collection.length < 2) {
-          return;
+          return this;
         }
-        cc("updating handles");
         prevcomparator = this.collection.comparator;
         this.collection.comparator = function(model) {
           return model.get("date");
@@ -656,6 +659,8 @@
         });
         $timeline.slider("values", 0, mindate);
         $timeline.slider("values", 1, maxdate);
+        this.max = this.max.getTime();
+        this.min = this.min.getTime();
         return this;
       },
       setSpeed: function(dir) {
@@ -708,10 +713,17 @@
       className: 'timeline-marker',
       render: function() {
         var num;
-        num = this.options.left || (Math.random() * 100);
-        console.log("putting marker at " + num);
+        num = this.options.left;
         this.$el.css('left', (num * 100) + "%");
         return this;
+      },
+      events: {
+        "mouseover": function() {
+          return this.model.trigger("highlight");
+        },
+        "mouseout": function() {
+          return this.model.trigger("unhighlight");
+        }
       }
     });
     (function() {

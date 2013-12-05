@@ -4538,36 +4538,37 @@ footer:hover {
   border: none;
   width: 24px;
   height: 24px;
+  z-index: 99;
 }
-/* line 583, ../sass/screen.scss */
+/* line 584, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:focus {
   outline: none;
 }
-/* line 584, ../sass/screen.scss */
+/* line 585, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:first-of-type {
   background: url("../images/ui-slider-min.png") no-repeat center;
 }
-/* line 586, ../sass/screen.scss */
+/* line 587, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:first-of-type .handle-display-value {
   left: -10px;
 }
-/* line 588, ../sass/screen.scss */
+/* line 589, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:first-of-type .handle-display-value:before {
   left: 10px;
 }
-/* line 591, ../sass/screen.scss */
+/* line 592, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:last-of-type {
   background: url("../images/ui-slider-max.png") no-repeat center;
 }
-/* line 593, ../sass/screen.scss */
+/* line 594, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:last-of-type .handle-display-value {
   right: -10px;
 }
-/* line 596, ../sass/screen.scss */
+/* line 597, ../sass/screen.scss */
 .timeline-slider .ui-slider-handle:last-of-type .handle-display-value:before {
   right: 10px;
 }
-/* line 603, ../sass/screen.scss */
+/* line 604, ../sass/screen.scss */
 .timeline-slider .ui-slider-range {
   border: 1px solid #111;
   border-top-color: #405A6D;
@@ -4584,7 +4585,7 @@ footer:hover {
   background-image: linear-gradient(top, #11203d 0%, #2c4254 100%);
 }
 
-/* line 614, ../sass/screen.scss */
+/* line 615, ../sass/screen.scss */
 .slider-wrap {
   -webkit-transition: width 0.1s ease-in-out;
   -moz-transition: width 0.1s ease-in-out;
@@ -4595,19 +4596,26 @@ footer:hover {
   position: relative;
 }
 
-/* line 621, ../sass/screen.scss */
+/* line 622, ../sass/screen.scss */
 .timeline-marker {
   display: block;
   height: 10px;
-  width: 0;
-  border: 1px solid red;
+  width: 3px;
+  background: #000;
   position: absolute;
-  top: 2px;
+  top: 1px;
   left: 200px;
-  z-index: 999911111;
+  cursor: pointer;
+  border: 1px solid #405A6D;
+  border-bottom: none;
+  z-index: 98;
+}
+/* line 635, ../sass/screen.scss */
+.timeline-marker:hover {
+  background: #fff;
 }
 
-/* line 632, ../sass/screen.scss */
+/* line 640, ../sass/screen.scss */
 .timeline-controls {
   -webkit-transition: width 0.1s ease-in-out;
   -moz-transition: width 0.1s ease-in-out;
@@ -4628,7 +4636,7 @@ footer:hover {
   border-radius: 3px;
   color: #f9f9f9;
 }
-/* line 643, ../sass/screen.scss */
+/* line 651, ../sass/screen.scss */
 .timeline-controls li {
   cursor: pointer;
   line-height: 40px;
@@ -4639,11 +4647,11 @@ footer:hover {
   margin: 0 -3px 0 0;
   position: relative;
 }
-/* line 654, ../sass/screen.scss */
+/* line 662, ../sass/screen.scss */
 .timeline-controls li.selected {
   text-shadow: 0px 1px 2px #fff, 0px -1px 2px #fff;
 }
-/* line 656, ../sass/screen.scss */
+/* line 664, ../sass/screen.scss */
 .timeline-controls li.selected:after {
   content: attr(speed);
   position: absolute;
@@ -4654,7 +4662,7 @@ footer:hover {
   text-shadow: none;
 }
 
-/* line 670, ../sass/screen.scss */
+/* line 678, ../sass/screen.scss */
 .query-thumb-list li {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -4673,7 +4681,7 @@ footer:hover {
   position: relative;
   overflow: hidden;
 }
-/* line 684, ../sass/screen.scss */
+/* line 692, ../sass/screen.scss */
 .query-thumb-list li .mask {
   position: absolute;
   width: 100%;
@@ -4684,18 +4692,18 @@ footer:hover {
   transition: background 0.33s ease-in-out, color 0.33s ease-in-out;
   cursor: pointer;
 }
-/* line 691, ../sass/screen.scss */
+/* line 699, ../sass/screen.scss */
 .query-thumb-list li .mask:hover {
   color: #666;
   background: rgba(0, 0, 0, 0.55);
 }
-/* line 695, ../sass/screen.scss */
+/* line 703, ../sass/screen.scss */
 .query-thumb-list li .mask:hover .icon-cw {
   color: #fff;
   pointer-events: auto;
   opacity: 1;
 }
-/* line 703, ../sass/screen.scss */
+/* line 711, ../sass/screen.scss */
 .query-thumb-list li .icon-cw {
   -webkit-transition: color 0.33s ease-in-out, opacity 0.33s ease-in-out;
   -moz-transition: color 0.33s ease-in-out, opacity 0.33s ease-in-out;
@@ -4715,14 +4723,14 @@ footer:hover {
   font-family: "Lato", sans-serif;
   z-index: 99;
 }
-/* line 719, ../sass/screen.scss */
+/* line 727, ../sass/screen.scss */
 .query-thumb-list li .icon-cw:before {
   margin-left: -4px;
   line-height: 40px;
   font-family: 'icomoon';
   font-size: 2.8em;
 }
-/* line 727, ../sass/screen.scss */
+/* line 735, ../sass/screen.scss */
 .query-thumb-list li h2 {
   border: none;
   padding: 0;
@@ -4730,7 +4738,7 @@ footer:hover {
   margin-top: 5px;
   font-weight: 300;
 }
-/* line 735, ../sass/screen.scss */
+/* line 743, ../sass/screen.scss */
 .query-thumb-list li .created-date {
   display: block;
   background: rgba(0, 0, 0, 0.3);
@@ -4742,37 +4750,37 @@ footer:hover {
   text-align: right;
   padding-right: 10px;
 }
-/* line 746, ../sass/screen.scss */
+/* line 754, ../sass/screen.scss */
 .query-thumb-list li.angle {
   background: url("../images/angle.jpg");
 }
-/* line 750, ../sass/screen.scss */
+/* line 758, ../sass/screen.scss */
 .query-thumb-list li.green {
   background: url("../images/green.jpg");
 }
-/* line 753, ../sass/screen.scss */
+/* line 761, ../sass/screen.scss */
 .query-thumb-list li.blueribbon {
   background: url("../images/blueribbon.jpg");
 }
-/* line 756, ../sass/screen.scss */
+/* line 764, ../sass/screen.scss */
 .query-thumb-list li.orangestuff {
   background: url("../images/orangestuff.jpg");
 }
-/* line 759, ../sass/screen.scss */
+/* line 767, ../sass/screen.scss */
 .query-thumb-list li.pink {
   background: url("../images/pink.jpg");
 }
-/* line 762, ../sass/screen.scss */
+/* line 770, ../sass/screen.scss */
 .query-thumb-list li.purple {
   background: url("../images/purple.jpg") 1000px 0px;
 }
-/* line 765, ../sass/screen.scss */
+/* line 773, ../sass/screen.scss */
 .query-thumb-list li.tendrils {
   background: url("../images/tendrils.jpg");
 }
 
 @media screen and (max-width: 960px) {
-  /* line 772, ../sass/screen.scss */
+  /* line 780, ../sass/screen.scss */
   header button .icon-search {
     display: none;
   }

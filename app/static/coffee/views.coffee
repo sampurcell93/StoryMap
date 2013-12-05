@@ -54,10 +54,10 @@ $ ->
     renderComponents: ->
       if @storyList? then @storyList.render()
       if @timeline?
-        @timeline.render().reset().updateHandles(true)
+        @timeline.reset().updateHandles(true).render()
       @
     toggleMarkers: (markers) ->
-      console.log markers
+      # console.log markers
       self = @
       _.each markers.outrange, (outlier) ->
         outlier.setMap null
@@ -89,7 +89,7 @@ $ ->
         ((query) ->
           queryobj.getGoogleNews 0,
             # (queryobj.getFeedZilla(
-            (queryobj.getYahooNews 0, () ->
+            (queryobj.getYahooNews 0, ->
               window.destroyModal()
               window.existingQueries.add queryobj
               # )
@@ -113,7 +113,7 @@ $ ->
         error: ->
     events:
       "click .js-toggle-analytics": (e) ->
-        cc "ana"
+        cc "analytics on the way thoooo"
       "keydown .js-news-search": (e) ->
         key = e.keyCode || e.which
         val = $(e.currentTarget).val()
@@ -127,7 +127,7 @@ $ ->
         window.app.navigate route, {trigger: true}
       "click .js-save-query": (e) ->  
         toSave = @model
-        console.log toSave
+        # console.log toSave
         stories = toSave.get("stories")
         # # There should be no distinction between saving and favoriting to the user - clicking save does both
         toSave.save null, 
@@ -181,7 +181,6 @@ $ ->
       @yoff = yOff = Math.random() * 0.1
       # Make the new point
       pt = new google.maps.LatLng(parseFloat(@model.get("lat")) + xOff, parseFloat(@model.get("lng")) + yOff)
-      console.log pt
       @marker = new google.maps.Marker
         position: pt
         animation: google.maps.Animation.DROP
@@ -401,32 +400,43 @@ $ ->
     reset: ->
       @min = @max = undefined
       @
+    clearMarkers: ->
+      @$(".timeline-marker").remove()
+      @
     render: ->
       self = @
+      @clearMarkers()
       _.each @collection.models, (story) ->
-        if story.get("lat")? and story.get("lng")?
-          self.addMarker story
+        if story.hasLocation() then self.addMarker story
       @
     addMarker: (model) ->
-      return @
       cc "appending a RED MARKR ONTO TIMELINE"
-      # Get the article's position in the range 
-      pos = model.get("date").getTime()
+      # Get the slider and compute its pixel width so we can offset each marker (UI purposes)
+      # I'd rather not touch the math on the slider mechanism itself
+      $slider = @$(".slider-wrap")
+      width = $slider.width()
+      # If it's already a date, this still works :D
+      pos = new Date(model.get("date")).getTime()
+      # Date range, calculate point's percentage of the range
+      range = @max - @min
+      pos -= @min
+      pos /= range
+      # pixel offset -> percentage of width -> add to actual percent for SMOOV UI
+      pixeladdition = 10/width
+      pos += pixeladdition
       # Calculate a percentage for the article and pass into marker view
-      view = new views.TimelineMarker model: model, left: pos/@max
-      @$(".slider-wrap").append(view.render().el)
+      view = new views.TimelineMarker model: model, left: pos
+      $slider.append(view.render().el)
       @
     play: ->
       @updateHandles()
       values = @$timeline.slider "values"
       lo = values[0]
       hi = values[1]
-      console.log values
       @isPlaying = true
       dir = if @dir == "forward" then 1 else 1
       # start the tree
       inc = dir*Math.ceil(Math.abs (hi - lo) / 300)
-      console.log inc
       @changeValue lo, hi, inc, (locmp, hicmp) ->
         locmp <= hicmp
       @
@@ -460,10 +470,7 @@ $ ->
       @
     # Usually, if we already have a mn and a max set, we don't need to do this. If the force param is true, do it anyway
     updateHandles: () ->
-      cc "trying updating handles"
-      console.log @collection, @min, @max
-      if @collection.length < 2 then return
-      cc "updating handles"
+      if @collection.length < 2 then return @
       prevcomparator = @collection.comparator
       @collection.comparator = (model) ->
         return model.get("date")
@@ -486,6 +493,8 @@ $ ->
       $timeline.slider("option", min: mindate, max: maxdate)
       $timeline.slider("values", 0, mindate)
       $timeline.slider("values", 1, maxdate)
+      @max = @max.getTime()
+      @min = @min.getTime()
       @
     setSpeed: (dir) ->
         rel = Math.pow 2, 5 # 32, min speed ratio
@@ -523,10 +532,14 @@ $ ->
   window.views.TimelineMarker = Backbone.View.extend
     className: 'timeline-marker'
     render: ->
-      num = @options.left || (Math.random() * 100)
-      console.log "putting marker at " + num
+      num = @options.left
       @$el.css('left', (num*100) + "%")
       @
+    events:
+      "mouseover": ->
+        @model.trigger("highlight")
+      "mouseout": ->
+        @model.trigger("unhighlight")
 
   ( ->
     i = 0

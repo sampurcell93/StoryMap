@@ -156,7 +156,7 @@ $ ->
                 "change:hasLocation": (model, value) ->
                     if value == true
                         this.collection._withLocation[this.get("title")] = this
-                        console.log this.collection
+                        # console.log this.collection
         hasLocation: ->
             @get("lat")? and @get("lng")
         plot: ->

@@ -84,8 +84,7 @@ def yahooNews():
 def normalize(story, keymap):
     for key in keymap:
         val = keymap[key]
-        optype = type(val)
-        if optype == str:
+        if type(val) == str:
             story[key] = story[val]
             del story[val]
         elif hasattr(val, '__call__'):

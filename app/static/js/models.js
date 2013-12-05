@@ -202,8 +202,7 @@
           },
           "change:hasLocation": function(model, value) {
             if (value === true) {
-              this.collection._withLocation[this.get("title")] = this;
-              return console.log(this.collection);
+              return this.collection._withLocation[this.get("title")] = this;
             }
           }
         });
