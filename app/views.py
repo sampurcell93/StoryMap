@@ -34,8 +34,8 @@ def tryConnection (applyfun):
     try:
         return applyfun()
     except exc.SQLAlchemyError:
-        print "operation error"
-        time.sleep(.1)
+        print "yeah operational error, db disconnected"
+        db.session.rollback()
         return applyfun()
 
 def to_json_list(results, is_query=False):

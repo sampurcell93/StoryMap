@@ -531,15 +531,21 @@ $ ->
 
   window.views.TimelineMarker = Backbone.View.extend
     className: 'timeline-marker'
+    template: $("#date-bubble").html()
     render: ->
       num = @options.left
-      @$el.css('left', (num*100) + "%")
+      $el = @$el
+      $el.css('left', (num*100) + "%")
+      $el.html(_.template @template, date: new Date(@model.get("date")).cleanFormat())
+      @$(".date-bubble").hide()
       @
     events:
       "mouseover": ->
         @model.trigger("highlight")
       "mouseout": ->
         @model.trigger("unhighlight")
+      "click": (e) ->
+        @$(".date-bubble").toggle('fast')
 
   ( ->
     i = 0

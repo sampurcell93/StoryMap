@@ -4613,9 +4613,24 @@ footer:hover {
 /* line 635, ../sass/screen.scss */
 .timeline-marker:hover {
   background: #fff;
+  z-index: 9999;
+}
+/* line 640, ../sass/screen.scss */
+.timeline-marker .date-bubble {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: #f1f1f1;
+  padding: 5px;
+  text-align: center;
+  bottom: 11px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
 }
 
-/* line 640, ../sass/screen.scss */
+/* line 651, ../sass/screen.scss */
 .timeline-controls {
   -webkit-transition: width 0.1s ease-in-out;
   -moz-transition: width 0.1s ease-in-out;
@@ -4636,7 +4651,7 @@ footer:hover {
   border-radius: 3px;
   color: #f9f9f9;
 }
-/* line 651, ../sass/screen.scss */
+/* line 662, ../sass/screen.scss */
 .timeline-controls li {
   cursor: pointer;
   line-height: 40px;
@@ -4647,11 +4662,11 @@ footer:hover {
   margin: 0 -3px 0 0;
   position: relative;
 }
-/* line 662, ../sass/screen.scss */
+/* line 673, ../sass/screen.scss */
 .timeline-controls li.selected {
   text-shadow: 0px 1px 2px #fff, 0px -1px 2px #fff;
 }
-/* line 664, ../sass/screen.scss */
+/* line 675, ../sass/screen.scss */
 .timeline-controls li.selected:after {
   content: attr(speed);
   position: absolute;
@@ -4662,7 +4677,7 @@ footer:hover {
   text-shadow: none;
 }
 
-/* line 678, ../sass/screen.scss */
+/* line 689, ../sass/screen.scss */
 .query-thumb-list li {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -4681,7 +4696,7 @@ footer:hover {
   position: relative;
   overflow: hidden;
 }
-/* line 692, ../sass/screen.scss */
+/* line 703, ../sass/screen.scss */
 .query-thumb-list li .mask {
   position: absolute;
   width: 100%;
@@ -4692,18 +4707,18 @@ footer:hover {
   transition: background 0.33s ease-in-out, color 0.33s ease-in-out;
   cursor: pointer;
 }
-/* line 699, ../sass/screen.scss */
+/* line 710, ../sass/screen.scss */
 .query-thumb-list li .mask:hover {
   color: #666;
   background: rgba(0, 0, 0, 0.55);
 }
-/* line 703, ../sass/screen.scss */
+/* line 714, ../sass/screen.scss */
 .query-thumb-list li .mask:hover .icon-cw {
   color: #fff;
   pointer-events: auto;
   opacity: 1;
 }
-/* line 711, ../sass/screen.scss */
+/* line 722, ../sass/screen.scss */
 .query-thumb-list li .icon-cw {
   -webkit-transition: color 0.33s ease-in-out, opacity 0.33s ease-in-out;
   -moz-transition: color 0.33s ease-in-out, opacity 0.33s ease-in-out;
@@ -4723,14 +4738,14 @@ footer:hover {
   font-family: "Lato", sans-serif;
   z-index: 99;
 }
-/* line 727, ../sass/screen.scss */
+/* line 738, ../sass/screen.scss */
 .query-thumb-list li .icon-cw:before {
   margin-left: -4px;
   line-height: 40px;
   font-family: 'icomoon';
   font-size: 2.8em;
 }
-/* line 735, ../sass/screen.scss */
+/* line 746, ../sass/screen.scss */
 .query-thumb-list li h2 {
   border: none;
   padding: 0;
@@ -4738,7 +4753,7 @@ footer:hover {
   margin-top: 5px;
   font-weight: 300;
 }
-/* line 743, ../sass/screen.scss */
+/* line 754, ../sass/screen.scss */
 .query-thumb-list li .created-date {
   display: block;
   background: rgba(0, 0, 0, 0.3);
@@ -4750,37 +4765,37 @@ footer:hover {
   text-align: right;
   padding-right: 10px;
 }
-/* line 754, ../sass/screen.scss */
+/* line 765, ../sass/screen.scss */
 .query-thumb-list li.angle {
   background: url("../images/angle.jpg");
 }
-/* line 758, ../sass/screen.scss */
+/* line 769, ../sass/screen.scss */
 .query-thumb-list li.green {
   background: url("../images/green.jpg");
 }
-/* line 761, ../sass/screen.scss */
+/* line 772, ../sass/screen.scss */
 .query-thumb-list li.blueribbon {
   background: url("../images/blueribbon.jpg");
 }
-/* line 764, ../sass/screen.scss */
+/* line 775, ../sass/screen.scss */
 .query-thumb-list li.orangestuff {
   background: url("../images/orangestuff.jpg");
 }
-/* line 767, ../sass/screen.scss */
+/* line 778, ../sass/screen.scss */
 .query-thumb-list li.pink {
   background: url("../images/pink.jpg");
 }
-/* line 770, ../sass/screen.scss */
+/* line 781, ../sass/screen.scss */
 .query-thumb-list li.purple {
   background: url("../images/purple.jpg") 1000px 0px;
 }
-/* line 773, ../sass/screen.scss */
+/* line 784, ../sass/screen.scss */
 .query-thumb-list li.tendrils {
   background: url("../images/tendrils.jpg");
 }
 
 @media screen and (max-width: 960px) {
-  /* line 780, ../sass/screen.scss */
+  /* line 791, ../sass/screen.scss */
   header button .icon-search {
     display: none;
   }

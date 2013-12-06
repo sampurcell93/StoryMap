@@ -711,10 +711,16 @@
     });
     window.views.TimelineMarker = Backbone.View.extend({
       className: 'timeline-marker',
+      template: $("#date-bubble").html(),
       render: function() {
-        var num;
+        var $el, num;
         num = this.options.left;
-        this.$el.css('left', (num * 100) + "%");
+        $el = this.$el;
+        $el.css('left', (num * 100) + "%");
+        $el.html(_.template(this.template, {
+          date: new Date(this.model.get("date")).cleanFormat()
+        }));
+        this.$(".date-bubble").hide();
         return this;
       },
       events: {
@@ -723,6 +729,9 @@
         },
         "mouseout": function() {
           return this.model.trigger("unhighlight");
+        },
+        "click": function(e) {
+          return this.$(".date-bubble").toggle('fast');
         }
       }
     });
