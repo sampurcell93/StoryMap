@@ -524,6 +524,9 @@
         self = this;
         this.map = this.options.map;
         _.bindAll(this, "render", "addMarker", "changeValue", "play", "stop", "updateHandles");
+        this.listenTo(this.collection, "change:location", function() {
+          return cc(arguments);
+        });
         update_val = function(e, ui) {
           var cleaned, display, handle, pos, range;
           handle = $(ui.handle);
@@ -720,6 +723,12 @@
           },
           "show": function() {
             return this.$el.show();
+          },
+          "highlight": function() {
+            return this.$el.addClass("highlighted");
+          },
+          "unhighlight": function() {
+            return this.$el.removeClass("highlighted");
           }
         });
       },

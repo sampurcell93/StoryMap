@@ -377,9 +377,8 @@ $ ->
       self = @
       @map = @options.map
       _.bindAll @, "render", "addMarker", "changeValue", "play", "stop", "updateHandles"
-      # @listenTo @collection, "add", (model) ->
-        # self.updateMinMax model
-        # self.updateHandles()
+      @listenTo @collection, "change:location", ->
+        cc arguments
       # callback to run each time the timeline is changed
       update_val = (e, ui) ->
         handle = $ ui.handle
@@ -541,6 +540,10 @@ $ ->
           @$el.hide()
         "show": ->
           @$el.show()
+        "highlight": ->
+          @$el.addClass("highlighted")
+        "unhighlight": ->
+          @$el.removeClass("highlighted")
     render: ->
       num = @options.left
       $el = @$el

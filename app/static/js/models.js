@@ -280,9 +280,6 @@
           var inrange, outrange;
           inrange = [];
           outrange = [];
-          console.log(this._byDate);
-          console.log(lodate);
-          console.log(hidate);
           _.each(this.models, function(story) {
             var date, marker, markerObj;
             if (story.filteredout) {

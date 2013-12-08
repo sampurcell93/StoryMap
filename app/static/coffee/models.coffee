@@ -212,16 +212,6 @@ $ ->
             filterByDate: (lodate, hidate) ->
                 inrange = []
                 outrange = []
-                # outrange = @_byDate
-                # for i in [lodate...hidate]
-                #     if outrange.hasOwnProperty(i) 
-                #         inrange.push outrange[i]
-                #         delete outrange[i]
-                console.log @_byDate
-                console.log lodate
-                console.log hidate
-                # We could sort then go, but sorting will tke nlogn... we should use a hashtable somehow. oh! gotcha bitch
-                # console.log @get("articles").models
                 _.each @models, (story) ->
                     if story.filteredout then return true
                     date = story.get("date")

@@ -491,7 +491,7 @@ input[type='text'], input[type='password'] {
     border-top: 1px solid transparent;
 
     &:focus {
-        border-top: 1px solid #3B4E77;
+        border-bottom: 1px solid #3B4E77;
     }
 }
 
@@ -634,7 +634,7 @@ footer {
 	border-bottom: none;
 	z-index: 98;
 
-	&:hover {
+	&:hover, &.highlighted {
 		background: #fff;
 		z-index: 9999;
 	}

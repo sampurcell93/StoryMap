@@ -4430,7 +4430,7 @@ input[type='text'], input[type='password'] {
 }
 /* line 493, ../sass/screen.scss */
 input[type='text']:focus, input[type='password']:focus {
-  border-top: 1px solid #3B4E77;
+  border-bottom: 1px solid #3B4E77;
 }
 
 /* line 499, ../sass/screen.scss */
@@ -4618,7 +4618,7 @@ footer:hover {
   z-index: 98;
 }
 /* line 637, ../sass/screen.scss */
-.timeline-marker:hover {
+.timeline-marker:hover, .timeline-marker.highlighted {
   background: #fff;
   z-index: 9999;
 }
