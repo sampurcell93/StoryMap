@@ -57,7 +57,6 @@ $ ->
         @timeline.reset().updateHandles(true).render()
       @
     toggleMarkers: (markers) ->
-      # console.log markers
       self = @
       _.each markers.outrange, (outlier) ->
         outlier.setMap null
@@ -136,12 +135,12 @@ $ ->
             toSave.set("stories", stories)
             _.each stories.models, (story) ->
               story.set("query_id", toSave.id)
-              story.save(null, {
-                success: (model, resp) ->
-                  cc resp
-                error: (model, resp) ->
-                  cc resp
-              })
+            stories.save({
+              success: (model, resp) ->
+                cc resp
+              error: (model, resp) ->
+                cc resp
+            })
             error: ->
               cc "YOLo"
 
@@ -313,8 +312,12 @@ $ ->
       filterFn = @filterFns[param]
       _.each @collection.models, (story) -> 
         filter = filterFn(story, closure)
-        if filter and show == true then story.trigger("hide")
-        else if filter and show == false then story.trigger("show")
+        if filter and show == false
+          story.trigger("hide")
+          story.filteredout = true
+        else if filter and show == true
+          story.trigger("show")
+          story.filteredout = false
       @
     sortFns: 
       "newest": (model) -> -model.get("date")
@@ -339,7 +342,7 @@ $ ->
       "keyup .js-filter-articles": (e) ->
         val = ($t = $(e.currentTarget)).val().toLowerCase()
         _.each @collection.models, (story) ->
-          if story.get("title").toLowerCase().indexOf(val) != -1
+          if story.get("title").toLowerCase().indexOf(val) != -1 and !story.filteredout
             story.trigger("show")
           else story.trigger "hide"
       "click .js-toggle-view": "toggle"
@@ -354,7 +357,7 @@ $ ->
         show = $t.data "showing"
         if typeof show == "undefined" then show = false
         $t.data "showing", !show
-        @filter $t.data("param"), $t.data("showing")
+        @filter $t.data("param"), !$t.data("showing")
       'click .js-sort': (e) ->
         $t = $ e.currentTarget
         $t.addClass("active")
@@ -429,10 +432,10 @@ $ ->
       $slider.append(view.render().el)
       @
     play: ->
-      @updateHandles()
       values = @$timeline.slider "values"
       lo = values[0]
       hi = values[1]
+      # @updateHandles()
       @isPlaying = true
       dir = if @dir == "forward" then 1 else 1
       # start the tree
@@ -532,6 +535,12 @@ $ ->
   window.views.TimelineMarker = Backbone.View.extend
     className: 'timeline-marker'
     template: $("#date-bubble").html()
+    initialize: ->
+      @listenTo @model,
+        "hide": ->
+          @$el.hide()
+        "show": ->
+          @$el.show()
     render: ->
       num = @options.left
       $el = @$el

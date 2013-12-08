@@ -358,9 +358,14 @@ def getStory(id):
         return flask.jsonify()
     return flask.jsonify(story=to_json(story))
 
+# Create a bunch of new stories #
+@app.route('/stories/many', methods=['GET'])
+@login_required
+def createManyStories():
+    pprint(vars(request))
+    return "yolo"
+
 # Create a new story ##
-
-
 @app.route('/stories', methods=['POST'])
 # @app.route(('/stories/<string:title>/<string:publication>/'
 #            '<string:date>/<string:author>/<string:url>/<float:lat>'

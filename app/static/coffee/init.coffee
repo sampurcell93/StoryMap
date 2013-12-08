@@ -19,4 +19,6 @@ $ ->
                     # Initialize routes
                     window.app = new window.Workspace({user: user, controller: map})
                     Backbone.history.start()
+                    # console.log coll.at(0).get("stories")
+                    # coll.at(0).get("stories").sync("create", @, { success: -> console.log arguments})
         })

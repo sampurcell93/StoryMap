@@ -173,15 +173,15 @@
               toSave.favorite();
               toSave.set("stories", stories);
               _.each(stories.models, function(story) {
-                story.set("query_id", toSave.id);
-                return story.save(null, {
-                  success: function(model, resp) {
-                    return cc(resp);
-                  },
-                  error: function(model, resp) {
-                    return cc(resp);
-                  }
-                });
+                return story.set("query_id", toSave.id);
+              });
+              stories.save({
+                success: function(model, resp) {
+                  return cc(resp);
+                },
+                error: function(model, resp) {
+                  return cc(resp);
+                }
               });
               return {
                 error: function() {
@@ -432,10 +432,12 @@
         _.each(this.collection.models, function(story) {
           var filter;
           filter = filterFn(story, closure);
-          if (filter && show === true) {
-            return story.trigger("hide");
-          } else if (filter && show === false) {
-            return story.trigger("show");
+          if (filter && show === false) {
+            story.trigger("hide");
+            return story.filteredout = true;
+          } else if (filter && show === true) {
+            story.trigger("show");
+            return story.filteredout = false;
           }
         });
         return this;
@@ -470,7 +472,7 @@
           var $t, val;
           val = ($t = $(e.currentTarget)).val().toLowerCase();
           return _.each(this.collection.models, function(story) {
-            if (story.get("title").toLowerCase().indexOf(val) !== -1) {
+            if (story.get("title").toLowerCase().indexOf(val) !== -1 && !story.filteredout) {
               return story.trigger("show");
             } else {
               return story.trigger("hide");
@@ -494,7 +496,7 @@
             show = false;
           }
           $t.data("showing", !show);
-          return this.filter($t.data("param"), $t.data("showing"));
+          return this.filter($t.data("param"), !$t.data("showing"));
         },
         'click .js-sort': function(e) {
           var $siblings, $t;
@@ -581,7 +583,6 @@
       },
       play: function() {
         var dir, hi, inc, lo, values;
-        this.updateHandles();
         values = this.$timeline.slider("values");
         lo = values[0];
         hi = values[1];
@@ -712,6 +713,16 @@
     window.views.TimelineMarker = Backbone.View.extend({
       className: 'timeline-marker',
       template: $("#date-bubble").html(),
+      initialize: function() {
+        return this.listenTo(this.model, {
+          "hide": function() {
+            return this.$el.hide();
+          },
+          "show": function() {
+            return this.$el.show();
+          }
+        });
+      },
       render: function() {
         var $el, num;
         num = this.options.left;

@@ -6,6 +6,7 @@
 @import "jqueryui";
 @import "compass/reset";
 @import "compass/css3";
+@import "compass/css3/user-interface";
 @import "compass/utilities/general/clearfix";
 @import "grid";
 @import "build";
@@ -550,9 +551,11 @@ footer {
 		position: absolute;
 		top: -40px;
 		background: #222;
-		background: rgba(0,0,0,.7);
+		// needs latest Compass, add '@import "compass"' to your scss
+		@include filter-gradient(#bf4548, #bf0000, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(69,72,77,0.75) 0%,rgba(0,0,0,0.75) 100%));
 		padding: 3px 5px;
-		// border: 2px solid #f9f9f9;
+		border: 1px solid #bbb;
 		color: #f9f9f9;
 		width: 140px;
 		line-height: 1.6;
@@ -569,7 +572,6 @@ footer {
 			border: 10px solid transparent;
 			border-top-color: #222;
 			border-top-color: rgba(0,0,0,.7);
-
 		}
 
 		@include border-radius(3px);
@@ -638,6 +640,8 @@ footer {
 	}
 
 	.date-bubble {
+		@include user-select(none);
+		pointer-events: none;
 		position: absolute;
 		background: rgba(0,0,0,.8);
 		color: #f1f1f1;

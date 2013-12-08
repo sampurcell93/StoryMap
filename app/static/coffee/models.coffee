@@ -1,4 +1,9 @@
 $ ->
+    _.extend Backbone.Collection, {
+        save: (options) ->
+            Backbone.sync "create", @, options
+    }
+
     ### Data Models ###
 
     window.models.Query = Backbone.Model.extend
@@ -65,7 +70,6 @@ $ ->
                 stories.add story = new models.Story story
                 id = @get("id") || @id
                 if id then story.set("query_id", id)
-                stories._byTitle[title] = story
                 story.plot()
             else 
                 cc "story exists"
@@ -88,7 +92,6 @@ $ ->
             , (stories) ->
                 console.count "google news story set returned"
                 stories = JSON.parse(stories)
-                cc stories
                 # Once google news is exhausted, execute callback 
                 if (start > 64 or !stories.length) and done? then done 0, null
                 # Get location data from OpenCalais for each story item
@@ -195,18 +198,34 @@ $ ->
             model: models.Story
             _byTitle: {}
             _withLocation: {}
+            _byDate: {}
+            url: '/stories/many'
             initialize: (opts) ->
                 # If the collection is the child of a news map, save a reference to the map
                 if opts? and opts.parent_map then @parent_map = opts.parent_map
                 @_byTitle = {}
+                @on "add", (story) ->
+                    @_byTitle[story.get("title")] = story
+                    @_byDate[new Date(story.get("date")).toString()] = story
                 @
+            # expects two date objects
             filterByDate: (lodate, hidate) ->
-                self = @
                 inrange = []
                 outrange = []
+                # outrange = @_byDate
+                # for i in [lodate...hidate]
+                #     if outrange.hasOwnProperty(i) 
+                #         inrange.push outrange[i]
+                #         delete outrange[i]
+                console.log @_byDate
+                console.log lodate
+                console.log hidate
+                # We could sort then go, but sorting will tke nlogn... we should use a hashtable somehow. oh! gotcha bitch
                 # console.log @get("articles").models
                 _.each @models, (story) ->
+                    if story.filteredout then return true
                     date = story.get("date")
+                    # cc date
                     if date instanceof Date == false
                         story.set "date", new Date(date)
                     markerObj = story.marker
