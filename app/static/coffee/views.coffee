@@ -180,12 +180,15 @@ $ ->
       @yoff = yOff = Math.random() * 0.1
       # Make the new point
       pt = new google.maps.LatLng(parseFloat(@model.get("lat")) + xOff, parseFloat(@model.get("lng")) + yOff)
-      @marker = new google.maps.Marker
+      @marker = new MarkerWithLabel
         position: pt
         animation: google.maps.Animation.DROP
         title: @model.get "title"
         icon: redIcon
         map: window.mapObj.map
+        labelContent: @model.get("date").cleanFormat()
+        labelClass: 'map-label hidden'
+        labelAnchor: new google.maps.Point(32, 0)
       @
 
   window.views.QuickStory = Backbone.View.extend
@@ -222,7 +225,16 @@ $ ->
           @$el.addClass("highlighted")
         "unhighlight": ->
           @$el.removeClass("highlighted")
-    showPopup: ->
+        "showpopup": ->
+          self = @
+          done = ->
+            $parent = self.$el.parent("ol")
+            pos = self.getPosition() + $parent.scrollTop() - 100
+            $parent.animate({ scrollTop: pos }, 300);
+          @showPopup done
+    getPosition: ->
+      @$el.position().top
+    showPopup: (callback) ->
       self = @
       if @popup?
         @popup.$el.slideUp "fast", ->
@@ -235,7 +247,7 @@ $ ->
         $(".quick-story").slideUp "fast", ->
           do @remove
         @$el.append popup.el
-        popup.$el.slideDown("fast")
+        popup.$el.slideDown("fast", callback)
     render: ->
       if @model.hasLocation()
           @$el.addClass("has-location")
@@ -419,7 +431,6 @@ $ ->
       width = $slider.width()
       # If it's already a date, this still works :D
       pos = new Date(model.get("date")).getTime()
-      # Date range, calculate point's percentage of the range
       range = @max - @min
       pos -= @min
       pos /= range
@@ -428,7 +439,7 @@ $ ->
       pos += pixeladdition
       # Calculate a percentage for the article and pass into marker view
       view = new views.TimelineMarker model: model, left: pos
-      $slider.append(view.render().el)
+      $slider.append view.render().el
       @
     play: ->
       values = @$timeline.slider "values"

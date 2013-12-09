@@ -791,6 +791,19 @@ $maskduration: .33s;
 	}
 }
 
+.map-label {
+	display: block;
+	background: rgba(0,0,0,.7);
+	color: #f6f6f6;
+	padding: 5px;
+	text-align: center;
+	@include border-radius(3px);
+	@include transition(all .2s ease-in-out);
+
+	&.hidden { color: red; }
+
+}
+
 @media screen and (max-width: 960px) {
 	header button .icon-search { display: none; }
 }

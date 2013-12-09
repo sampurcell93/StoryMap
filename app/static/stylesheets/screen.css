@@ -4805,8 +4805,30 @@ footer:hover {
   background: url("../images/tendrils.jpg");
 }
 
+/* line 794, ../sass/screen.scss */
+.map-label {
+  display: block;
+  background: rgba(0, 0, 0, 0.7);
+  color: #f6f6f6;
+  padding: 5px;
+  text-align: center;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+}
+/* line 803, ../sass/screen.scss */
+.map-label.hidden {
+  color: red;
+}
+
 @media screen and (max-width: 960px) {
-  /* line 795, ../sass/screen.scss */
+  /* line 808, ../sass/screen.scss */
   header button .icon-search {
     display: none;
   }

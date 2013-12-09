@@ -236,12 +236,15 @@
         this.xoff = xOff = Math.random() * 0.1;
         this.yoff = yOff = Math.random() * 0.1;
         pt = new google.maps.LatLng(parseFloat(this.model.get("lat")) + xOff, parseFloat(this.model.get("lng")) + yOff);
-        this.marker = new google.maps.Marker({
+        this.marker = new MarkerWithLabel({
           position: pt,
           animation: google.maps.Animation.DROP,
           title: this.model.get("title"),
           icon: redIcon,
-          map: window.mapObj.map
+          map: window.mapObj.map,
+          labelContent: this.model.get("date").cleanFormat(),
+          labelClass: 'map-label hidden',
+          labelAnchor: new google.maps.Point(32, 0)
         });
         return this;
       }
@@ -291,10 +294,26 @@
           },
           "unhighlight": function() {
             return this.$el.removeClass("highlighted");
+          },
+          "showpopup": function() {
+            var done;
+            self = this;
+            done = function() {
+              var $parent, pos;
+              $parent = self.$el.parent("ol");
+              pos = self.getPosition() + $parent.scrollTop() - 100;
+              return $parent.animate({
+                scrollTop: pos
+              }, 300);
+            };
+            return this.showPopup(done);
           }
         });
       },
-      showPopup: function() {
+      getPosition: function() {
+        return this.$el.position().top;
+      },
+      showPopup: function(callback) {
         var popup, self;
         self = this;
         if (this.popup != null) {
@@ -312,7 +331,7 @@
             return this.remove();
           });
           this.$el.append(popup.el);
-          return popup.$el.slideDown("fast");
+          return popup.$el.slideDown("fast", callback);
         }
       },
       render: function() {
