@@ -204,7 +204,8 @@ $ ->
     tagName: 'li'
     enterLocTemplate: $("#enter-loc").html()
     initialize: ->
-      _.bindAll @, "render"
+      @popup = new views.QuickStory model: @model
+      _.bindAll @, "render", "getPosition", "togglePopup"
       self = @
       @listenTo @model,
         "save" : ->
@@ -225,35 +226,25 @@ $ ->
           @$el.addClass("highlighted")
         "unhighlight": ->
           @$el.removeClass("highlighted")
-        "showpopup": ->
-          self = @
-          done = ->
-            $parent = self.$el.parent("ol")
-            pos = self.getPosition() + $parent.scrollTop() - 100
-            $parent.animate({ scrollTop: pos }, 300);
-          @showPopup done
+        "showpopup": @togglePopup
     getPosition: ->
       @$el.position().top
-    showPopup: (callback) ->
+    togglePopup: ->
       self = @
-      if @popup?
-        @popup.$el.slideUp "fast", ->
-          self.popup.remove()
-          self.popup = undefined
-          delete self.popup
-      else
-        @popup = popup = new views.QuickStory model: @model
-        popup.render().$el.hide()
-        $(".quick-story").slideUp "fast", ->
-          do @remove
-        @$el.append popup.el
-        popup.$el.slideDown("fast", callback)
+      @popup.render()
+      $(".quick-story").not(@popup.el).slideUp "fast"
+      @popup.$el.slideToggle "fast", ->
+        $parent = self.$el.parent("ol")
+        pos = self.getPosition() + $parent.scrollTop() - 100
+        $parent.animate({ scrollTop: pos }, 300);
+
     render: ->
       if @model.hasLocation()
           @$el.addClass("has-location")
       else 
           @$el.addClass("no-location")
       @$el.append(_.template @template, @model.toJSON())
+      @$el.append $(@popup.render().el).hide()
       @
     events:
       "click": ->
@@ -282,7 +273,7 @@ $ ->
                 loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude "+ coords.lng)
                 setTimeout window.destroyModal, 1500
               , 1000
-      "click .js-show-model": "showPopup"
+      "click .js-show-model": "togglePopup"
 
   
   # List of articles, regardless of location data, and controls for filtering

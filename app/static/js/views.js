@@ -264,7 +264,10 @@
       enterLocTemplate: $("#enter-loc").html(),
       initialize: function() {
         var self;
-        _.bindAll(this, "render");
+        this.popup = new views.QuickStory({
+          model: this.model
+        });
+        _.bindAll(this, "render", "getPosition", "togglePopup");
         self = this;
         return this.listenTo(this.model, {
           "save": function() {
@@ -295,44 +298,25 @@
           "unhighlight": function() {
             return this.$el.removeClass("highlighted");
           },
-          "showpopup": function() {
-            var done;
-            self = this;
-            done = function() {
-              var $parent, pos;
-              $parent = self.$el.parent("ol");
-              pos = self.getPosition() + $parent.scrollTop() - 100;
-              return $parent.animate({
-                scrollTop: pos
-              }, 300);
-            };
-            return this.showPopup(done);
-          }
+          "showpopup": this.togglePopup
         });
       },
       getPosition: function() {
         return this.$el.position().top;
       },
-      showPopup: function(callback) {
-        var popup, self;
+      togglePopup: function() {
+        var self;
         self = this;
-        if (this.popup != null) {
-          return this.popup.$el.slideUp("fast", function() {
-            self.popup.remove();
-            self.popup = void 0;
-            return delete self.popup;
-          });
-        } else {
-          this.popup = popup = new views.QuickStory({
-            model: this.model
-          });
-          popup.render().$el.hide();
-          $(".quick-story").slideUp("fast", function() {
-            return this.remove();
-          });
-          this.$el.append(popup.el);
-          return popup.$el.slideDown("fast", callback);
-        }
+        this.popup.render();
+        $(".quick-story").not(this.popup.el).slideUp("fast");
+        return this.popup.$el.slideToggle("fast", function() {
+          var $parent, pos;
+          $parent = self.$el.parent("ol");
+          pos = self.getPosition() + $parent.scrollTop() - 100;
+          return $parent.animate({
+            scrollTop: pos
+          }, 300);
+        });
       },
       render: function() {
         if (this.model.hasLocation()) {
@@ -341,6 +325,7 @@
           this.$el.addClass("no-location");
         }
         this.$el.append(_.template(this.template, this.model.toJSON()));
+        this.$el.append($(this.popup.render().el).hide());
         return this;
       },
       events: {
@@ -383,7 +368,7 @@
             });
           });
         },
-        "click .js-show-model": "showPopup"
+        "click .js-show-model": "togglePopup"
       }
     });
     window.views.StoryList = Backbone.View.extend({

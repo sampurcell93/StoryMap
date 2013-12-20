@@ -194,6 +194,12 @@
       defaults: {
         hasLoaded: false
       },
+      parse: function(story) {
+        if (story.location) {
+          story.location = story.location.split(",").join(", ");
+        }
+        return story;
+      },
       initialize: function() {
         _.bindAll(this, "geocode");
         return this.on({

@@ -149,6 +149,10 @@ $ ->
         loading: false
         defaults: 
             hasLoaded: false
+        parse: (story) ->
+            if story.location
+                story.location = story.location.split(",").join ", "
+            story
         initialize: ->
             _.bindAll @, "geocode"
             @on
@@ -182,8 +186,6 @@ $ ->
                     catch
                         console.log _error
                         if callback? then callback(false,null)
-
-
             @
     ( ->
 
