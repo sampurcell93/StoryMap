@@ -89,12 +89,12 @@ $ ->
         ((query) ->
           $(".js-save-query").removeClass("hidden")
           queryobj.getGoogleNews 0,
-            # (queryobj.getFeedZilla(
-            (queryobj.getYahooNews 0, ->
-              window.destroyModal()
-              window.existingQueries.add queryobj
-              # )
-              # )
+            (queryobj.getFeedZilla(
+              (queryobj.getYahooNews 0, ->
+                window.destroyModal()
+                window.existingQueries.add queryobj
+              )  
+            ) 
             )
         )
       )
@@ -179,7 +179,9 @@ $ ->
         "showpopup": ->
           if @marker? and @map.getZoom() >= 7
             @map.setCenter @marker.getPosition()
-
+        "center": ->
+          if @marker?
+            @map.setCenter @marker.getPosition()
 
     render: ->
       @$el.html(_.template @template, @model.toJSON())
@@ -206,6 +208,9 @@ $ ->
     render: ->
       @$el.html(_.template(@template, @model.toJSON()))
       @
+    events:
+      click: ->
+        @model.trigger "center"
   ( ->
     GeoItem = Backbone.View.extend
         tagName: 'li'
@@ -292,8 +297,9 @@ $ ->
           @model.geocode iface.find(".js-address-value").val(), 
             success: (coords) =>
               list = new GeoList locs: coords, story: @model
+              loader.remove()
             error: =>
-                loader.text("We weren't able to find any locations. Try something else!")
+                loader.remove()
                 setTimeout window.destroyModal, 1500
       getPosition: ->
         @$el.position().top
@@ -315,7 +321,7 @@ $ ->
         @
       events:
         "click": ->
-          cc @model.toJSON()
+
         "mouseover": ->
           @model.trigger("highlight")
         "mouseout": ->

@@ -19,8 +19,29 @@ def getNews():
     sources = {
         'google': googleNews,
         'yahoo': yahooNews,
+        'feedzilla': feedZillaNews
     }
     return sources[request.args['source']]()
+
+def feedZillaNews():
+    data = {'q': request.args['q'], 'count': 100}
+    url = 'http://api.feedzilla.com/v1/articles.json?'+urllib.urlencode(data)
+    req = urllib2.Request(url)
+    req.add_header('Accept', 'application/json')
+    req.add_header("Content-type", "application/x-www-form-urlencoded")
+    # Issue request
+    res = urllib2.urlopen(req).read()
+    blob = json.loads(res)
+    if blob is not None: stories = blob.get("articles", {})
+    if stories is not None:
+        for story in stories:
+            normalize(story, {
+                'aggregator': lambda val: 'feedzilla',
+                'date'      : 'publish_date',
+                'content'   : 'summary'
+            })
+            getCoords(story)
+    return json.dumps(stories, default=dthandler)
 
 def googleNews():
     # Query and offset of stories

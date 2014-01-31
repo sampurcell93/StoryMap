@@ -89,6 +89,7 @@
         var id, stories, title;
         stories = this.get("stories");
         story.date = new Date(story.date);
+        console.log(story);
         title = story.title.toLowerCase().stripHTML();
         if (!stories._byTitle.hasOwnProperty(title)) {
           stories.add(story = new models.Story(story));
@@ -123,14 +124,14 @@
             return self.getGoogleNews(start + 8, done);
           }
         });
-        return this;
+        return done;
       },
       getYahooNews: function(start, done) {
         var query, self;
         query = '"' + this.get("title").toLowerCase() + '"';
         start || (start = 0);
         self = this;
-        return $.get(this.external_url, {
+        $.get(this.external_url, {
           source: 'yahoo',
           q: query,
           start: start
@@ -147,30 +148,23 @@
           }
           return this;
         });
+        return done;
       },
       getFeedZilla: function(done) {
         var self;
         self = this;
-        return $.get("http://api.feedzilla.com/v1/articles.json", {
+        $.get(this.external_url, {
           q: this.get("title"),
-          count: 100
-        }, function(response) {
-          return _.each(response.articles, function(story) {
-            cc("adding feedzilla sroy");
-            return self.addStory(story, {
-              map: {
-                content: 'summary',
-                publisher: 'source',
-                date: function() {
-                  return new Date(story.publish_date);
-                },
-                aggregator: function() {
-                  return 'FeedZilla';
-                }
-              }
-            });
-          });
+          source: 'feedzilla'
+        }, function(stories) {
+          cc("done with feedzilla, calling next");
+          console.log("done fn is ", done);
+          _.each(stories, self.addStory);
+          if (done != null) {
+            return done(0, null);
+          }
         });
+        return done;
       }
     });
     window.collections.Queries = Backbone.Collection.extend({

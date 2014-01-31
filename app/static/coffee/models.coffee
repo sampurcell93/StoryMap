@@ -62,6 +62,7 @@ $ ->
         addStory: (story) ->
             stories = @get("stories")
             story.date = new Date(story.date)
+            console.log story
             # ignore case for title
             title = story.title.toLowerCase().stripHTML()
             # check if the story exists
@@ -98,7 +99,7 @@ $ ->
                 _.each stories, self.addStory
                 # Otherwise, call self and keep going
                 if start < 64 then self.getGoogleNews start + 8, done
-            @
+            done
         getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
             start || (start = 0)
@@ -117,19 +118,18 @@ $ ->
                 if start <= total then self.getYahooNews start + 50, done
                 else if done? then done 0, null
                 return @
+            done
         getFeedZilla: (done) ->
             self = @
-            $.get "http://api.feedzilla.com/v1/articles.json", {
+            $.get @external_url, {
                 q: @get("title")
-                count: 100
-            }, (response) ->
-                _.each response.articles, (story) ->
-                    cc "adding feedzilla sroy"
-                    self.addStory story, map: 
-                        content: 'summary'
-                        publisher: 'source'
-                        date: -> new Date(story.publish_date)
-                        aggregator: -> 'FeedZilla'
+                source: 'feedzilla'
+            }, (stories) ->
+                cc "done with feedzilla, calling next"
+                console.log "done fn is ", done
+                _.each stories, self.addStory
+                if done? then done 0, null
+            done
 
     window.collections.Queries = Backbone.Collection.extend
         model: models.Query

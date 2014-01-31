@@ -70,11 +70,11 @@
     <% var u = "undefined" %>
     <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
     <h3>
-        <a taget='_blank' href='<%= url %>'><%= title %></a>
+        <a target='_blank' href='<%= url %>'><%= title %></a>
     </h3>
     <p>
     <% if (typeof location !== "undefined" && location != window.location && location !== null) { %>
-        <%= location.toUpperCase() %> - 
+        <u><%= location.charAt(0).toUpperCase() + location.slice(1) %></u> - 
     <% } %>
     <%= content %></p>
     <hr>
@@ -94,7 +94,7 @@
     <dl>
         <dt> Story List </dt>
             <dd> Once your query has loaded, the story list can be used to view more informaion about each story returned.</dd>
-            <dd> Stories with associated locations show up with a green left border. Stories without have a dark blue. To add a location to a story which does not have one, click the "locate" button.
+            <dd> Stories with associated locations show up with a green left border. Stories without have a dark blue. To add a location to a story which does not have one, click the "locate" button and enter the location you found. This will help the visualization be more complete, and your suggestion will make for a better experience for all users.
             </dd>
             <dd>Search for stories that you want to read about in the filter bar, or sort and filter them by other criteria.</dd>
         <dt> Timeline </dt>

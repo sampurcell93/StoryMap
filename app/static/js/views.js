@@ -116,10 +116,10 @@
           return app.navigate("query/" + model, true);
         }), (function(query) {
           $(".js-save-query").removeClass("hidden");
-          return queryobj.getGoogleNews(0, queryobj.getYahooNews(0, function() {
+          return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
             window.destroyModal();
             return window.existingQueries.add(queryobj);
-          }));
+          })));
         }));
       },
       loadQuery: function(query) {
@@ -231,6 +231,11 @@
             if ((this.marker != null) && this.map.getZoom() >= 7) {
               return this.map.setCenter(this.marker.getPosition());
             }
+          },
+          "center": function() {
+            if (this.marker != null) {
+              return this.map.setCenter(this.marker.getPosition());
+            }
           }
         });
       },
@@ -260,6 +265,11 @@
       render: function() {
         this.$el.html(_.template(this.template, this.model.toJSON()));
         return this;
+      },
+      events: {
+        click: function() {
+          return this.model.trigger("center");
+        }
       }
     });
     (function() {
@@ -386,13 +396,14 @@
             return _this.model.geocode(iface.find(".js-address-value").val(), {
               success: function(coords) {
                 var list;
-                return list = new GeoList({
+                list = new GeoList({
                   locs: coords,
                   story: _this.model
                 });
+                return loader.remove();
               },
               error: function() {
-                loader.text("We weren't able to find any locations. Try something else!");
+                loader.remove();
                 return setTimeout(window.destroyModal, 1500);
               }
             });
@@ -426,9 +437,7 @@
           return this;
         },
         events: {
-          "click": function() {
-            return cc(this.model.toJSON());
-          },
+          "click": function() {},
           "mouseover": function() {
             return this.model.trigger("highlight");
           },
