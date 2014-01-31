@@ -139,7 +139,6 @@ $ ->
             # cc "parsing collection"
             response.queries
 
-
     window.models.Story = Backbone.Model.extend
         url: ->
             url = "/stories"
@@ -162,30 +161,27 @@ $ ->
                     this.loading = false
                 "change:hasLocation": (model, value) ->
                     if value == true
-                        this.collection._withLocation[this.get("title")] = this
-                        # console.log this.collection
+                        this.collection._withLocation[this.get("title")] = @
+
         hasLocation: ->
             @get("lat")? and @get("lng")
         plot: ->
             window.mapObj.plot @
             @
         # If a user has an address they can manually enter it and geocode
-        geocode: (address, callback) ->
-            self = @
-            console.log self
+        geocode: (address, callbacks) ->
             $.getJSON @geocodeUrl + encodeURIComponent(address), 
                 (response) ->
                     try 
-                        coords = response.results[0].geometry.location
-                        self.save {lat: coords.lat, lng: coords.lng, location: response.results[0].formatted_address} , 
-                            success: (model, resp) ->
-                                self.set("hasLocation", true)
-                                self.plot()
-                            error: (model, resp) ->
-                        if callback? then callback(true,coords)
+                        coords = response.results
+                        # self.save {lat: coords.lat, lng: coords.lng, location: response.results[0].formatted_address} , 
+                            # success: (model, resp) ->
+                                # self.set("hasLocation", true)
+                                # self.plot()
+                            # error: (model, resp) ->
+                        if callbacks.success? then callbacks.success(coords)
                     catch
-                        console.log _error
-                        if callback? then callback(false,null)
+                        if callbacks.error? then callback.error(_error)
             @
     ( ->
 
@@ -196,12 +192,16 @@ $ ->
                 -story.get("date")
         }
 
+        SaveWrap = Backbone.Model.extend
+            url: '/stories/many'
+            # Override - just sends array 
+            toJSON: -> @get "models"
+
         window.collections.Stories = Backbone.Collection.extend
             model: models.Story
             _byTitle: {}
             _withLocation: {}
             _byDate: {}
-            url: '/stories/many'
             initialize: (opts) ->
                 # If the collection is the child of a news map, save a reference to the map
                 if opts? and opts.parent_map then @parent_map = opts.parent_map
@@ -228,4 +228,8 @@ $ ->
                         else
                             outrange.push marker
                 {inrange: inrange, outrange: outrange}
+            save: (callbacks) ->
+                wrapper = new SaveWrap({models: @models})
+                wrapper.save null, callbacks
+
     )()

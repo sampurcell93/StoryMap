@@ -70,9 +70,7 @@ window.GoogleMap::addClusterListeners = ->
     console.log zoom
     if zoom > 6
       _.each markers, (marker) ->
-        console.log $(marker.label.labelDiv_)
-        $(marker.label.labelDiv_).removeClass("hidden")
-        console.log $(marker.label.labelDiv_)
+        $(marker.label.labelDiv_).text("dfsfdsd")
     else 
       _.each markers, (marker) ->
         $(marker.label.labelDiv_).addClass("hidden")

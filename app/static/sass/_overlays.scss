@@ -32,7 +32,6 @@ body {
     max-height: 94%;
     overflow: auto;
     background: #f9f9f9;
-    background: rgba(255,255,255,.89);
     padding:  0 20px 10px;
     @include box-shadow(0px 0px 7px #111);
     @include border-radius(4px);
@@ -46,7 +45,8 @@ body {
 
     h2 {
         border-bottom: 1px solid #ccc;
-        padding-right: 40px;
+        margin: 20px;
+        padding-right: 60px;
     }
 
     img { 
@@ -75,4 +75,74 @@ body {
         }
     }
 
+    dl {
+        dt {
+            font-size: 1.8em;
+            padding: 10px 20px;
+            font-weight: 300;
+
+        }
+
+        dd {
+            list-style: bullet;
+            margin-left: 50px;
+            font-size: 1.2em;
+            line-height: 1.5;
+
+            &:before {
+                content: "-";
+            }
+        }
+    }
+
+}
+
+.geocode-choices {
+    display: block;
+    margin: 20px auto;
+    width: 80%;
+    border: 1px solid #ddd;
+    @include border-radius(4px);
+
+    li {
+        line-height: 1.7;
+        font-size: 1.3em;
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #ddd;
+        text-indent: 1.2em;
+        cursor: pointer;
+
+        &:first-of-type { @include border-radius(4px 4px 0 0); }
+        &:last-of-type { @include border-radius(0 0 4px 4px); }
+
+        &:hover {
+            color: $hasLocation;
+            background: #f1f1f1;
+            text-decoration: underline;
+        }
+
+        &.geo-header {
+            background: $shadeblue;
+            color: #f7f7f7;
+
+            &:hover {
+                background: $shadeblue;
+            }
+        }
+
+        &.icon-location-arrow {
+            font-family: $lato;
+            position: relative;
+        }
+
+        &.icon-location-arrow::before {
+            position: absolute;
+            right: 10px;
+            font-size: 1.4em;
+            top: -4px;
+            color: $hasLocation;
+            text-shadow: 0px 1px 0px #666;
+            font-family: 'icomoon';
+        }
+    }
 }

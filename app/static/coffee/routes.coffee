@@ -8,6 +8,7 @@ $ ->
             "saved": "saved"
             "settings": "settings"
             "query/:title": "gotomap"
+            "help": "help"
         saved: (rt) ->
             saved = new views.QueryThumbList collection: @user.get("queries")
             launchModal saved.render().el, { destroyHash: true }
@@ -18,3 +19,6 @@ $ ->
             console.log @
             if existingQueries._byTitle.hasOwnProperty(title)
                 @controller.loadQuery existingQueries._byTitle[title]
+                $(".js-save-query").addClass("hidden")
+        help: ->
+            launchModal($("#help-template").html())

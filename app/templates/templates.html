@@ -12,11 +12,13 @@
         </label>
         <button class='js-geocode-go'>Geocode</button>
     </div>
+    <div class="clear"></div>
+    <ul class='geocode-choices'></ul>
 
 </script>
-
 <script type="text/template" id="article-item">
     <% var u = "undefined" %>
+    <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
     <a class='article-title'>
         <%= title %>
     </a>
@@ -26,7 +28,9 @@
         <% if (typeof location === "undefined" || location == window.location || location == "" || location == null) { %>
         <li class='js-set-location icon-location-arrow'>Locate</li>
         <% } %>
-        <li title="<%= title %>" class='js-read-full-story icon-reply'>Story</li>
+        <li title="<%= title %>" class='icon-reply'>
+            <a target='_blank' href='<%= url %>'>Story</a>
+        </li>
     </ul>
 </script>
 <script type="text/template" id='storymarker'>
@@ -63,9 +67,10 @@
 
 <script type='text/template' id='quick-story-popup'>
     <% cleanDate = function(date) {return date.getDate() + "/" + parseInt(date.getMonth() + 1) + "/" + date.getFullYear()} %>
+    <% var u = "undefined" %>
+    <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
     <h3>
-        <%= title %> - 
-        <%= cleanDate(new Date(date))%>
+        <a taget='_blank' href='<%= url %>'><%= title %></a>
     </h3>
     <p>
     <% if (typeof location !== "undefined" && location != window.location && location !== null) { %>
@@ -74,10 +79,34 @@
     <%= content %></p>
     <hr>
     <p>
-    Published by:
-    <%= publisher %>
+    Published by 
+    <%= publisher %> on <%= cleanDate(new Date(date)) %>
     | 
-    Retrieved from:
+    Retrieved from 
     <%= aggregator %>
     </p>
+</script>
+
+<script type='text/template' id='help-template'>
+    <h2>Using the News Map</h2>
+    <p>The map is broken up into three main portions: The Story List, to the left, where you can see detailed information about stories; the timeline, on the bottom, where you can see temporal relations of stories; and the map itself, where you can see spatial relationships between stories.</p>
+
+    <dl>
+        <dt> Story List </dt>
+            <dd> Once your query has loaded, the story list can be used to view more informaion about each story returned.</dd>
+            <dd> Stories with associated locations show up with a green left border. Stories without have a dark blue. To add a location to a story which does not have one, click the "locate" button.
+            </dd>
+            <dd>Search for stories that you want to read about in the filter bar, or sort and filter them by other criteria.</dd>
+        <dt> Timeline </dt>
+            <dd>The timeline can not only be used to see when stories were published, but also to visualize how information spreads. Hover over the timeline to gain access to controls - you can "play" the course of a topic through time and space.</dd>
+            <dd> Stories with associated locations show up as light green ticks on the timeline, and those without are dark blue.</dd>
+            <dd> Click a tick mark to see its associated story both in the story list and on the map.</dd>
+        <dt> Map </dt>
+            <dd>Click on a marker on the map to see its associated story in the list.</dd>
+    </dl>
+
+</script>
+
+<script type='text/template' id ='geocode-choice'>
+    <%= formatted_address %>
 </script>

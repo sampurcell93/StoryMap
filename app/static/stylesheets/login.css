@@ -350,6 +350,11 @@
   background: #14213A;
 }
 
+/* line 107, ../sass/_build.scss */
+a:hover {
+  text-decoration: underline;
+}
+
 /* line 2, ../sass/_overlays.scss */
 body:after {
   content: "";
@@ -387,7 +392,6 @@ body.active-modal::after {
   max-height: 94%;
   overflow: auto;
   background: #f9f9f9;
-  background: rgba(255, 255, 255, 0.89);
   padding: 0 20px 10px;
   -webkit-box-shadow: 0px 0px 7px #111111;
   -moz-box-shadow: 0px 0px 7px #111111;
@@ -398,17 +402,18 @@ body.active-modal::after {
   -o-border-radius: 4px;
   border-radius: 4px;
 }
-/* line 40, ../sass/_overlays.scss */
+/* line 39, ../sass/_overlays.scss */
 .modal .close-modal {
   position: absolute;
   top: 14px;
   right: 30px;
   cursor: pointer;
 }
-/* line 47, ../sass/_overlays.scss */
+/* line 46, ../sass/_overlays.scss */
 .modal h2 {
   border-bottom: 1px solid #ccc;
-  padding-right: 40px;
+  margin: 20px;
+  padding-right: 60px;
 }
 /* line 52, ../sass/_overlays.scss */
 .modal img {
@@ -433,6 +438,91 @@ body.active-modal::after {
   float: left;
   padding: 0 10px;
   line-height: 1.9;
+}
+/* line 79, ../sass/_overlays.scss */
+.modal dl dt {
+  font-size: 1.8em;
+  padding: 10px 20px;
+  font-weight: 300;
+}
+/* line 86, ../sass/_overlays.scss */
+.modal dl dd {
+  list-style: bullet;
+  margin-left: 50px;
+  font-size: 1.2em;
+  line-height: 1.5;
+}
+/* line 92, ../sass/_overlays.scss */
+.modal dl dd:before {
+  content: "-";
+}
+
+/* line 100, ../sass/_overlays.scss */
+.geocode-choices {
+  display: block;
+  margin: 20px auto;
+  width: 80%;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -o-border-radius: 4px;
+  border-radius: 4px;
+}
+/* line 107, ../sass/_overlays.scss */
+.geocode-choices li {
+  line-height: 1.7;
+  font-size: 1.3em;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #ddd;
+  text-indent: 1.2em;
+  cursor: pointer;
+}
+/* line 115, ../sass/_overlays.scss */
+.geocode-choices li:first-of-type {
+  -webkit-border-radius: 4px 4px 0 0;
+  -moz-border-radius: 4px 4px 0 0;
+  -ms-border-radius: 4px 4px 0 0;
+  -o-border-radius: 4px 4px 0 0;
+  border-radius: 4px 4px 0 0;
+}
+/* line 116, ../sass/_overlays.scss */
+.geocode-choices li:last-of-type {
+  -webkit-border-radius: 0 0 4px 4px;
+  -moz-border-radius: 0 0 4px 4px;
+  -ms-border-radius: 0 0 4px 4px;
+  -o-border-radius: 0 0 4px 4px;
+  border-radius: 0 0 4px 4px;
+}
+/* line 118, ../sass/_overlays.scss */
+.geocode-choices li:hover {
+  color: #72b068;
+  background: #f1f1f1;
+  text-decoration: underline;
+}
+/* line 124, ../sass/_overlays.scss */
+.geocode-choices li.geo-header {
+  background: #181b21;
+  color: #f7f7f7;
+}
+/* line 128, ../sass/_overlays.scss */
+.geocode-choices li.geo-header:hover {
+  background: #181b21;
+}
+/* line 133, ../sass/_overlays.scss */
+.geocode-choices li.icon-location-arrow {
+  font-family: "Lato", sans-serif;
+  position: relative;
+}
+/* line 138, ../sass/_overlays.scss */
+.geocode-choices li.icon-location-arrow::before {
+  position: absolute;
+  right: 10px;
+  font-size: 1.4em;
+  top: -4px;
+  color: #72b068;
+  text-shadow: 0px 1px 0px #666;
+  font-family: 'icomoon';
 }
 
 /* line 6, ../sass/login.scss */

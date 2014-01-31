@@ -76,6 +76,7 @@ $ ->
       queryobj = new models.Query({title: query})
       @model = queryobj
       @storyList.collection = @timeline.collection = queryobj.get("stories")
+      @timeline.reset().render()
       @storyList.bindListeners()
       @cacheQuery queryobj
       @trigger "loading"
@@ -86,6 +87,7 @@ $ ->
           app.navigate("query/" + model, true)
         ),
         ((query) ->
+          $(".js-save-query").removeClass("hidden")
           queryobj.getGoogleNews 0,
             # (queryobj.getFeedZilla(
             (queryobj.getYahooNews 0, ->
@@ -135,12 +137,14 @@ $ ->
             toSave.set("stories", stories)
             _.each stories.models, (story) ->
               story.set("query_id", toSave.id)
-            stories.save({
-              success: (model, resp) ->
-                cc resp
-              error: (model, resp) ->
-                cc resp
-            })
+              # For now, just save one by one like an ASSHOLE. Screw network latency right?
+              story.save(null, { success: (resp) -> cc resp})
+            # stories.save({
+            #   success: (model, resp) ->
+            #     cc resp
+            #   error: (model, resp) ->
+            #     cc resp
+            # })
             error: ->
               cc "YOLo"
 
@@ -172,6 +176,10 @@ $ ->
         "unhighlight": ->
           if @marker?
             @marker.setIcon redIcon
+        "showpopup": ->
+          if @marker? and @map.getZoom() >= 7
+            @map.setCenter @marker.getPosition()
+
 
     render: ->
       @$el.html(_.template @template, @model.toJSON())
@@ -198,84 +206,124 @@ $ ->
     render: ->
       @$el.html(_.template(@template, @model.toJSON()))
       @
+  ( ->
+    GeoItem = Backbone.View.extend
+        tagName: 'li'
+        template: $("#geocode-choice").html()
+        initialize: (attrs)->
+          _.extend @, attrs
+          @
+        render: ->
+          #  not a model, just a plain obj
+          @$el.html(_.template @template, @bareobj)
+          @
+        events: 
+          click: ->
+            cc @story
+            cc @bareobj
+            if @story
+              geo = @bareobj.geometry.location
+              @story.save {
+                lat: geo.lat,
+                lng: geo.lng,
+                location: @bareobj.formatted_address
+              }, success: (response) =>
+                  @$el.addClass("icon-location-arrow")
+                  setTimeout =>
+                    destroyModal()
+                    @story.set "hasLocation", true
+                    @story.plot()
+                  , 1400
 
-  window.views.StoryListItem = Backbone.View.extend 
-    template: $("#article-item").html()
-    tagName: 'li'
-    enterLocTemplate: $("#enter-loc").html()
-    initialize: ->
-      @popup = new views.QuickStory model: @model
-      _.bindAll @, "render", "getPosition", "togglePopup"
-      self = @
-      @listenTo @model,
-        "save" : ->
-          cc "SAVED THIS BITCH"
-        "hide": ->
-          console.log("hiding")
-          this.$el.hide()
-        "show": ->
-          console.log("showing")
-          this.$el.show()
-        "loading": ->
-          @$el.addClass("loading")
-        "change:hasLocation": (model, hasLocation)->
-          if hasLocation then @$el.removeClass("no-location").addClass("has-location")
-          else @$el.removeClass("has-location").addClass("no-location")
-        "doneloading": ->
-        "highlight": ->
-          @$el.addClass("highlighted")
-        "unhighlight": ->
-          @$el.removeClass("highlighted")
-        "showpopup": @togglePopup
-    getPosition: ->
-      @$el.position().top
-    togglePopup: ->
-      self = @
-      @popup.render()
-      $(".quick-story").not(@popup.el).slideUp "fast"
-      @popup.$el.slideToggle "fast", ->
-        $parent = self.$el.parent("ol")
-        pos = self.getPosition() + $parent.scrollTop() - 100
-        $parent.animate({ scrollTop: pos }, 300);
 
-    render: ->
-      if @model.hasLocation()
-          @$el.addClass("has-location")
-      else 
-          @$el.addClass("no-location")
-      @$el.append(_.template @template, @model.toJSON())
-      @$el.append $(@popup.render().el).hide()
-      @
-    events:
-      "click": ->
-        cc @model.toJSON()
-      "mouseover": ->
-        @model.trigger("highlight")
-      "mouseout": ->
-        @model.trigger("unhighlight")
-      "click .js-read-full-story": ->
-        url = @model.get("unescapedUrl") || @model.get("url")
-        window.open url, "_blank"
-      "click .js-set-location": ->
+    GeoList = Backbone.View.extend
+        el: "ul.geocode-choices"
+        initialize: (attrs) ->
+          _.bindAll @, "render", "append" 
+          _.extend @, attrs
+          @render()
+          @
+        append: (loc) ->
+          if !loc.geometry? then return @
+          item = new GeoItem({bareobj: loc, story: @story})
+          @$el.append item.render().el
+          @
+        render: ->
+          s = if @locs.length == 1 then "" else "s"
+          @$el.html("<li class='geo-header'>We found " + @locs.length + " possible location" + s + "</li>")
+          _.each @locs, @append
+          @
+
+    # View for a single story item, exposed to the global machine (sigh)
+    window.views.StoryListItem = Backbone.View.extend 
+      template: $("#article-item").html()
+      tagName: 'li'
+      enterLocTemplate: $("#enter-loc").html()
+      initialize: ->
+        @popup = new views.QuickStory model: @model
+        _.bindAll @, "render", "getPosition", "togglePopup"
+        self = @
+        @listenTo @model,
+          "save" : ->
+            cc "SAVED THIS BITCH"
+          "hide": ->
+            console.log("hiding")
+            this.$el.hide()
+          "show": ->
+            console.log("showing")
+            this.$el.show()
+          "loading": ->
+            @$el.addClass("loading")
+          "change:hasLocation": (model, hasLocation)->
+            if hasLocation then @$el.removeClass("no-location").addClass("has-location")
+            else @$el.removeClass("has-location").addClass("no-location")
+          "doneloading": ->
+          "highlight": ->
+            @$el.addClass("highlighted")
+          "unhighlight": ->
+            @$el.removeClass("highlighted")
+          "showpopup": @togglePopup
+      launchLocationPicker: ->
         iface = _.template @enterLocTemplate, {title: @model.escape("title").stripHTML()}
         iface = launchModal iface
-        self = @
-        iface.find(".js-geocode-go").on "click", ->
+        iface.find(".js-geocode-go").on "click", =>
           loader = $("<p/>").addClass("center loading-geocode-text").text("Loading.....")
           iface.append loader
-          self.model.geocode iface.find(".js-address-value").val(), (success, coords) ->
-            if !success
-              setTimeout ->
-                loader.text("We couldn't find data for that address....")
-              , 1000
-            else 
-              setTimeout ->
-                loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude "+ coords.lng)
+          @model.geocode iface.find(".js-address-value").val(), 
+            success: (coords) =>
+              list = new GeoList locs: coords, story: @model
+            error: =>
+                loader.text("We weren't able to find any locations. Try something else!")
                 setTimeout window.destroyModal, 1500
-              , 1000
-      "click .js-show-model": "togglePopup"
-
-  
+      getPosition: ->
+        @$el.position().top
+      togglePopup: ->
+        self = @
+        @popup.render()
+        $(".quick-story").not(@popup.el).slideUp "fast"
+        @popup.$el.slideToggle "fast", ->
+          $parent = self.$el.parent("ol")
+          pos = self.getPosition() + $parent.scrollTop() - 100
+          $parent.animate({ scrollTop: pos }, 300);
+      render: ->
+        if @model.hasLocation()
+            @$el.addClass("has-location")
+        else 
+            @$el.addClass("no-location")
+        @$el.append(_.template @template, @model.toJSON())
+        @$el.append $(@popup.render().el).hide()
+        @
+      events:
+        "click": ->
+          cc @model.toJSON()
+        "mouseover": ->
+          @model.trigger("highlight")
+        "mouseout": ->
+          @model.trigger("unhighlight")
+        "click .js-set-location": "launchLocationPicker"
+        "click .js-show-model": "togglePopup"
+  )()
+    
   # List of articles, regardless of location data, and controls for filtering
   window.views.StoryList = Backbone.View.extend
     el: '.all-articles'
@@ -412,10 +460,10 @@ $ ->
       self = @
       @clearMarkers()
       _.each @collection.models, (story) ->
-        if story.hasLocation() then self.addMarker story
+        self.addMarker story
       @
     addMarker: (model) ->
-      cc "appending a RED MARKR ONTO TIMELINE"
+      cc "appending a MARKR ONTO TIMELINE"
       # Get the slider and compute its pixel width so we can offset each marker (UI purposes)
       # I'd rather not touch the math on the slider mechanism itself
       $slider = @$(".slider-wrap")
@@ -551,6 +599,7 @@ $ ->
       $el = @$el
       $el.css('left', (num*100) + "%")
       $el.html(_.template @template, date: new Date(@model.get("date")).cleanFormat())
+      if !@model.hasLocation() then $el.addClass("no-location-marker")
       @$(".date-bubble").hide()
       @
     events:
@@ -559,7 +608,10 @@ $ ->
       "mouseout": ->
         @model.trigger("unhighlight")
       "click": (e) ->
+        @model.trigger "showpopup"
+        $(".date-bubble").hide()
         @$(".date-bubble").toggle('fast')
+
 
   ( ->
     i = 0

@@ -358,13 +358,6 @@ def getStory(id):
         return flask.jsonify()
     return flask.jsonify(story=to_json(story))
 
-# Create a bunch of new stories #
-@app.route('/stories/many', methods=['GET'])
-@login_required
-def createManyStories():
-    pprint(vars(request))
-    return "yolo"
-
 # Create a new story ##
 @app.route('/stories', methods=['POST'])
 # @app.route(('/stories/<string:title>/<string:publication>/'
@@ -372,10 +365,8 @@ def createManyStories():
 #            '/<float:lng>'))
 @login_required
 def createStory(title=None, publication=None, date=None, author=None, url=None,
-                lat=None, lng=None, content=None, query_id=None):
+                lat=None, lng=None, content=None, query_id=None, aggregator='Yahoo', location=''):
     if title is None:
-        print "setting shit"
-        pprint(request.json)
         title = request.json['title']
         content = request.json['content']
         publication = request.json['publisher']
@@ -386,18 +377,40 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
         location = request.json.get('location')
         aggregator = request.json.get('aggregator')
         query_id = request.json.get('query_id')
-        print "query_id:"
-        print query_id
     try:
         story = tryConnection(lambda: models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content, aggregator=aggregator, location=location))
         db.session.add(story)
         db.session.commit()
+        # except Exception as e: db.session.rollback()
+        # except Exception: return json.dumps({"duplicate": True}
         if query_id is not None:
             addStoryToQuery(query_id, story.id)
         return json.dumps({"id": story.id})
     except IntegrityError as e:
         db.session.flush()
+        # db.session.rollback()
         return json.dumps({"duplicate": True})
+
+# Create a bunch of new stories #
+@app.route('/stories/many', methods=['POST'])
+@login_required
+def createManyStories():
+    stories = request.json.get("models")
+    for story in stories:
+        title = story.get('title')
+        content = story.get('content')
+        publication = story.get('publisher')
+        date = parser.parse(story.get("date")).strftime('%Y-%m-%d %H:%M:%S')
+        url = story.get('url')
+        print content
+        lat = story.get('lat')
+        lng = story.get('lng')
+        location = story.get('location')
+        aggregator = story.get('aggregator')
+        query_id = story.get('query_id')
+        location = story.get('location')
+        createStory(title, publication, date, None, url, lat, lng, content, query_id, aggregator, location)
+    return json.dumps({"success": True})
 
 @app.route('/stories/<string:id>', methods=['PUT'])
 @login_required
@@ -413,6 +426,7 @@ def storyPut(id):
 @login_required
 def addStoryToQuery(query_id, story_id):
     story = tryConnection(lambda: models.Stories.query.get(story_id))
+    print "tried connect"
     if story is None:
         return 'Story does not exist\n'
     query = models.Queries.query.get(query_id)

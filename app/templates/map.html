@@ -17,8 +17,8 @@
         <i class='icon-arrow-down js-sort-options'></i>
         <ul class='sort-options-list'>
           <li class='header'>Hide...</li>
-          <li class='js-filter-param icon-sign-blank' data-param='location' data-switch-icon='icon-check-sign'>Stories with locations</li>
           <li class='js-filter-param icon-sign-blank' data-param='nolocation' data-switch-icon='icon-check-sign'>Stories without locations</li>
+          <li class='js-filter-param icon-sign-blank' data-param='location' data-switch-icon='icon-check-sign'>Stories with locations</li>
           <li class='js-filter-param icon-sign-blank' data-param='favorite' data-switch-icon='icon-check-sign'>Favorites</li>
           <li class='js-filter-param icon-sign-blank' data-param='google' data-switch-icon='icon-check-sign'>Google News</li>
           <li class='js-filter-param icon-sign-blank' data-param='yahoo' data-switch-icon='icon-check-sign'>Yahoo News</li>
@@ -36,8 +36,7 @@
           <ul class="control-panel ">
             <li><a class='icon-logout' id="logout" title='Logout' href="/logout"></a></li>
             <li><a class='icon-th-large' title='Saved' href='#saved'></a></li>
-            <li><a class='icon-settings' title='Settings' href='#settings'></a></li>
-            <li><a class='icon-graph js-toggle-analytics' title='Analytics'></a></li>
+            <li><a class='icon-graph js-toggle-help' href='#help' title='Help'></a></li>
           </ul>
           <div class="search-bar">
             <i class='icon-in js-save-query'></i>
@@ -52,7 +51,7 @@
           </div>
           <ul class='timeline-controls'>
             <li class='js-to-start icon-first js-speed-control'></li>
-            <li class='js-rewind icon-previous js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+            <li class='js-rewind icon-previous js-speed-control' style='visibility: hidden' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
             <li class='js-play-timeline icon-play2' data-switch-icon="icon-pause2" data-tooltip='Play Timeline'></li>
             <li class='js-rewind icon-next js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
             <li class='js-to-end icon-last js-speed-control'></li>

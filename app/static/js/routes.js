@@ -11,7 +11,8 @@
       routes: {
         "saved": "saved",
         "settings": "settings",
-        "query/:title": "gotomap"
+        "query/:title": "gotomap",
+        "help": "help"
       },
       saved: function(rt) {
         var saved;
@@ -31,8 +32,12 @@
         cc(existingQueries._byTitle);
         console.log(this);
         if (existingQueries._byTitle.hasOwnProperty(title)) {
-          return this.controller.loadQuery(existingQueries._byTitle[title]);
+          this.controller.loadQuery(existingQueries._byTitle[title]);
+          return $(".js-save-query").addClass("hidden");
         }
+      },
+      help: function() {
+        return launchModal($("#help-template").html());
       }
     });
   });

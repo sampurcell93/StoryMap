@@ -39,7 +39,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/spurcell/Projects/StoryMap/venv"
+VIRTUAL_ENV="/Applications/XAMPP/xamppfiles/htdocs/StoryMap/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

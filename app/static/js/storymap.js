@@ -75,9 +75,7 @@
       console.log(zoom);
       if (zoom > 6) {
         return _.each(markers, function(marker) {
-          console.log($(marker.label.labelDiv_));
-          $(marker.label.labelDiv_).removeClass("hidden");
-          return console.log($(marker.label.labelDiv_));
+          return $(marker.label.labelDiv_).text("dfsfdsd");
         });
       } else {
         return _.each(markers, function(marker) {

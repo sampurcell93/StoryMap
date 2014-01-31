@@ -6,7 +6,7 @@ $roboto: 'Roboto', sans-serif;
 $mainblue: #242833;
 $shadeblue: #181B21;
 $highlightblue: #303849;
-$hasLocation: #DD7335;
+$hasLocation: #72b068;
 
 .clearfix:after {
      visibility: hidden;
@@ -102,3 +102,7 @@ $hasLocation: #DD7335;
         background: #14213A;
     }
 }   
+
+a {
+    &:hover { text-decoration: underline; }
+}

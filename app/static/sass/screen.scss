@@ -55,11 +55,10 @@ header, footer {
 	background: #222;
 	position: absolute;
 	background: rgba(60,67,84,.73);
-	min-height: 60px;
+	min-height: 59px;
 	width: 100%;
 	left: 0%;
 	z-index: 999;
-	@include box-shadow(0px 1px 4px #222);
 }
 
 $article-list-width: 25%;
@@ -79,7 +78,8 @@ $duration: .45s;
 		bottom: -14px;
 		padding: 0 10px;
 		cursor: pointer;
-		visibility: hidden;
+
+		&.hidden { visibility: hidden; }
 
 		&:after {
 			display: block;
@@ -203,7 +203,7 @@ section {
 }
 
 .all-articles {
-	@include box-shadow(-2px 0px 5px $shadeblue inset);
+	// @include box-shadow(-2px 0px 5px $shadeblue inset);
 	@include transition(left $duration ease-in-out);
 	position: relative;
 	display: inline-block;
@@ -216,7 +216,7 @@ section {
 
 	input.js-filter-articles {
 		width: 84%;
-		margin: 10px 0 10px 8px ;
+		margin: 10px 0 12px 8px ;
 		padding-right: 30px ;
 	}
 
@@ -265,10 +265,11 @@ section {
 	.article-list {
 		overflow: auto;
 		height: calc(100% - 30px);
+		@include box-shadow(0px 1px 6px #111 inset);
 
 
 		> li {
-			text-indent: 1.2em;
+			text-indent: .83em;
 			cursor: pointer;
 			border-bottom: 1px solid $shadeblue;
 			border-top: 1px solid $highlightblue;
@@ -304,10 +305,6 @@ section {
 
 			&:hover  {
 				background: rgba(0,0,0,.2) ;
-				
-				a {
-					@include filter(blur(1.5px))
-				}
 
 				.mask {
 					display: block;
@@ -326,7 +323,7 @@ section {
 				text-indent: 0;
 				padding-left: 10px;
 				display: none;
-				background: rgba(0,0,0,.4);
+				background: $shadeblue;
 				li {
 					font-size: .9em;
 					line-height: 1.9;
@@ -342,6 +339,12 @@ section {
 						padding: 0 10px 0 5px;
 						font-size: 1.2em;
 						font-family: 'icomoon';
+					}
+
+					a {
+						border: none;
+						color: #ddd;
+						text-decoration: none;
 					}
 				}
 
@@ -371,8 +374,9 @@ section {
 }
 
 .quick-story {
+	border-bottom: 1px solid #000;
 	width: 100%;
-	background: rgba(0,0,0,.9);
+	background: $shadeblue;
 	white-space: normal;
 	width: 100%;
 	position: relative;
@@ -381,12 +385,24 @@ section {
 	overflow: auto;
 
 	h3 {
-		font-size: 1.2em;
+		font-size: 1.06em;
 		color: #aaa;
 		font-weight: 300;
-		text-align: left;
+		text-align: center;
 		margin: 0;
-		padding: 10px;
+		display: block;
+		border-bottom: 1px solid $mainblue;
+
+		a {
+			border: none !important;
+			color: #ddd;
+			text-decoration: none;
+			display: block;
+		    &:hover { 
+		    	text-decoration: underline;
+		    	color: $hasLocation;
+		    }
+		}
 	}
 
 	p {
@@ -396,7 +412,7 @@ section {
 	
 	hr {
 		border: none;
-		border-top: 1px solid #aaa;
+		border-top: 1px solid $mainblue;
 	}
 	
 	&:before {
@@ -532,7 +548,7 @@ footer {
 	bottom: -30px;
 	height: 20px;
 	@include transition(height .1s ease-in-out);
-	@include box-shadow(0px -1px 4px #222);
+	// @include box-shadow(0px -1px 4px #222);
 
 	&:hover {
 		height: 115px;
@@ -628,7 +644,7 @@ footer {
 	display: block;
 	height: 10px;
 	width: 3px;
-	background: #000;
+	background: $hasLocation;
 	position: absolute;
 	top: 1px;
 	left: 200px;
@@ -652,6 +668,10 @@ footer {
 		text-align: center;
 		bottom: 11px;
 		@include border-radius(3px);
+	}
+
+	&.no-location-marker {
+		background: black;
 	}
 }
 
@@ -803,7 +823,7 @@ $maskduration: .33s;
 	@include border-radius(3px);
 	@include transition(all .2s ease-in-out);
 
-	&.hidden { color: red; }
+	// &.hidden { color: red; }
 
 }
 

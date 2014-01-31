@@ -107,6 +107,7 @@
         });
         this.model = queryobj;
         this.storyList.collection = this.timeline.collection = queryobj.get("stories");
+        this.timeline.reset().render();
         this.storyList.bindListeners();
         this.cacheQuery(queryobj);
         this.trigger("loading");
@@ -114,6 +115,7 @@
         return queryobj.exists((function(model) {
           return app.navigate("query/" + model, true);
         }), (function(query) {
+          $(".js-save-query").removeClass("hidden");
           return queryobj.getGoogleNews(0, queryobj.getYahooNews(0, function() {
             window.destroyModal();
             return window.existingQueries.add(queryobj);
@@ -173,15 +175,12 @@
               toSave.favorite();
               toSave.set("stories", stories);
               _.each(stories.models, function(story) {
-                return story.set("query_id", toSave.id);
-              });
-              stories.save({
-                success: function(model, resp) {
-                  return cc(resp);
-                },
-                error: function(model, resp) {
-                  return cc(resp);
-                }
+                story.set("query_id", toSave.id);
+                return story.save(null, {
+                  success: function(resp) {
+                    return cc(resp);
+                  }
+                });
               });
               return {
                 error: function() {
@@ -227,6 +226,11 @@
             if (this.marker != null) {
               return this.marker.setIcon(redIcon);
             }
+          },
+          "showpopup": function() {
+            if ((this.marker != null) && this.map.getZoom() >= 7) {
+              return this.map.setCenter(this.marker.getPosition());
+            }
           }
         });
       },
@@ -258,119 +262,184 @@
         return this;
       }
     });
-    window.views.StoryListItem = Backbone.View.extend({
-      template: $("#article-item").html(),
-      tagName: 'li',
-      enterLocTemplate: $("#enter-loc").html(),
-      initialize: function() {
-        var self;
-        this.popup = new views.QuickStory({
-          model: this.model
-        });
-        _.bindAll(this, "render", "getPosition", "togglePopup");
-        self = this;
-        return this.listenTo(this.model, {
-          "save": function() {
-            return cc("SAVED THIS BITCH");
-          },
-          "hide": function() {
-            console.log("hiding");
-            return this.$el.hide();
-          },
-          "show": function() {
-            console.log("showing");
-            return this.$el.show();
-          },
-          "loading": function() {
-            return this.$el.addClass("loading");
-          },
-          "change:hasLocation": function(model, hasLocation) {
-            if (hasLocation) {
-              return this.$el.removeClass("no-location").addClass("has-location");
-            } else {
-              return this.$el.removeClass("has-location").addClass("no-location");
+    (function() {
+      var GeoItem, GeoList;
+      GeoItem = Backbone.View.extend({
+        tagName: 'li',
+        template: $("#geocode-choice").html(),
+        initialize: function(attrs) {
+          _.extend(this, attrs);
+          return this;
+        },
+        render: function() {
+          this.$el.html(_.template(this.template, this.bareobj));
+          return this;
+        },
+        events: {
+          click: function() {
+            var geo,
+              _this = this;
+            cc(this.story);
+            cc(this.bareobj);
+            if (this.story) {
+              geo = this.bareobj.geometry.location;
+              return this.story.save({
+                lat: geo.lat,
+                lng: geo.lng,
+                location: this.bareobj.formatted_address
+              }, {
+                success: function(response) {
+                  _this.$el.addClass("icon-location-arrow");
+                  return setTimeout(function() {
+                    destroyModal();
+                    _this.story.set("hasLocation", true);
+                    return _this.story.plot();
+                  }, 1400);
+                }
+              });
             }
-          },
-          "doneloading": function() {},
-          "highlight": function() {
-            return this.$el.addClass("highlighted");
-          },
-          "unhighlight": function() {
-            return this.$el.removeClass("highlighted");
-          },
-          "showpopup": this.togglePopup
-        });
-      },
-      getPosition: function() {
-        return this.$el.position().top;
-      },
-      togglePopup: function() {
-        var self;
-        self = this;
-        this.popup.render();
-        $(".quick-story").not(this.popup.el).slideUp("fast");
-        return this.popup.$el.slideToggle("fast", function() {
-          var $parent, pos;
-          $parent = self.$el.parent("ol");
-          pos = self.getPosition() + $parent.scrollTop() - 100;
-          return $parent.animate({
-            scrollTop: pos
-          }, 300);
-        });
-      },
-      render: function() {
-        if (this.model.hasLocation()) {
-          this.$el.addClass("has-location");
-        } else {
-          this.$el.addClass("no-location");
+          }
         }
-        this.$el.append(_.template(this.template, this.model.toJSON()));
-        this.$el.append($(this.popup.render().el).hide());
-        return this;
-      },
-      events: {
-        "click": function() {
-          return cc(this.model.toJSON());
+      });
+      GeoList = Backbone.View.extend({
+        el: "ul.geocode-choices",
+        initialize: function(attrs) {
+          _.bindAll(this, "render", "append");
+          _.extend(this, attrs);
+          this.render();
+          return this;
         },
-        "mouseover": function() {
-          return this.model.trigger("highlight");
+        append: function(loc) {
+          var item;
+          if (loc.geometry == null) {
+            return this;
+          }
+          item = new GeoItem({
+            bareobj: loc,
+            story: this.story
+          });
+          this.$el.append(item.render().el);
+          return this;
         },
-        "mouseout": function() {
-          return this.model.trigger("unhighlight");
+        render: function() {
+          var s;
+          s = this.locs.length === 1 ? "" : "s";
+          this.$el.html("<li class='geo-header'>We found " + this.locs.length + " possible location" + s + "</li>");
+          _.each(this.locs, this.append);
+          return this;
+        }
+      });
+      return window.views.StoryListItem = Backbone.View.extend({
+        template: $("#article-item").html(),
+        tagName: 'li',
+        enterLocTemplate: $("#enter-loc").html(),
+        initialize: function() {
+          var self;
+          this.popup = new views.QuickStory({
+            model: this.model
+          });
+          _.bindAll(this, "render", "getPosition", "togglePopup");
+          self = this;
+          return this.listenTo(this.model, {
+            "save": function() {
+              return cc("SAVED THIS BITCH");
+            },
+            "hide": function() {
+              console.log("hiding");
+              return this.$el.hide();
+            },
+            "show": function() {
+              console.log("showing");
+              return this.$el.show();
+            },
+            "loading": function() {
+              return this.$el.addClass("loading");
+            },
+            "change:hasLocation": function(model, hasLocation) {
+              if (hasLocation) {
+                return this.$el.removeClass("no-location").addClass("has-location");
+              } else {
+                return this.$el.removeClass("has-location").addClass("no-location");
+              }
+            },
+            "doneloading": function() {},
+            "highlight": function() {
+              return this.$el.addClass("highlighted");
+            },
+            "unhighlight": function() {
+              return this.$el.removeClass("highlighted");
+            },
+            "showpopup": this.togglePopup
+          });
         },
-        "click .js-read-full-story": function() {
-          var url;
-          url = this.model.get("unescapedUrl") || this.model.get("url");
-          return window.open(url, "_blank");
-        },
-        "click .js-set-location": function() {
-          var iface, self;
+        launchLocationPicker: function() {
+          var iface,
+            _this = this;
           iface = _.template(this.enterLocTemplate, {
             title: this.model.escape("title").stripHTML()
           });
           iface = launchModal(iface);
-          self = this;
           return iface.find(".js-geocode-go").on("click", function() {
             var loader;
             loader = $("<p/>").addClass("center loading-geocode-text").text("Loading.....");
             iface.append(loader);
-            return self.model.geocode(iface.find(".js-address-value").val(), function(success, coords) {
-              if (!success) {
-                return setTimeout(function() {
-                  return loader.text("We couldn't find data for that address....");
-                }, 1000);
-              } else {
-                return setTimeout(function() {
-                  loader.text("Nice! We found a point at latitude " + coords.lat + " and longitude " + coords.lng);
-                  return setTimeout(window.destroyModal, 1500);
-                }, 1000);
+            return _this.model.geocode(iface.find(".js-address-value").val(), {
+              success: function(coords) {
+                var list;
+                return list = new GeoList({
+                  locs: coords,
+                  story: _this.model
+                });
+              },
+              error: function() {
+                loader.text("We weren't able to find any locations. Try something else!");
+                return setTimeout(window.destroyModal, 1500);
               }
             });
           });
         },
-        "click .js-show-model": "togglePopup"
-      }
-    });
+        getPosition: function() {
+          return this.$el.position().top;
+        },
+        togglePopup: function() {
+          var self;
+          self = this;
+          this.popup.render();
+          $(".quick-story").not(this.popup.el).slideUp("fast");
+          return this.popup.$el.slideToggle("fast", function() {
+            var $parent, pos;
+            $parent = self.$el.parent("ol");
+            pos = self.getPosition() + $parent.scrollTop() - 100;
+            return $parent.animate({
+              scrollTop: pos
+            }, 300);
+          });
+        },
+        render: function() {
+          if (this.model.hasLocation()) {
+            this.$el.addClass("has-location");
+          } else {
+            this.$el.addClass("no-location");
+          }
+          this.$el.append(_.template(this.template, this.model.toJSON()));
+          this.$el.append($(this.popup.render().el).hide());
+          return this;
+        },
+        events: {
+          "click": function() {
+            return cc(this.model.toJSON());
+          },
+          "mouseover": function() {
+            return this.model.trigger("highlight");
+          },
+          "mouseout": function() {
+            return this.model.trigger("unhighlight");
+          },
+          "click .js-set-location": "launchLocationPicker",
+          "click .js-show-model": "togglePopup"
+        }
+      });
+    })();
     window.views.StoryList = Backbone.View.extend({
       el: '.all-articles',
       list: 'ol.article-list',
@@ -564,15 +633,13 @@
         self = this;
         this.clearMarkers();
         _.each(this.collection.models, function(story) {
-          if (story.hasLocation()) {
-            return self.addMarker(story);
-          }
+          return self.addMarker(story);
         });
         return this;
       },
       addMarker: function(model) {
         var $slider, pixeladdition, pos, range, view, width;
-        cc("appending a RED MARKR ONTO TIMELINE");
+        cc("appending a MARKR ONTO TIMELINE");
         $slider = this.$(".slider-wrap");
         width = $slider.width();
         pos = new Date(model.get("date")).getTime();
@@ -744,6 +811,9 @@
         $el.html(_.template(this.template, {
           date: new Date(this.model.get("date")).cleanFormat()
         }));
+        if (!this.model.hasLocation()) {
+          $el.addClass("no-location-marker");
+        }
         this.$(".date-bubble").hide();
         return this;
       },
@@ -755,6 +825,8 @@
           return this.model.trigger("unhighlight");
         },
         "click": function(e) {
+          this.model.trigger("showpopup");
+          $(".date-bubble").hide();
           return this.$(".date-bubble").toggle('fast');
         }
       }

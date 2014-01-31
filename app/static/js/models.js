@@ -223,32 +223,17 @@
         window.mapObj.plot(this);
         return this;
       },
-      geocode: function(address, callback) {
-        var self;
-        self = this;
-        console.log(self);
+      geocode: function(address, callbacks) {
         $.getJSON(this.geocodeUrl + encodeURIComponent(address), function(response) {
           var coords;
           try {
-            coords = response.results[0].geometry.location;
-            self.save({
-              lat: coords.lat,
-              lng: coords.lng,
-              location: response.results[0].formatted_address
-            }, {
-              success: function(model, resp) {
-                self.set("hasLocation", true);
-                return self.plot();
-              },
-              error: function(model, resp) {}
-            });
-            if (callback != null) {
-              return callback(true, coords);
+            coords = response.results;
+            if (callbacks.success != null) {
+              return callbacks.success(coords);
             }
           } catch (_error) {
-            console.log(_error);
-            if (callback != null) {
-              return callback(false, null);
+            if (callbacks.error != null) {
+              return callback.error(_error);
             }
           }
         });
@@ -256,7 +241,7 @@
       }
     });
     return (function() {
-      var sortMethods;
+      var SaveWrap, sortMethods;
       sortMethods = {
         "newest": function(story) {
           return story.get("date");
@@ -265,12 +250,17 @@
           return -story.get("date");
         }
       };
+      SaveWrap = Backbone.Model.extend({
+        url: '/stories/many',
+        toJSON: function() {
+          return this.get("models");
+        }
+      });
       return window.collections.Stories = Backbone.Collection.extend({
         model: models.Story,
         _byTitle: {},
         _withLocation: {},
         _byDate: {},
-        url: '/stories/many',
         initialize: function(opts) {
           if ((opts != null) && opts.parent_map) {
             this.parent_map = opts.parent_map;
@@ -309,6 +299,13 @@
             inrange: inrange,
             outrange: outrange
           };
+        },
+        save: function(callbacks) {
+          var wrapper;
+          wrapper = new SaveWrap({
+            models: this.models
+          });
+          return wrapper.save(null, callbacks);
         }
       });
     })();
