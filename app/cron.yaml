@@ -1,4 +1,0 @@
-cron:
-- description: test
-  schedule: every 5 seconds
-  url: test.py

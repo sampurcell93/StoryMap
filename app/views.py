@@ -240,7 +240,8 @@ def favorite():
         user = models.Users.query.get(user_id)
         query = models.Queries.query.get(query_id)
         if query is not None:
-            if not tryConnection(lambda: db.session.query(models.users_has_queries).filter_by(users_id=user_id, queries_id=query_id).all()):
+            if not tryConnection(lambda: db.session.query(models.users_has_queries)
+                .filter_by(users_id=user_id, queries_id=query_id).all()):
                 print "adding"
                 user.queries.append(query)
                 db.session.commit()
@@ -260,8 +261,7 @@ def favoriteStory():
     user = models.Users.query.get(user_id)
     story = models.Stories.query.get(story_id)
     if story is not None:
-      if not tryConnection(lambda: db.session.query(models.users_has_stories).filtery_by(users_id=user_id, stories_id=story_id).all()):
-        print "adding"
+      if not tryConnection(lambda: db.session.query(models.users_has_stories).filter_by(users_id=user_id, stories_id=story_id).all()):
         users.stories.append(query)
         db.session.commit()
       return json.dumps({"success": True})
@@ -328,12 +328,6 @@ def createQuery(title=None):
     return json.dumps({'id': query_id})
 
 
-@app.route('/queries/<string:id>', methods=['PUT'])
-@login_required
-def succeedPut(id):
-    return json.dumps({"success": True})
-
-
 ########################
 ## Story REST Methods ##
 ########################
@@ -378,7 +372,10 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
         aggregator = request.json.get('aggregator')
         query_id = request.json.get('query_id')
     try:
-        story = tryConnection(lambda: models.Stories(title=title, publisher=publication, date=date, url=url, lat=lat, lng=lng, content=content, aggregator=aggregator, location=location))
+        story = tryConnection(lambda: models.Stories(
+            title=title, publisher=publication, date=date,
+            url=url, lat=lat, lng=lng, content=content, 
+            aggregator=aggregator, location=location))
         db.session.add(story)
         db.session.commit()
         # except Exception as e: db.session.rollback()
@@ -426,7 +423,6 @@ def storyPut(id):
 @login_required
 def addStoryToQuery(query_id, story_id):
     story = tryConnection(lambda: models.Stories.query.get(story_id))
-    print "tried connect"
     if story is None:
         return 'Story does not exist\n'
     query = models.Queries.query.get(query_id)

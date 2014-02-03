@@ -306,49 +306,34 @@ section {
 			&:hover  {
 				background: rgba(0,0,0,.2) ;
 
-				.mask {
-					display: block;
+				.icon-location-arrow {
+					visibility: visible;
 				}
 			}
 			&.highlighted {	
 				background: rgba(0,0,0,.5);
 			}
 			
-			.mask {
-				width: 100%;
-				height: 100%;
+			.icon-location-arrow {
+				@include border-radius(3px);
+				@include box-shadow(0px 0px 0px 1px rgba(255,255,255,.1) inset, 0px 1px 4px #000);
 				position: absolute;
-				top: 0;
-				left: 0;
-				text-indent: 0;
-				padding-left: 10px;
-				display: none;
+				right: 10px;
+				top: 4px;
+				color: $hasLocation;
+				font-size: 1.1em;
+				text-indent: 0em !important;
+				display: block;
+				visibility: hidden;
+				border: 1px solid $mainblue;
+				border-top-color: $highlightblue;
+				border-bottom-color: #111;
+				text-align: center;
 				background: $shadeblue;
-				li {
-					font-size: .9em;
-					line-height: 1.9;
-					display: inline-block;
-					width: 33.333%;
-					margin: 0 -2px;
-					font-family: $lato;
-					// border: 1px solid red;
+				padding: 3px;
+				margin: 0;
 
-					&:first-of-type { margin-left: 0;}
-
-					&:before {
-						padding: 0 10px 0 5px;
-						font-size: 1.2em;
-						font-family: 'icomoon';
-					}
-
-					a {
-						border: none;
-						color: #ddd;
-						text-decoration: none;
-					}
-				}
-
-				// li.icon-expand::before {font-size: 1.3em; vertical-align: 2px;}
+				&:hover { color: #f9f9f9; }
 			}
 
 		}

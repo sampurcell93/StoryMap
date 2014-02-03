@@ -13,18 +13,25 @@ from flask.ext.login import login_user, logout_user, current_user, login_require
 
 dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime)  or isinstance(obj, datetime.date) else None
 
+def getAllNews(title):
+    getNews("google", title)
+    getNews("yahoo", title)
+    getNews("feedzilla", title)
+
 @app.route("/externalNews", methods=['GET'])
 @login_required
-def getNews():
+def getNews(title=None):
     sources = {
         'google': googleNews,
         'yahoo': yahooNews,
         'feedzilla': feedZillaNews
     }
-    return sources[request.args['source']]()
+    return sources[request.args['source']](title)
 
-def feedZillaNews():
-    data = {'q': request.args['q'], 'count': 100}
+def feedZillaNews(title=None):
+    q = title
+    if title is None: q = request.args['q']
+    data = {'q': q, 'count': 100}
     url = 'http://api.feedzilla.com/v1/articles.json?'+urllib.urlencode(data)
     req = urllib2.Request(url)
     req.add_header('Accept', 'application/json')
@@ -43,11 +50,13 @@ def feedZillaNews():
             getCoords(story)
     return json.dumps(stories, default=dthandler)
 
-def googleNews():
+def googleNews(title=None, start=None):
     # Query and offset of stories
-    query = request.args['q']
-    start = request.args['start']
-    data = {'start':start, 'q':query}
+    q = title
+    s = start
+    if title is None: q = request.args['q']
+    if start is None: s = request.args['start']
+    data = {'start': s, 'q': q}
     url = "https://ajax.googleapis.com/ajax/services/search/news?v=1.0&rsz=8&"+urllib.urlencode(data)
     # Curl request headers
     req = urllib2.Request(url)
@@ -68,8 +77,11 @@ def googleNews():
             })
             getCoords(story)
     return json.dumps(stories, default=dthandler)
-def yahooNews():
-    query = request.args["q"]
+def yahooNews(title=None, start=None):
+    q = title
+    s = start
+    if title is None: q = request.args['q']
+    if start is None: s = request.args['start']
     URL = "http://yboss.yahooapis.com/ysearch/news"
     OAUTH_CONSUMER_KEY = "dj0yJmk9RHp0ckM1NnRMUmk1JmQ9WVdrOVdUbHdOMkZLTTJVbWNHbzlNakV5TXpReE1EazJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD0xMg--"
     OAUTH_CONSUMER_SECRET = "626da2d06d0b80dbd90799715961dce4e13b8ba1"
@@ -119,8 +131,11 @@ def getCoords (story):
     story['lng'] = coordinates.get('lng')
     story['location'] = coordinates.get('location')
 
-# Takes in a content string, runs it through calais, and returns coords if found as a {lat: x, lng: x} dict
-def coords(content="London is the greatest city on earth my good man"):
+# Takes in a content string, runs it through calais,
+# and returns coords if found as a {lat: x, lng: x} dict
+def coords(content=None):
+    if content is None:
+        return 
     key = "c3wjfrkfmrsft3r5wgxm5skr"
     calais = Calais(key, submitter="Sam Purcell")
     empty = {'lat': None, 'lng': None}

@@ -211,7 +211,10 @@ $ ->
     events:
       click: ->
         @model.trigger "center"
-  ( ->
+
+
+  # View for a single story item, exposed to the global machine (sigh)
+  window.views.StoryListItem = ( ->
     GeoItem = Backbone.View.extend
         tagName: 'li'
         template: $("#geocode-choice").html()
@@ -259,8 +262,7 @@ $ ->
           _.each @locs, @append
           @
 
-    # View for a single story item, exposed to the global machine (sigh)
-    window.views.StoryListItem = Backbone.View.extend 
+    Backbone.View.extend 
       template: $("#article-item").html()
       tagName: 'li'
       enterLocTemplate: $("#enter-loc").html()
@@ -320,8 +322,11 @@ $ ->
         @$el.append $(@popup.render().el).hide()
         @
       events:
-        "click": ->
-
+        "dblclick .article-title":  ->  
+          w = window.open(@model.get("url"), "_blank")
+          w.focus()
+        "click .article-title": (e) ->
+            @togglePopup(e)
         "mouseover": ->
           @model.trigger("highlight")
         "mouseout": ->
@@ -619,10 +624,10 @@ $ ->
         @$(".date-bubble").toggle('fast')
 
 
-  ( ->
+  window.views.QueryThumb = (->
     i = 0
     randClasses = ["blueribbon", "green", "orangestuff", "pink", "purple", "angle"]
-    window.views.QueryThumb = Backbone.View.extend
+    Backbone.View.extend
       tagName: 'li'
       template: $("#query-thumb").html()
       searchComplete: ->

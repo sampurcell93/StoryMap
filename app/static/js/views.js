@@ -272,7 +272,7 @@
         }
       }
     });
-    (function() {
+    window.views.StoryListItem = (function() {
       var GeoItem, GeoList;
       GeoItem = Backbone.View.extend({
         tagName: 'li',
@@ -339,7 +339,7 @@
           return this;
         }
       });
-      return window.views.StoryListItem = Backbone.View.extend({
+      return Backbone.View.extend({
         template: $("#article-item").html(),
         tagName: 'li',
         enterLocTemplate: $("#enter-loc").html(),
@@ -437,7 +437,14 @@
           return this;
         },
         events: {
-          "click": function() {},
+          "dblclick .article-title": function() {
+            var w;
+            w = window.open(this.model.get("url"), "_blank");
+            return w.focus();
+          },
+          "click .article-title": function(e) {
+            return this.togglePopup(e);
+          },
           "mouseover": function() {
             return this.model.trigger("highlight");
           },
@@ -840,11 +847,11 @@
         }
       }
     });
-    (function() {
+    window.views.QueryThumb = (function() {
       var i, randClasses;
       i = 0;
       randClasses = ["blueribbon", "green", "orangestuff", "pink", "purple", "angle"];
-      return window.views.QueryThumb = Backbone.View.extend({
+      return Backbone.View.extend({
         tagName: 'li',
         template: $("#query-thumb").html(),
         searchComplete: function() {

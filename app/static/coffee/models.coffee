@@ -183,7 +183,7 @@ $ ->
                     catch
                         if callbacks.error? then callback.error(_error)
             @
-    ( ->
+    window.collections.Stories = ( ->
 
         sortMethods = {
             "newest": (story) ->
@@ -197,7 +197,7 @@ $ ->
             # Override - just sends array 
             toJSON: -> @get "models"
 
-        window.collections.Stories = Backbone.Collection.extend
+        Backbone.Collection.extend
             model: models.Story
             _byTitle: {}
             _withLocation: {}

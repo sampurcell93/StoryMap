@@ -234,7 +234,7 @@
         return this;
       }
     });
-    return (function() {
+    return window.collections.Stories = (function() {
       var SaveWrap, sortMethods;
       sortMethods = {
         "newest": function(story) {
@@ -250,7 +250,7 @@
           return this.get("models");
         }
       });
-      return window.collections.Stories = Backbone.Collection.extend({
+      return Backbone.Collection.extend({
         model: models.Story,
         _byTitle: {},
         _withLocation: {},
