@@ -16,4 +16,4 @@ bcrypt = Bcrypt(app)
 lm = LoginManager()
 lm.init_app(app)
 lm.login_view = "/"
-from app import crons, views, models
+from app import views, models, crons

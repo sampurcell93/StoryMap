@@ -112,7 +112,8 @@
         $.get(this.external_url, {
           source: 'google',
           q: query.toLowerCase(),
-          start: start
+          start: start,
+          analyze: false
         }, function(stories) {
           console.count("google news story set returned");
           stories = JSON.parse(stories);
@@ -134,7 +135,8 @@
         $.get(this.external_url, {
           source: 'yahoo',
           q: query,
-          start: start
+          start: start,
+          analyze: false
         }, function(stories) {
           var total;
           stories = JSON.parse(stories);
@@ -155,7 +157,8 @@
         self = this;
         $.get(this.external_url, {
           q: this.get("title"),
-          source: 'feedzilla'
+          source: 'feedzilla',
+          analyze: false
         }, function(stories) {
           cc("done with feedzilla, calling next");
           console.log("done fn is ", done);

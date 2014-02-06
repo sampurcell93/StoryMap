@@ -5,7 +5,7 @@ import flask
 from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
-import news
+from news import News
 
 def tryConnection (applyfun): 
     try:
@@ -13,29 +13,25 @@ def tryConnection (applyfun):
     except exc.SQLAlchemyError:
         print "operational error, db disconnected"
         db.session.rollback()
-        return applyfun()
+        return tryConnection(applyfun)
 
+news = News()
 
-def updateQuery(title):
-    news.getAllNews(title)
-    return "update q"
-
-def test():
+def wrapper():
     queries = models.Queries.query.all()
     for query in queries:
-        print query.title
-        updateQuery(query.title)
+        newStories = news.getAllNewStories(query.title, False)
+        newStories = news.analyzeStories(newStories)
     return "testing"
 
-
-# test()
-# 
 # sched = Scheduler()
 # sched.start()
 
-# @sched.interval_schedule(seconds=3)
+# wrapper()
+
+# @sched.interval_schedule(seconds=10)
 # def update_queries():
-#     test()
+    # wrapper()
 
 # @sched.cron_schedule(day_of_week='mon-sun', hour=23)
 # def scheduled_job():
