@@ -29,6 +29,8 @@ $ ->
                       compiled = _.template(template)
                       render: (context) -> 
                           compiled(context)
+        # Get all queries then set the local array as a 
+        # pointer for the autocomplete module
         $.get "/queries", {}, (response) =>
           _.each response.queries, (r) ->
             r.value = r.title
