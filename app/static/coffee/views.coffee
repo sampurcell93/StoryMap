@@ -91,8 +91,11 @@ $ ->
           queryobj.getGoogleNews 0,
             (queryobj.getFeedZilla(
               (queryobj.getYahooNews 0, ->
-                window.destroyModal()
-                window.existingQueries.add queryobj
+                destroyModal()
+                launchModal("We've fetched the stories, now we're analyzing them! Hold on a sec.")
+                existingQueries.add queryobj
+                cc "about to analyze"
+                queryobj.analyze()
               )  
             ) 
             )
@@ -146,7 +149,7 @@ $ ->
             #     cc resp
             # })
             error: ->
-              cc "YOLo"
+              cc "Something went wrong when saving the stories"
 
     # Args: none
     # Rets: this
@@ -305,9 +308,9 @@ $ ->
                 loader.remove()
                 setTimeout window.destroyModal, 1500
 
-        iface.find(".js-address-value").on "keydown", (e) =>
+        iface.find(".js-address-value").focus().on "keydown", (e) =>
           key = e.keyCode || e.which
-          if key == 13 then getLocs()
+          if key is 13 then getLocs()
         iface.find(".js-geocode-go").on "click", =>
           getLocs()
       getPosition: ->

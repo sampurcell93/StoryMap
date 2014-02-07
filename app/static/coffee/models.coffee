@@ -84,6 +84,27 @@ $ ->
         # A note on infinitely chained callback sequences - 
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
+        analyze: ->
+            coll = @get("stories").models
+            cc "analyzings"
+            cc coll
+            $.ajax({
+              url: '/analyze',
+              type: 'POST',
+              dataType: 'json'
+              data: {stories: JSON.stringify(coll)},
+            })
+            .done( (resp) ->
+              console.log("success");
+              console.log(resp)
+            )
+            .fail( ->
+              console.log("error");
+            )
+            .always(->
+              console.log("complete");
+            )
+            
         getGoogleNews: (start, done) ->
             cc "calling gnews"
             self = @
@@ -93,6 +114,7 @@ $ ->
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
+                analyze: false
             , (stories) ->
                 console.count "google news story set returned"
                 stories = JSON.parse(stories)
@@ -111,6 +133,7 @@ $ ->
                 source: 'yahoo'
                 q: query
                 start: start
+                analyze: false
             , (stories) ->
                 stories = JSON.parse stories
                 console.count "yahoo news story set returned"
@@ -127,6 +150,7 @@ $ ->
             $.get @external_url, {
                 q: @get("title")
                 source: 'feedzilla'
+                analyze: false
             }, (stories) ->
                 cc "done with feedzilla, calling next"
                 console.log "done fn is ", done

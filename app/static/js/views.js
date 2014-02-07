@@ -118,8 +118,11 @@
         }), (function(query) {
           $(".js-save-query").removeClass("hidden");
           return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
-            window.destroyModal();
-            return window.existingQueries.add(queryobj);
+            destroyModal();
+            launchModal("We've fetched the stories, now we're analyzing them! Hold on a sec.");
+            existingQueries.add(queryobj);
+            cc("about to analyze");
+            return queryobj.analyze();
           })));
         }));
       },
@@ -185,7 +188,7 @@
               });
               return {
                 error: function() {
-                  return cc("YOLo");
+                  return cc("Something went wrong when saving the stories");
                 }
               };
             }
@@ -410,7 +413,7 @@
               }
             });
           };
-          iface.find(".js-address-value").on("keydown", function(e) {
+          iface.find(".js-address-value").focus().on("keydown", function(e) {
             var key;
             key = e.keyCode || e.which;
             if (key === 13) {

@@ -659,12 +659,17 @@ footer {
 	display: block;
 	height: 10px;
 	width: 3px;
-	background: $hasLocation;
+	// needs latest Compass, add '@import "compass"' to your scss
+background-color: rgb(114,229,94); // Old browsers
+@include filter-gradient(#72e55e, #72b068, vertical); // IE6-9
+@include background-image(linear-gradient(top,  rgba(114,229,94,1) 0%,rgba(114,176,104,1) 100%));
+
 	position: absolute;
 	top: 1px;
 	left: 200px;
 	cursor: pointer;
 	border: 1px solid $shadeblue;
+	border: 1px solid rgba(0,0,0,.6);
 	border-bottom: none;
 	z-index: 98;
 

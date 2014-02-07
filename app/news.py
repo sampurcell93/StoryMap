@@ -9,6 +9,7 @@ from pprint import pprint
 from calais import Calais
 from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError
+from dateutil import parser
 from sqlalchemy import select
 from views import QueryManager
 from app import app, models, db, lm, login_serializer
@@ -30,13 +31,13 @@ class News():
     normalizers = {
         "feedzilla" : {
                     'aggregator': lambda val: 'feedzilla',
-                    'date'      : lambda val: datetime.datetime.strptime(val.get("publish_date"), "%a, %d %b %Y %H:%M:%S -0500"),
+                    'date'      : lambda val: parser.parse(val.get("publish_date")),
                     'content'   : 'summary'
         }, 
         "google"    : {
                     'aggregator': lambda val: 'google',
                     'url': 'unescapedUrl',
-                    'date': lambda val: datetime.datetime.strptime(val.get("publishedDate"), "%a, %d %b %Y %H:%M:%S -0500")
+                    'date': lambda val: parser.parse(val.get("publishedDate")),
         },
         "yahoo"     : {
                     'aggregator': lambda val: 'yahoo',
@@ -155,13 +156,21 @@ def getNews():
         'yahoo': t.yahoo,
         'feedzilla': t.feedZilla
     }
-    return sources[request.args['source']](request.args.get("q"))
+    return sources[request.args['source']](request.args.get("q"), request.args.get("analyze"))
+
+@app.route("/analyze", methods=['POST'])
+@login_required
+def analyze():
+    print "analyzing"
+    stories = request.json.get("stories")
+    print stories
+    stories = json.loads(stories)
+    return json.dumps(Manager.analyzeStories(stories), default=dthandler)
+
 # Takes a story dict, and dict with values of either type string or type function
 # String values simply switch the name of the key in a kay value pair to the new key name
 # Functions are applied to the value, like a one time map.
 def normalize(story, keymap):
-    print "normalizing "
-    print story.get('publish_date')
     for key in keymap:
         val = keymap[key]
         if type(val) == str:

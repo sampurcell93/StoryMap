@@ -107,6 +107,27 @@
         }
         return this;
       },
+      analyze: function() {
+        var coll;
+        coll = this.get("stories").models;
+        cc("analyzings");
+        cc(coll);
+        return $.ajax({
+          url: '/analyze',
+          type: 'POST',
+          dataType: 'json',
+          data: {
+            stories: JSON.stringify(coll)
+          }
+        }).done(function(resp) {
+          console.log("success");
+          return console.log(resp);
+        }).fail(function() {
+          return console.log("error");
+        }).always(function() {
+          return console.log("complete");
+        });
+      },
       getGoogleNews: function(start, done) {
         var query, self;
         cc("calling gnews");
@@ -116,7 +137,8 @@
         $.get(this.external_url, {
           source: 'google',
           q: query.toLowerCase(),
-          start: start
+          start: start,
+          analyze: false
         }, function(stories) {
           console.count("google news story set returned");
           stories = JSON.parse(stories);
@@ -138,7 +160,8 @@
         $.get(this.external_url, {
           source: 'yahoo',
           q: query,
-          start: start
+          start: start,
+          analyze: false
         }, function(stories) {
           var total;
           stories = JSON.parse(stories);
@@ -159,7 +182,8 @@
         self = this;
         $.get(this.external_url, {
           q: this.get("title"),
-          source: 'feedzilla'
+          source: 'feedzilla',
+          analyze: false
         }, function(stories) {
           cc("done with feedzilla, calling next");
           console.log("done fn is ", done);
