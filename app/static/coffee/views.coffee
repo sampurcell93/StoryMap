@@ -93,13 +93,14 @@ $ ->
         ((model) ->
           app.navigate("query/" + model, true)
         ),
-        ((query) ->
+        ((query) =>
           $(".js-save-query").removeClass("hidden")
           queryobj.getGoogleNews 0,
             (queryobj.getFeedZilla(
-              (queryobj.getYahooNews 0, ->
+              (queryobj.getYahooNews 0, =>
                 window.destroyModal()
                 window.existingQueries.add queryobj
+                @timeline.reset().updateHandles(true).render()
               )  
             ) 
             )
@@ -372,6 +373,7 @@ $ ->
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
+      console.log model.get("title")
       view = new views.StoryListItem model: model, timeline: @timeline
       @$(@list).find(".placeholder").remove().end().append view.render().el
       @

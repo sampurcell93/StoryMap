@@ -107,7 +107,8 @@
         return this;
       },
       search: function(query) {
-        var queryobj, self;
+        var queryobj, self,
+          _this = this;
         this.$(".icon-in").css("visibility", "visible");
         self = this;
         queryobj = new models.Query({
@@ -126,7 +127,8 @@
           $(".js-save-query").removeClass("hidden");
           return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
             window.destroyModal();
-            return window.existingQueries.add(queryobj);
+            window.existingQueries.add(queryobj);
+            return _this.timeline.reset().updateHandles(true).render();
           })));
         }));
       },
@@ -506,6 +508,7 @@
       },
       appendChild: function(model) {
         var view;
+        console.log(model.get("title"));
         view = new views.StoryListItem({
           model: model,
           timeline: this.timeline
