@@ -79,7 +79,7 @@
     <hr>
     <p>
     Published by 
-    <%= publisher %> on <%= cleanDate(new Date(date)) %>
+    <%= publisher %> on <a class='js-zoom-to-date'><%=cleanDate(new Date(date)) %></a>
     | 
     Retrieved from 
     <%= aggregator %>
@@ -88,7 +88,7 @@
 
 <script type='text/template' id='help-template'>
     <h2>Using the News Map</h2>
-    <p>The map is broken up into three main portions: The Story List, to the left, where you can see detailed information about stories; the timeline, on the bottom, where you can see temporal relations of stories; and the map itself, where you can see spatial relationships between stories.</p>
+    <p>The map is broken up into three main portions: The Story List, to the left, where you can see detailed information about stories; the timeline, on the bottom, where you can see temporal relations between stories; and the map itself, where you can see spatial relationships between stories.</p>
 
     <dl>
         <dt> Story List </dt>

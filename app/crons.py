@@ -49,14 +49,13 @@ def updateAllQueries():
                 story.get("aggregator"),
                 story.get("location")
             )
-        break;
     return True
 
 sched = Scheduler()
 sched.start()
 
 
-updateAllQueries()
+# updateAllQueries()
 # @sched.interval_schedule(seconds=10)
 # def update_queries():
     # wrapper()

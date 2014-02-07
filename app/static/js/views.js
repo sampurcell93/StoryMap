@@ -50,13 +50,14 @@
           ]);
           this.typeahead = true;
         }
-        this.storyList = new views.StoryList({
-          collection: this.model.get("stories"),
-          map: this
-        });
         this.timeline = new views.Timeline({
           collection: this.model.get("stories"),
           map: this
+        });
+        this.storyList = new views.StoryList({
+          collection: this.model.get("stories"),
+          map: this,
+          timeline: this.timeline
         });
         this.render();
         return this;
@@ -343,12 +344,13 @@
         template: $("#article-item").html(),
         tagName: 'li',
         enterLocTemplate: $("#enter-loc").html(),
-        initialize: function() {
+        initialize: function(attrs) {
           var self;
           this.popup = new views.QuickStory({
             model: this.model
           });
           _.bindAll(this, "render", "getPosition", "togglePopup");
+          _.extend(this, attrs);
           self = this;
           return this.listenTo(this.model, {
             "save": function() {
@@ -383,13 +385,13 @@
           });
         },
         launchLocationPicker: function() {
-          var iface,
+          var getLocs, iface,
             _this = this;
           iface = _.template(this.enterLocTemplate, {
             title: this.model.escape("title").stripHTML()
           });
           iface = launchModal(iface);
-          return iface.find(".js-geocode-go").on("click", function() {
+          getLocs = function() {
             var loader;
             loader = $("<p/>").addClass("center loading-geocode-text").text("Loading.....");
             iface.append(loader);
@@ -407,6 +409,16 @@
                 return setTimeout(window.destroyModal, 1500);
               }
             });
+          };
+          iface.find(".js-address-value").on("keydown", function(e) {
+            var key;
+            key = e.keyCode || e.which;
+            if (key === 13) {
+              return getLocs();
+            }
+          });
+          return iface.find(".js-geocode-go").on("click", function() {
+            return getLocs();
           });
         },
         getPosition: function() {
@@ -452,7 +464,10 @@
             return this.model.trigger("unhighlight");
           },
           "click .js-set-location": "launchLocationPicker",
-          "click .js-show-model": "togglePopup"
+          "click .js-show-model": "togglePopup",
+          "click .js-zoom-to-date": function() {
+            return this.timeline.zoomTo(this.model.get("date"));
+          }
         }
       });
     })();
@@ -466,10 +481,11 @@
           return cc(this.collection);
         }
       },
-      initialize: function() {
+      initialize: function(attrs) {
         var self;
         self = this;
         this.map = this.options.map;
+        _.extend(this, attrs);
         _.bindAll(this, "render", "appendChild", "toggle", "filter");
         return this.bindListeners();
       },
@@ -484,7 +500,8 @@
       appendChild: function(model) {
         var view;
         view = new views.StoryListItem({
-          model: model
+          model: model,
+          timeline: this.timeline
         });
         this.$(this.list).find(".placeholder").remove().end().append(view.render().el);
         return this;
@@ -776,6 +793,25 @@
           return $t.addClass("selected").siblings(".js-speed-control").removeClass("selected");
         }
       },
+      zoomTo: function(date) {
+        var $t, center, high, low, offset, offsetH, offsetL;
+        if (!this.min || !this.max) {
+          return this;
+        }
+        center = (new Date(date)).getTime();
+        offsetL = (this.max - center) / 2;
+        offsetH = (center - this.min) / 2;
+        offset = offsetL > offsetH ? offsetH : offsetL;
+        $t = this.$timeline;
+        low = parseInt(center - offset);
+        high = parseInt(center + offset);
+        $t.slider("values", 0, low);
+        $t.slider("values", 1, high);
+        cc("offset " + offset);
+        cc("low " + low);
+        cc("high " + high);
+        return this;
+      },
       events: {
         "click .js-play-timeline": function(e) {
           $(e.currentTarget).removeClass("js-play-timeline").addClass("js-pause-timeline");
@@ -841,9 +877,7 @@
           return this.model.trigger("unhighlight");
         },
         "click": function(e) {
-          this.model.trigger("showpopup");
-          $(".date-bubble").hide();
-          return this.$(".date-bubble").toggle('fast');
+          return this.model.trigger("showpopup");
         }
       }
     });

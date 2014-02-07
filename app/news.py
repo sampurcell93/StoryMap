@@ -25,18 +25,18 @@ def tryConnection (applyfun):
     except exc.SQLAlchemyError:
         db.session.rollback()
         return applyfun()
-        
+
 class News():
     normalizers = {
         "feedzilla" : {
                     'aggregator': lambda val: 'feedzilla',
-                    'date'      : lambda val: datetime.datetime.strptime(val.get("publish_date"), "%a, %d %b %Y %H:%M:%S +0100"),
+                    'date'      : lambda val: datetime.datetime.strptime(val.get("publish_date"), "%a, %d %b %Y %H:%M:%S -0500"),
                     'content'   : 'summary'
         }, 
         "google"    : {
                     'aggregator': lambda val: 'google',
                     'url': 'unescapedUrl',
-                    'date': lambda val: datetime.datetime.strptime(val.get("publishedDate"), "%a, %d %b %Y %H:%M:%S -0800")
+                    'date': lambda val: datetime.datetime.strptime(val.get("publishedDate"), "%a, %d %b %Y %H:%M:%S -0500")
         },
         "yahoo"     : {
                     'aggregator': lambda val: 'yahoo',

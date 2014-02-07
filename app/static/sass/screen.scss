@@ -61,11 +61,6 @@ header, footer {
 	z-index: 999;
 }
 
-$article-list-width: 25%;
-$main-content-width: 100% - $article-list-width;
-$duration: .45s;
-
-
 .search-bar { 
 	float: right;
 	width: 60%;
@@ -182,6 +177,7 @@ section {
 	height: 100%;
 	width: 100%;
 	top: 0;
+	background: #7AA297 !important;
 }
 
 
@@ -199,7 +195,6 @@ section {
 		left: 10px;
 		display: none;
 	}
-
 }
 
 .all-articles {
@@ -369,6 +364,21 @@ section {
 	color: #ccc;
 	overflow: auto;
 
+	a {
+		font-size: 1em;
+		border-left: none !important;
+		text-decoration: none;
+
+	    &:hover { 
+	    	text-decoration: underline;
+	    	color: $hasLocation;
+	    }
+
+	    &.js-zoom-to-date {
+	    	border-bottom: 1px dotted $hasLocation;
+	    }
+	}
+
 	h3 {
 		font-size: 1.06em;
 		color: #aaa;
@@ -379,15 +389,11 @@ section {
 		border-bottom: 1px solid $mainblue;
 
 		a {
-			border: none !important;
-			color: #ddd;
-			text-decoration: none;
 			display: block;
-		    &:hover { 
-		    	text-decoration: underline;
-		    	color: $hasLocation;
-		    }
+			color: #ddd;
 		}
+
+
 	}
 
 	p {
@@ -579,28 +585,36 @@ footer {
 			border: 10px solid transparent;
 			border-top-color: rgb(74,79,91);
 		}
-
-		@include border-radius(3px);
 	}
 
 	.ui-slider-handle {
 		border: none;
-		width: 24px;
-		height: 24px;
+		width: 16px;
+		height: 19px;
 		z-index: 99;
+		border: 1px solid black;
+		border-top-color: #aaa;
+		@include border-radius(3px);
+		// needs latest Compass, add '@import "compass"' to your scss
+		background-color: rgb(0,0,0); // Old browsers
+		@include filter-gradient(#000000, #45484d, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(69,72,77,1) 100%));
+		@include border-radius(5px);
+		@include box-shadow(0px 2px 3px #222);
+
 
 		&:focus { outline: none; }
 		&:first-of-type  {
-			background: none;
-			background: url("../images/ui-slider-min.png") no-repeat center;
+			// background: none;
+			// background: url("../images/ui-slider-min.png") no-repeat center;
 			.handle-display-value {
 				left: -10px;
 				&:before { left: 10px;}
 			}
 		}
 		&:last-of-type {
-			background: none;
-			background: url("../images/ui-slider-max.png") no-repeat center;
+			// background: none;
+			// background: url("../images/ui-slider-max.png") no-repeat center;
 			.handle-display-value {
 				right: -10px;
 
@@ -613,12 +627,14 @@ footer {
 
 	.ui-slider-range {
 		border: 1px solid #111;
-		border-top-color: #405A6D;
-		@include box-shadow(0px 0px 0px 0px #666);
+		border-top-color: #00415B;
+		border-bottom: 1px solid #60ABCB;
+		@include box-shadow(0px 1px 3px 0px #00638D inset);
 		// needs latest Compass, add '@import "compass"' to your scss
-		background-color: rgb(17,32,61); // Old browsers
-		@include filter-gradient(#11203d, #2c4254, vertical); // IE6-9
-		@include background-image(linear-gradient(top,  rgba(17,32,61,1) 0%,rgba(44,66,84,1) 100%));
+		background-color: rgb(0,91,129); // Old browsers
+		@include filter-gradient(#005b81, #0086bd, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(0,91,129,1) 0%,rgba(0,134,189,1) 100%));
+
 	}
 }
 
@@ -638,12 +654,12 @@ footer {
 	top: 1px;
 	left: 200px;
 	cursor: pointer;
-	border: 1px solid #405A6D;
+	border: 1px solid $shadeblue;
 	border-bottom: none;
 	z-index: 98;
 
 	&:hover, &.highlighted {
-		background: #fff;
+		background: #fff !important;
 		z-index: 9999;
 	}
 
@@ -665,6 +681,7 @@ footer {
 
 	&.no-location-marker {
 		background: black;
+		border-color: $mainblue;
 	}
 }
 

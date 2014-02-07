@@ -1,12 +1,21 @@
 @import "compass/css3";
 
+// Fonts
 $open-sans: 'Open Sans', sans-serif;
 $lato: "Lato", sans-serif;
 $roboto: 'Roboto', sans-serif;
+
+// Colors
 $mainblue: #242833;
 $shadeblue: #181B21;
 $highlightblue: #303849;
 $hasLocation: #72b068;
+
+// Width settings
+$article-list-width: 25%;
+$main-content-width: 100% - $article-list-width;
+$duration: .45s;
+
 
 .clearfix:after {
      visibility: hidden;

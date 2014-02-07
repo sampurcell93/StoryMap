@@ -39,8 +39,8 @@ $ ->
           }
           ])
         @typeahead = true
-      @storyList = new views.StoryList collection: @model.get("stories"), map :@
       @timeline = new views.Timeline collection: @model.get("stories"), map: @
+      @storyList = new views.StoryList collection: @model.get("stories"), map :@, timeline: @timeline
       @render()
       @
     render: ->
@@ -266,9 +266,10 @@ $ ->
       template: $("#article-item").html()
       tagName: 'li'
       enterLocTemplate: $("#enter-loc").html()
-      initialize: ->
+      initialize: (attrs) ->
         @popup = new views.QuickStory model: @model
         _.bindAll @, "render", "getPosition", "togglePopup"
+        _.extend @, attrs
         self = @
         @listenTo @model,
           "save" : ->
@@ -293,7 +294,7 @@ $ ->
       launchLocationPicker: ->
         iface = _.template @enterLocTemplate, {title: @model.escape("title").stripHTML()}
         iface = launchModal iface
-        iface.find(".js-geocode-go").on "click", =>
+        getLocs = =>
           loader = $("<p/>").addClass("center loading-geocode-text").text("Loading.....")
           iface.append loader
           @model.geocode iface.find(".js-address-value").val(), 
@@ -303,6 +304,12 @@ $ ->
             error: =>
                 loader.remove()
                 setTimeout window.destroyModal, 1500
+
+        iface.find(".js-address-value").on "keydown", (e) =>
+          key = e.keyCode || e.which
+          if key == 13 then getLocs()
+        iface.find(".js-geocode-go").on "click", =>
+          getLocs()
       getPosition: ->
         @$el.position().top
       togglePopup: ->
@@ -333,6 +340,8 @@ $ ->
           @model.trigger("unhighlight")
         "click .js-set-location": "launchLocationPicker"
         "click .js-show-model": "togglePopup"
+        "click .js-zoom-to-date": ->
+          @timeline.zoomTo(@model.get("date"))
   )()
     
   # List of articles, regardless of location data, and controls for filtering
@@ -344,9 +353,10 @@ $ ->
     events: 
       "click": ->
         cc @collection
-    initialize: ->
+    initialize: (attrs) ->
       self = @
       @map = @options.map
+      _.extend @, attrs
       _.bindAll @, "render", "appendChild", "toggle", "filter"
       @bindListeners()
     bindListeners: ->
@@ -355,7 +365,7 @@ $ ->
       @listenTo @collection, "add", (model) ->
         self.appendChild model
     appendChild:(model) ->
-      view = new views.StoryListItem model: model
+      view = new views.StoryListItem model: model, timeline: @timeline
       @$(@list).find(".placeholder").remove().end().append view.render().el
       @
     render: ->
@@ -574,11 +584,29 @@ $ ->
         speed = @setSpeed($t.attr "dir" || "forward")
         $t.attr "speed", speed + "x"
         $t.addClass("selected").siblings(".js-speed-control").removeClass "selected"
+
+    # Expects either a date string or date object
+    zoomTo: (date) ->
+      if !@min or !@max then return @
+      center = (new Date(date)).getTime()
+      offsetL = (@max - center)/2
+      offsetH = (center - @min)/2
+      offset = if offsetL > offsetH then offsetH else offsetL
+      $t   = @$timeline
+      low = (parseInt(center - offset))
+      high = (parseInt(center + offset))
+      $t.slider("values", 0, low)
+      $t.slider("values", 1, high)
+      cc "offset " + offset
+      cc "low " + low
+      cc "high " + high
+      @
+
+
     events: 
       "click .js-play-timeline": (e) ->
         $(e.currentTarget).removeClass("js-play-timeline").addClass "js-pause-timeline"
-        unless @isPlaying
-          @play()
+        @play() unless @isPlaying
       "click .js-pause-timeline": (e) ->
         $(e.currentTarget).removeClass("js-pause-timeline").addClass "js-play-timeline"
         @stop()
@@ -620,8 +648,8 @@ $ ->
         @model.trigger("unhighlight")
       "click": (e) ->
         @model.trigger "showpopup"
-        $(".date-bubble").hide()
-        @$(".date-bubble").toggle('fast')
+        # $(".date-bubble").hide()
+        # @$(".date-bubble").toggle('fast')
 
 
   window.views.QueryThumb = (->
