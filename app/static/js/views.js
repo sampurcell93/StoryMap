@@ -571,7 +571,7 @@
           if (timeFromStart >= 450) {
             return clearInterval(smoothRender);
           }
-        }, 1);
+        }, 3);
       },
       events: {
         "keyup .js-filter-articles": function(e) {
@@ -680,7 +680,6 @@
         pos -= this.min;
         pos /= range;
         pixeladdition = 10 / width;
-        pos += pixeladdition;
         view = new views.TimelineMarker({
           model: model,
           left: pos
@@ -807,9 +806,6 @@
         high = parseInt(center + offset);
         $t.slider("values", 0, low);
         $t.slider("values", 1, high);
-        cc("offset " + offset);
-        cc("low " + low);
-        cc("high " + high);
         return this;
       },
       events: {

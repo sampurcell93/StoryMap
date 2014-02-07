@@ -406,10 +406,10 @@ $ ->
         timeFromStart = new Date().getTime() - startTime
         google.maps.event.trigger map, 'resize'
         map.setZoom map.getZoom()
-        # transition lasts .34sec
+        # transition lasts .45sec
         if timeFromStart >= 450
           clearInterval smoothRender
-      , 1
+      , 3
     events: 
       "keyup .js-filter-articles": (e) ->
         val = ($t = $(e.currentTarget)).val().toLowerCase()
@@ -496,7 +496,7 @@ $ ->
       pos /= range
       # pixel offset -> percentage of width -> add to actual percent for SMOOV UI
       pixeladdition = 10/width
-      pos += pixeladdition
+      # pos += pixeladdition
       # Calculate a percentage for the article and pass into marker view
       view = new views.TimelineMarker model: model, left: pos
       $slider.append view.render().el
@@ -597,9 +597,7 @@ $ ->
       high = (parseInt(center + offset))
       $t.slider("values", 0, low)
       $t.slider("values", 1, high)
-      cc "offset " + offset
-      cc "low " + low
-      cc "high " + high
+
       @
 
 

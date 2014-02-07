@@ -199,7 +199,7 @@ section {
 
 .all-articles {
 	// @include box-shadow(-2px 0px 5px $shadeblue inset);
-	@include transition(left $duration ease-in-out);
+	@include transition(margin-left $duration ease-in-out, opacity $duration ease-in-out);
 	position: relative;
 	display: inline-block;
 	width: $article-list-width;
@@ -235,10 +235,12 @@ section {
 		z-index: 1000;
 		color: #aaa;
 		text-shadow: 0px 1px 0px $highlightblue;
+
+		&:hover { color: #ddd; }
 	}
 	
 	&.away {
-		left: -1*$article-list-width;
+		margin-left: -1*$article-list-width;
 
 		i.js-toggle-view {
 			cursor: pointer;
@@ -246,11 +248,16 @@ section {
 			right: -50px;
 			color: #f9f9f9;
 		}	
+
+		.article-list {
+			opacity: 0;
+			@include transform(scale(.9));
+		}
 	}
 
 	&.away + .main-content-wrap {
 		width: 100%;
-		left: -1*$article-list-width;
+		// left: -1*$article-list-width;
 
 		ul.control-panel {
 			left: 40px;
@@ -258,6 +265,7 @@ section {
 	}
 
 	.article-list {
+		@include transition(all $duration ease-in-out);
 		overflow: auto;
 		height: calc(100% - 30px);
 		@include box-shadow(0px 1px 6px #111 inset);
@@ -392,8 +400,6 @@ section {
 			display: block;
 			color: #ddd;
 		}
-
-
 	}
 
 	p {
@@ -594,16 +600,20 @@ footer {
 		z-index: 99;
 		border: 1px solid black;
 		border-top-color: #aaa;
-		@include border-radius(3px);
+		cursor: -webkit-grab;
+		cursor: -moz-grab;
 		// needs latest Compass, add '@import "compass"' to your scss
 		background-color: rgb(0,0,0); // Old browsers
 		@include filter-gradient(#000000, #45484d, vertical); // IE6-9
 		@include background-image(linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(69,72,77,1) 100%));
 		@include border-radius(5px);
 		@include box-shadow(0px 2px 3px #222);
+		@include border-radius(3px);
 
 
-		&:focus { outline: none; }
+		&:focus { 
+			outline: none;
+		}
 		&:first-of-type  {
 			// background: none;
 			// background: url("../images/ui-slider-min.png") no-repeat center;
