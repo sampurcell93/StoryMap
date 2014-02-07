@@ -4264,11 +4264,11 @@ section > div {
 /* line 252, ../sass/screen.scss */
 .all-articles.away .article-list {
   opacity: 0;
-  -webkit-transform: scale(0.9);
-  -moz-transform: scale(0.9);
-  -ms-transform: scale(0.9);
-  -o-transform: scale(0.9);
-  transform: scale(0.9);
+  -webkit-transform: scale(0.8);
+  -moz-transform: scale(0.8);
+  -ms-transform: scale(0.8);
+  -o-transform: scale(0.8);
+  transform: scale(0.8);
 }
 /* line 258, ../sass/screen.scss */
 .all-articles.away + .main-content-wrap {
