@@ -90,7 +90,11 @@
         stories = this.get("stories");
         story.date = new Date(story.date);
         console.log(story);
-        title = story.title.toLowerCase().stripHTML();
+        try {
+          title = story.title.toLowerCase().stripHTML();
+        } catch (_error) {
+          title = "This story didn't have a title.";
+        }
         if (!stories._byTitle.hasOwnProperty(title)) {
           stories.add(story = new models.Story(story));
           id = this.get("id") || this.id;
@@ -112,8 +116,7 @@
         $.get(this.external_url, {
           source: 'google',
           q: query.toLowerCase(),
-          start: start,
-          analyze: false
+          start: start
         }, function(stories) {
           console.count("google news story set returned");
           stories = JSON.parse(stories);
@@ -135,8 +138,7 @@
         $.get(this.external_url, {
           source: 'yahoo',
           q: query,
-          start: start,
-          analyze: false
+          start: start
         }, function(stories) {
           var total;
           stories = JSON.parse(stories);
@@ -157,8 +159,7 @@
         self = this;
         $.get(this.external_url, {
           q: this.get("title"),
-          source: 'feedzilla',
-          analyze: false
+          source: 'feedzilla'
         }, function(stories) {
           cc("done with feedzilla, calling next");
           console.log("done fn is ", done);

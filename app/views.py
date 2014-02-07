@@ -16,11 +16,11 @@ import urllib
 import urllib2
 import httplib2
 import json
+import pytz
 from sqlalchemy import exc
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy import select
 from flask.ext.login import login_user, logout_user, current_user, login_required
-import news
 
 bcrypt = Bcrypt(app)
 
@@ -91,6 +91,91 @@ def to_json(result, is_query=False):
             output['queries'].append(row2)
     return output
 
+
+class QueryManager():
+    def createStory(self, title=None, publication=None, date=None, author=None, url=None,
+                    lat=None, lng=None, content=None, query_id=None, aggregator='Yahoo', location=''):
+        if title is None:
+            title = request.json['title']
+            content = request.json['content']
+            publication = request.json['publisher']
+            date = parser.parse(request.json['date']).strftime('%Y-%m-%d %H:%M:%S')
+            url = request.json.get('url')
+            lat = request.json.get('lat')
+            lng = request.json.get('lng')
+            location = request.json.get('location')
+            aggregator = request.json.get('aggregator')
+            query_id = request.json.get('query_id')
+        try:
+            # date = date.replace(tzinfo=None)
+            story = tryConnection(lambda: models.Stories(
+                title=title, publisher=publication, date=date,
+                url=url, lat=lat, lng=lng, content=content, 
+                aggregator=aggregator, location=location))
+            db.session.add(story)
+            try: db.session.commit()
+            except InvalidRequestError as e: 
+                db.session.rollback()
+                db.session.commit()
+            # except Exception as e: db.session.rollback()
+            # except Exception: return json.dumps({"duplicate": True}
+            if query_id is not None:
+                print "story has been created: now adding to query #"
+                print query_id
+                print " and the story has the id " 
+                print story.id
+                self.addStoryToQuery(story.id, query_id)
+            return json.dumps({"id": story.id})
+        except IntegrityError as e:
+            db.session.flush()
+            # db.session.rollback()
+            return json.dumps({"duplicate": True})
+
+    def addAllStoriesToQuery(self, stories, queryid):
+        if stories is None: return True
+        for story in stories:
+            self.addStoryToQuery(story['id'],queryid)
+        return True
+
+    def addStoryToQuery(self, story_id, query_id):
+        print "Adding story now - at start"
+        story = tryConnection(lambda: models.Stories.query.get(story_id))
+        if story is None:
+            return 'Story does not exist\n'
+        query = models.Queries.query.get(query_id)
+        if query is None:
+            return 'Query does not exist\n'
+        story.queries.append(query)
+        print "successfully added story to query"
+        db.session.commit()
+        print "session committed"
+        return True
+    def getQueryByTitle(self, title):
+        query = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
+        if not query:
+            return json.dumps({"exists": False})
+        return self.getQueryById(query[0].id)
+    def getQueryById(self, identifier):
+        digit = False
+        try:
+            digit = identifier.isdigit()
+        except Exception: 
+            digit = True
+        if digit is True:
+            query = tryConnection(lambda: models.Queries.query.get(identifier))
+            if (query is None):
+                return json.dumps({"exists": False})
+            return json.dumps(to_json(query, True), default=dthandler)
+        else:
+            return self.getQueryByTitle(identifier)
+    def getQueryId(self, title):
+        query = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
+        if not query:
+            return json.dumps({"exists": False})
+        return query[0].id
+
+
+manager = QueryManager()
 
 ## User Interfaces ##
 @app.route('/')
@@ -286,26 +371,10 @@ def queries():
 @app.route('/queries/<string:identifier>', methods=['GET'])
 @login_required
 def getQueryById(identifier):
-    digit = False
-    try:
-        digit = identifier.isdigit()
-    except Exception: 
-        digit = True
-    if digit is True:
-        query = tryConnection(lambda: models.Queries.query.get(identifier))
-        if (query is None):
-            return json.dumps({"exists": False})
-        return json.dumps(to_json(query, True), default=dthandler)
-    else:
-        return getQueryByTitle(identifier)
+    return manager.getQueryById(identifier)
 @app.route('/title/query/<string:title>', methods=['GET'])
 def getQueryByTitle(title):
-    query = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
-    if not query:
-        return json.dumps({"exists": False})
-    print query[0].id
-    return getQueryById(query[0].id)
-
+    return manager.getQueryByTitle(title)
 
 # Create a new query ##
 @app.route('/queries/<string:title>', methods=['POST'])
@@ -317,7 +386,6 @@ def createQuery(title=None):
     existing = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
     query_id = None
     if not existing: 
-        print "hello"
         query = models.Queries(title=title, last_query=last_query, created=last_query)
         db.session.add(query)
         db.session.commit()
@@ -360,33 +428,7 @@ def getStory(id):
 @login_required
 def createStory(title=None, publication=None, date=None, author=None, url=None,
                 lat=None, lng=None, content=None, query_id=None, aggregator='Yahoo', location=''):
-    if title is None:
-        title = request.json['title']
-        content = request.json['content']
-        publication = request.json['publisher']
-        date = parser.parse(request.json['date']).strftime('%Y-%m-%d %H:%M:%S')
-        url = request.json.get('url')
-        lat = request.json.get('lat')
-        lng = request.json.get('lng')
-        location = request.json.get('location')
-        aggregator = request.json.get('aggregator')
-        query_id = request.json.get('query_id')
-    try:
-        story = tryConnection(lambda: models.Stories(
-            title=title, publisher=publication, date=date,
-            url=url, lat=lat, lng=lng, content=content, 
-            aggregator=aggregator, location=location))
-        db.session.add(story)
-        db.session.commit()
-        # except Exception as e: db.session.rollback()
-        # except Exception: return json.dumps({"duplicate": True}
-        if query_id is not None:
-            addStoryToQuery(query_id, story.id)
-        return json.dumps({"id": story.id})
-    except IntegrityError as e:
-        db.session.flush()
-        # db.session.rollback()
-        return json.dumps({"duplicate": True})
+    return manager.createStory(title, publication, date, author, url, lat, lng, content, query_id, aggregator, location)
 
 # Create a bunch of new stories #
 @app.route('/stories/many', methods=['POST'])
@@ -399,7 +441,6 @@ def createManyStories():
         publication = story.get('publisher')
         date = parser.parse(story.get("date")).strftime('%Y-%m-%d %H:%M:%S')
         url = story.get('url')
-        print content
         lat = story.get('lat')
         lng = story.get('lng')
         location = story.get('location')
@@ -422,15 +463,7 @@ def storyPut(id):
 @app.route('/addStoryToQuery/<string:query_id>/<string:story_id>', methods=['POST'])
 @login_required
 def addStoryToQuery(query_id, story_id):
-    story = tryConnection(lambda: models.Stories.query.get(story_id))
-    if story is None:
-        return 'Story does not exist\n'
-    query = models.Queries.query.get(query_id)
-    if query is None:
-        return 'Query does not exist\n'
-    story.queries.append(query)
-    db.session.commit()
-    return 'Success!\n'
+    return manager.addStoryToQuery(query_id, story_id)
 
 # Add a list of stories to an existing query ##
 @app.route('/addStoriesToQuery', methods=['POST'])

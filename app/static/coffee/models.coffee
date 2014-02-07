@@ -64,7 +64,10 @@ $ ->
             story.date = new Date(story.date)
             console.log story
             # ignore case for title
-            title = story.title.toLowerCase().stripHTML()
+            try
+                title = story.title.toLowerCase().stripHTML()
+            catch
+                title = "This story didn't have a title."
             # check if the story exists
             unless stories._byTitle.hasOwnProperty(title)
                 # if it doesn't add it and set it in the titles hashtable
@@ -89,8 +92,7 @@ $ ->
             $.get @external_url,
                 source: 'google'
                 q: query.toLowerCase()
-                start: start
-                analyze: false
+                start: start 
             , (stories) ->
                 console.count "google news story set returned"
                 stories = JSON.parse(stories)
@@ -109,7 +111,6 @@ $ ->
                 source: 'yahoo'
                 q: query
                 start: start
-                analyze: false
             , (stories) ->
                 stories = JSON.parse stories
                 console.count "yahoo news story set returned"
@@ -126,7 +127,6 @@ $ ->
             $.get @external_url, {
                 q: @get("title")
                 source: 'feedzilla'
-                analyze: false
             }, (stories) ->
                 cc "done with feedzilla, calling next"
                 console.log "done fn is ", done

@@ -6,6 +6,9 @@ from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from news import News
+from views import QueryManager
+
+Manager = QueryManager()
 
 def tryConnection (applyfun): 
     try:
@@ -19,15 +22,40 @@ news = News()
 
 def wrapper():
     queries = models.Queries.query.all()
+    # Get all queries in the system - todo add a date checked filter
     for query in queries:
+        # Get all the new stories for a query
         newStories = news.getAllNewStories(query.title, False)
+        if newStories is None: return;
+        # Analyze each story for location
+        print "about to analyze all new stories"
         newStories = news.analyzeStories(newStories)
-    return "testing"
+        # Save each story to the DB and link it to the query
+        for story in newStories:
+            print "Creating story with title: "
+            print story.get("title")
+            print " and url: "
+            print story.get("url")
+            Manager.createStory(
+                story.get("title"),
+                story.get("publication"),
+                story.get("date"),
+                story.get("author"),
+                story.get("url"),
+                story.get("lat"),
+                story.get("lng"),
+                story.get("content"),
+                query.id,
+                story.get("aggregator"),
+                story.get("location")
+            )
+        break;
+    return True
 
 # sched = Scheduler()
 # sched.start()
 
-# wrapper()
+wrapper()
 
 # @sched.interval_schedule(seconds=10)
 # def update_queries():
