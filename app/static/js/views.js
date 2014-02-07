@@ -118,11 +118,8 @@
         }), (function(query) {
           $(".js-save-query").removeClass("hidden");
           return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
-            destroyModal();
-            launchModal("We've fetched the stories, now we're analyzing them! Hold on a sec.");
-            existingQueries.add(queryobj);
-            cc("about to analyze");
-            return queryobj.analyze();
+            window.destroyModal();
+            return window.existingQueries.add(queryobj);
           })));
         }));
       },

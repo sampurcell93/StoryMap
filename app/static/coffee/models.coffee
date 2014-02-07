@@ -114,7 +114,7 @@ $ ->
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
-                analyze: false
+                # analyze: false
             , (stories) ->
                 console.count "google news story set returned"
                 stories = JSON.parse(stories)
@@ -133,7 +133,7 @@ $ ->
                 source: 'yahoo'
                 q: query
                 start: start
-                analyze: false
+                # analyze: false
             , (stories) ->
                 stories = JSON.parse stories
                 console.count "yahoo news story set returned"
@@ -150,7 +150,7 @@ $ ->
             $.get @external_url, {
                 q: @get("title")
                 source: 'feedzilla'
-                analyze: false
+                # analyze: false
             }, (stories) ->
                 cc "done with feedzilla, calling next"
                 console.log "done fn is ", done

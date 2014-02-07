@@ -91,11 +91,8 @@ $ ->
           queryobj.getGoogleNews 0,
             (queryobj.getFeedZilla(
               (queryobj.getYahooNews 0, ->
-                destroyModal()
-                launchModal("We've fetched the stories, now we're analyzing them! Hold on a sec.")
-                existingQueries.add queryobj
-                cc "about to analyze"
-                queryobj.analyze()
+                window.destroyModal()
+                window.existingQueries.add queryobj
               )  
             ) 
             )
