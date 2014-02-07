@@ -156,14 +156,12 @@ def getNews():
         'yahoo': t.yahoo,
         'feedzilla': t.feedZilla
     }
-    return sources[request.args['source']](request.args.get("q"), request.args.get("analyze"))
+    return sources[request.args['source']](request.args.get("q"))
 
 @app.route("/analyze", methods=['POST'])
 @login_required
 def analyze():
-    print "analyzing"
     stories = request.json.get("stories")
-    print stories
     stories = json.loads(stories)
     return json.dumps(Manager.analyzeStories(stories), default=dthandler)
 

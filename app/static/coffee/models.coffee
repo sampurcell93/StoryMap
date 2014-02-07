@@ -114,7 +114,7 @@ $ ->
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
-                # analyze: false
+                # analyze: true
             , (stories) ->
                 console.count "google news story set returned"
                 stories = JSON.parse(stories)

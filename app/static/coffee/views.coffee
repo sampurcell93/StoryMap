@@ -29,16 +29,21 @@ $ ->
                       compiled = _.template(template)
                       render: (context) -> 
                           compiled(context)
-        $searchbar.typeahead([
-          {
-              name: 'Queries'
-              template: $("#existing-query-item").html()
-              local: window.existingQueries.models
-              engine: Underscore
-              limit: 1000
-          }
-          ])
-        @typeahead = true
+        $.get "/queries", {}, (response) =>
+          _.each response.queries, (r) ->
+            r.value = r.title
+            r.tokens = [r.title]
+
+          $searchbar.typeahead([
+            {
+                name: 'Queries'
+                template: $("#existing-query-item").html()
+                local: response.queries
+                engine: Underscore
+                limit: 1000
+            }
+            ])
+          @typeahead = true
       @timeline = new views.Timeline collection: @model.get("stories"), map: @
       @storyList = new views.StoryList collection: @model.get("stories"), map :@, timeline: @timeline
       @render()

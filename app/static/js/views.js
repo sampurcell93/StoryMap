@@ -12,7 +12,8 @@
         return '/favorite?user_id=' + this.model.user.id + "&query_id=" + this.currQuery.id;
       },
       initialize: function() {
-        var $searchbar, Underscore, self;
+        var $searchbar, Underscore, self,
+          _this = this;
         _.bindAll(this, "render", "toggleMarkers", "search");
         self = this;
         this.model.instance = this;
@@ -39,16 +40,22 @@
               };
             }
           };
-          $searchbar.typeahead([
-            {
-              name: 'Queries',
-              template: $("#existing-query-item").html(),
-              local: window.existingQueries.models,
-              engine: Underscore,
-              limit: 1000
-            }
-          ]);
-          this.typeahead = true;
+          $.get("/queries", {}, function(response) {
+            _.each(response.queries, function(r) {
+              r.value = r.title;
+              return r.tokens = [r.title];
+            });
+            $searchbar.typeahead([
+              {
+                name: 'Queries',
+                template: $("#existing-query-item").html(),
+                local: response.queries,
+                engine: Underscore,
+                limit: 1000
+              }
+            ]);
+            return _this.typeahead = true;
+          });
         }
         this.timeline = new views.Timeline({
           collection: this.model.get("stories"),
