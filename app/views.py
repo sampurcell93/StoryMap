@@ -107,7 +107,6 @@ class QueryManager():
             aggregator = request.json.get('aggregator')
             query_id = request.json.get('query_id')
         try:
-            # date = date.replace(tzinfo=None)
             story = tryConnection(lambda: models.Stories(
                 title=title, publisher=publication, date=date,
                 url=url, lat=lat, lng=lng, content=content, 

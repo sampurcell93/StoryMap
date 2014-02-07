@@ -25,13 +25,12 @@ def tryConnection (applyfun):
     except exc.SQLAlchemyError:
         db.session.rollback()
         return applyfun()
-
+        
 class News():
-
     normalizers = {
         "feedzilla" : {
                     'aggregator': lambda val: 'feedzilla',
-                    'date'      : 'publish_date',
+                    'date'      : lambda val: datetime.datetime.strptime(val.get("publish_date"), "%a, %d %b %Y %H:%M:%S +0100"),
                     'content'   : 'summary'
         }, 
         "google"    : {
@@ -58,12 +57,10 @@ class News():
 
     def getAllNewStories(self, title=None, analyze=True):
         print "getting all news and storing it"
-        # f = []
-        # y = []
-        # f = self.filterExistingStories(self.feedZilla(title, analyze));
+        f = self.filterExistingStories(self.feedZilla(title, analyze));
         # g = self.filterExistingStories(self.google(title, analyze));
-        y = self.filterExistingStories(self.yahoo(title, analyze));
-        return y
+        # y = self.filterExistingStories(self.yahoo(title, analyze));
+        return f
 
 
     def analyzeStories(self, stories):
@@ -164,7 +161,7 @@ def getNews():
 # Functions are applied to the value, like a one time map.
 def normalize(story, keymap):
     print "normalizing "
-    print story['title']
+    print story.get('publish_date')
     for key in keymap:
         val = keymap[key]
         if type(val) == str:

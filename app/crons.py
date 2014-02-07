@@ -20,7 +20,7 @@ def tryConnection (applyfun):
 
 news = News()
 
-def wrapper():
+def updateAllQueries():
     queries = models.Queries.query.all()
     # Get all queries in the system - todo add a date checked filter
     for query in queries:
@@ -52,17 +52,15 @@ def wrapper():
         break;
     return True
 
-# sched = Scheduler()
-# sched.start()
+sched = Scheduler()
+sched.start()
 
-wrapper()
 
+updateAllQueries()
 # @sched.interval_schedule(seconds=10)
 # def update_queries():
     # wrapper()
 
-# @sched.cron_schedule(day_of_week='mon-sun', hour=23)
-# def scheduled_job():
-#     print 'This job is run every weekday at 5pm.'
-
-# while True: pass
+@sched.cron_schedule(day_of_week='mon-sun', hour=23)
+def scheduled_job():
+    updateAllQueries()
