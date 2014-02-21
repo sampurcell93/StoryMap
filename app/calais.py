@@ -85,11 +85,7 @@ class Calais():
         if external_id:
             self.user_directives["externalID"] = external_id
         pr("about to return response in calais.py")
-        resp = CalaisResponse(self.rest_POST(content))
-        pr("got resp in c.py")
-        pr(resp == None)
-        sys.stdout.flush()
-        return resp
+        return CalaisResponse(self.rest_POST(content)).get_entities()
 
     def analyze_url(self, url):
         f = urllib.urlopen(url)
@@ -169,6 +165,10 @@ class CalaisResponse():
             return None
         for item in self.entities:
             print "%s: %s (%.2f)" % (item['_type'], item['name'], item['relevance'])
+    def get_entities(self):
+        if not hasattr(self, "entities"):
+            return None
+        return self.entities
 
     def print_topics(self):
         if not hasattr(self, "topics"):

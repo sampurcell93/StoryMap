@@ -199,19 +199,16 @@ def coords(content=None):
     calais = Calais(key, submitter="Sam Purcell")
     pr("inst calais")
     empty = {'lat': None, 'lng': None}
+    entities = []
     try: 
         pr("about to get calais resp")
-        resp = vars(calais.analyze(content.encode("utf-8")))
-        pr("got resp")
+        entities = calais.analyze(content.encode("utf-8"))
     except Exception as e: 
-        resp = {}
+        entities = []
         pr("resp failure")
-    entities = resp.get("entities")
-    pr("got to fetching entities")
     if entities is None:
-        pr("but they were empty")
+        pr("but no entities")
         return empty
-
     for entity in entities:
         resolutions = entity.get("resolutions")
         if resolutions:
