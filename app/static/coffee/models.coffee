@@ -104,37 +104,37 @@ $ ->
         # A note on infinitely chained callback sequences - 
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
-        getGoogleNews: (start, done) ->
+        getGoogleNews: (start, done) =>
             cc "calling gnews"
             self = @
             query = @get("title")
             start || (start = 0)
-            try
-                $.get @external_url,
-                    source: 'google'
-                    q: query.toLowerCase()
-                    start: start 
-                    # analyze: true
-                , (stories) ->
-                    console.count "google news story set returned"
-                    console.log stories
-                    stories = JSON.parse(stories)
-                    # Once google news is exhausted, execute callback 
-                    if (start > 64 or !stories.length) and done? then done 0, null
-                    # Get location data from OpenCalais for each story item
-                    _.each stories, self.addStory
-                    # Otherwise, call self and keep going
-                    if start < 64 then self.getGoogleNews start + 8, done
-            catch 
-                console.log _error
-                console.log("timeout error on heroku, restart google query")
+            $.get(@external_url,
+                source: 'google'
+                q: query.toLowerCase()
+                start: start 
+                # analyze: true
+            , (stories) ->
+                console.count "google news story set returned"
+                console.log stories
+                stories = JSON.parse(stories)
+                # Once google news is exhausted, execute callback 
+                if (start > 64 or !stories.length) and done? then done 0, null
+                # Get location data from OpenCalais for each story item
+                _.each stories, self.addStory
+                # Otherwise, call self and keep going
+                if start < 64 then self.getGoogleNews start + 8, done
                 @getGoogleNews(start, done)
-            done
-        getYahooNews: (start, done) ->
+            )
+            .fail(=> 
+                console.log("timed out probably")
+                @getGoogleNews(start, done)
+            )
+        getYahooNews: (start, done) =>
             query = '"' + @get("title").toLowerCase() + '"'
             start || (start = 0)
             self = @
-            $.get @external_url,
+            $.get(@external_url,
                 source: 'yahoo'
                 q: query
                 start: start
@@ -144,23 +144,33 @@ $ ->
                 console.count "yahoo news story set returned"
                 # get all news, including metadata
                 total = 10 #news.totalresults
-                _.each stories, self.addStory
+                _.each stories, @addStory
                 # if start <= 1000
-                if start <= total then self.getYahooNews start + 50, done
+                if start <= total then @getYahooNews start + 50, done
                 else if done? then done 0, null
                 return @
+            )
+            .fail(=> 
+                console.log("timed out probably")
+                @getYahooNews(start, done)
+            )
             done
-        getFeedZilla: (done) ->
+        getFeedZilla: (done) =>
             self = @
-            $.get @external_url, {
+            $.get(@external_url, {
                 q: @get("title")
                 source: 'feedzilla'
                 # analyze: false
             }, (stories) ->
                 cc "done with feedzilla, calling next"
                 console.log "done fn is ", done
-                _.each stories, self.addStory
+                _.each stories, @addStory
                 if done? then done 0, null
+            )
+            .fail(=> 
+                console.log("timed out probably")
+                @getFeedZilla(done)
+            )
             done
 
     window.collections.Queries = Backbone.Collection.extend

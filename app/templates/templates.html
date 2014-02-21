@@ -55,7 +55,7 @@
         <i class='icon-cw js-load-map'>
         Load</i>
         <div class='created-date'>
-            <%= typeof created !== "undefined" && created !== null ? "Created: " + cleanDate(new Date(created)) : " " %>
+            Created: <%= typeof created !== "undefined" && created !== null ? cleanDate(new Date(created)) : cleanDate(new Date())  %>
         </div>
     </div>
 </script>
@@ -70,6 +70,7 @@
     <% var u = "undefined" %>
     <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
     <% var title =  typeof title !== u ? title : "No title for this story." %>
+    <% var content =  typeof content !== u ? content : "No blurb for this story." %>
     <h3>
         <a target='_blank' href='<%= url %>'><%= title %></a>
     </h3>
@@ -81,7 +82,7 @@
     <hr>
     <p>
     Published by 
-    <%= publisher %> on <a class='js-zoom-to-date'><%=cleanDate(new Date(date)) %></a>
+    <%= publisher %> on <a class='js-zoom-to-date'><%= cleanDate(new Date(date)) %></a>
     | 
     Retrieved from 
     <%= aggregator %>
