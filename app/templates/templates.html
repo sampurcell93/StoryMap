@@ -19,6 +19,7 @@
 <script type="text/template" id="article-item">
     <% var u = "undefined" %>
     <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
+    <% var title =  typeof title !== u ? title : "No title for this story." %>
     <a class='article-title'>
         <%= title %>
     </a>
@@ -68,6 +69,7 @@
     <% cleanDate = function(date) {return date.getDate() + "/" + parseInt(date.getMonth() + 1) + "/" + date.getFullYear()} %>
     <% var u = "undefined" %>
     <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
+    <% var title =  typeof title !== u ? title : "No title for this story." %>
     <h3>
         <a target='_blank' href='<%= url %>'><%= title %></a>
     </h3>

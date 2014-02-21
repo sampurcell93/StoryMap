@@ -117,6 +117,7 @@ $ ->
                 # analyze: true
             , (stories) ->
                 console.count "google news story set returned"
+                console.log stories
                 stories = JSON.parse(stories)
                 # Once google news is exhausted, execute callback 
                 if (start > 64 or !stories.length) and done? then done 0, null

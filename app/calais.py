@@ -4,9 +4,16 @@ Author: Jordan Dimov (jdimov@mlke.net)
 Last-Update: 01/12/2009
 """
 
+import sys
 import httplib, urllib, re
 import simplejson as json
 from StringIO import StringIO
+
+
+def pr(*args):
+  print args[0] % (len(args) > 1 and args[1:] or [])
+  sys.stdout.flush()
+
 
 PARAMS_XML = """
 <c:params xmlns:c="http://s.opencalais.com/1/pred/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"> <c:processingDirectives %s> </c:processingDirectives> <c:userDirectives %s> </c:userDirectives> <c:externalMetadata %s> </c:externalMetadata> </c:params>
@@ -73,12 +80,16 @@ class Calais():
         return html
 
     def analyze(self, content, content_type="TEXT/RAW", external_id=None):
-        if not (content and  len(content.strip())):
-            return None
+        if not (content and  len(content.strip())): return None
         self.processing_directives["contentType"]=content_type
         if external_id:
             self.user_directives["externalID"] = external_id
-        return CalaisResponse(self.rest_POST(content))
+        pr("about to return response in calais.py")
+        resp = CalaisResponse(self.rest_POST(content))
+        pr("got resp in c.py")
+        pr(resp == None)
+        sys.stdout.flush()
+        return resp
 
     def analyze_url(self, url):
         f = urllib.urlopen(url)

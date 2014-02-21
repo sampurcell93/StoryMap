@@ -1,3 +1,4 @@
+import sys
 import urllib
 import json
 import urllib2
@@ -19,6 +20,10 @@ from flask.ext.login import login_user, logout_user, current_user, login_require
 dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime)  or isinstance(obj, datetime.date) else None
 
 Manager = QueryManager()
+
+def pr(*args):
+  print args[0] % (len(args) > 1 and args[1:] or [])
+  sys.stdout.flush()
 
 def tryConnection (applyfun): 
     try:
@@ -125,6 +130,7 @@ class News():
         URL = "http://yboss.yahooapis.com/ysearch/news"
         OAUTH_CONSUMER_KEY = "dj0yJmk9RHp0ckM1NnRMUmk1JmQ9WVdrOVdUbHdOMkZLTTJVbWNHbzlNakV5TXpReE1EazJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD0xMg--"
         OAUTH_CONSUMER_SECRET = "626da2d06d0b80dbd90799715961dce4e13b8ba1"
+        pr("here")
         data = {
             "q": q,
             "start": start,
@@ -140,6 +146,7 @@ class News():
         complete_url = oauth_request.to_url()
         response  = urllib.urlopen(complete_url).read()
         stories = json.loads(response).get("bossresponse").get("news", {}).get("results")
+        pr("got bossresponse")
         if stories is not None:
             for story in stories: 
                 normalize(story, self.normalizers['yahoo'])
@@ -156,7 +163,9 @@ def getNews():
         'yahoo': t.yahoo,
         'feedzilla': t.feedZilla
     }
-    return sources[request.args['source']](request.args.get("q"))
+    pr(request.args.get('source'))
+    pr(request.args.get("q"))
+    return sources[request.args.get('source')](request.args.get("q"))
 
 @app.route("/analyze", methods=['POST'])
 @login_required
@@ -177,27 +186,32 @@ def normalize(story, keymap):
             story[key] = val(story)
     return story
 
-# Expects a normalized story, which it then maps coords onto
-def getCoords (story, normalizeObj=None): 
-    if normalizeObj is not None: 
-        normalize(story, normalizeObj)
-    coordinates = coords(story.get("content") + story.get("title"))
-    story['lat'] = coordinates.get('lat')
-    story['lng'] = coordinates.get('lng')
-    story['location'] = coordinates.get('location')
 
 # Takes in a content string, runs it through calais,
 # and returns coords if found as a {lat: x, lng: x} dict
 def coords(content=None):
-    if content is None:
+    pr("IN COORDS")
+    if content is None: 
+        pr("was none somehow")
         return 
+    pr("content was good")
     key = "c3wjfrkfmrsft3r5wgxm5skr"
     calais = Calais(key, submitter="Sam Purcell")
+    pr("inst calais")
     empty = {'lat': None, 'lng': None}
-    try: resp = vars(calais.analyze(content.encode("utf-8")))
-    except Exception as e: resp = {}
+    try: 
+        pr("about to get calais resp")
+        resp = vars(calais.analyze(content.encode("utf-8")))
+        pr("got resp")
+    except Exception as e: 
+        resp = {}
+        pr("resp failure")
     entities = resp.get("entities")
-    if entities is None: return empty
+    pr("got to fetching entities")
+    if entities is None:
+        pr("but they were empty")
+        return empty
+
     for entity in entities:
         resolutions = entity.get("resolutions")
         if resolutions:
@@ -209,3 +223,17 @@ def coords(content=None):
                 if lat and lng:
                     return {'lat': float(lat), 'lng': float(lng), 'location': location}
     return empty
+
+# Expects a normalized story, which it then maps coords onto
+def getCoords (story, normalizeObj=None): 
+    if normalizeObj is not None: 
+        normalize(story, normalizeObj)
+        pr("needed to normalize")
+    blob = story.get("content", {}) + story.get("title", {})
+    pr("fetching this and right before coords call: ")
+    pprint(story)
+    sys.stdout.flush()
+    coordinates = coords(blob)
+    story['lat'] = coordinates.get('lat')
+    story['lng'] = coordinates.get('lng')
+    story['location'] = coordinates.get('location')

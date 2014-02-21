@@ -140,6 +140,7 @@
           start: start
         }, function(stories) {
           console.count("google news story set returned");
+          console.log(stories);
           stories = JSON.parse(stories);
           if ((start > 64 || !stories.length) && (done != null)) {
             done(0, null);
