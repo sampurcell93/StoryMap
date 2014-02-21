@@ -129,13 +129,12 @@
         });
       },
       getGoogleNews: function(start, done) {
-        var query, self,
-          _this = this;
+        var query, self;
         cc("calling gnews");
         self = this;
         query = this.get("title");
         start || (start = 0);
-        return $.get(this.external_url, {
+        $.get(this.external_url, {
           source: 'google',
           q: query.toLowerCase(),
           start: start
@@ -148,17 +147,13 @@
           }
           _.each(stories, self.addStory);
           if (start < 64) {
-            self.getGoogleNews(start + 8, done);
+            return self.getGoogleNews(start + 8, done);
           }
-          return _this.getGoogleNews(start, done);
-        }).fail(function() {
-          console.log("timed out probably");
-          return _this.getGoogleNews(start, done);
         });
+        return done;
       },
       getYahooNews: function(start, done) {
-        var query, self,
-          _this = this;
+        var query, self;
         query = '"' + this.get("title").toLowerCase() + '"';
         start || (start = 0);
         self = this;
@@ -171,22 +166,18 @@
           stories = JSON.parse(stories);
           console.count("yahoo news story set returned");
           total = 10;
-          _.each(stories, _this.addStory);
+          _.each(stories, self.addStory);
           if (start <= total) {
-            _this.getYahooNews(start + 50, done);
+            self.getYahooNews(start + 50, done);
           } else if (done != null) {
             done(0, null);
           }
-          return _this;
-        }).fail(function() {
-          console.log("timed out probably");
-          return _this.getYahooNews(start, done);
+          return this;
         });
         return done;
       },
       getFeedZilla: function(done) {
-        var self,
-          _this = this;
+        var self;
         self = this;
         $.get(this.external_url, {
           q: this.get("title"),
@@ -194,13 +185,10 @@
         }, function(stories) {
           cc("done with feedzilla, calling next");
           console.log("done fn is ", done);
-          _.each(stories, _this.addStory);
+          _.each(stories, self.addStory);
           if (done != null) {
             return done(0, null);
           }
-        }).fail(function() {
-          console.log("timed out probably");
-          return _this.getFeedZilla(done);
         });
         return done;
       }

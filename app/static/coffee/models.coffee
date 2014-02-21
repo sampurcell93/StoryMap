@@ -109,12 +109,12 @@ $ ->
             self = @
             query = @get("title")
             start || (start = 0)
-            $.get(@external_url,
+            $.get @external_url,
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
                 # analyze: true
-            , (stories) =>
+            , (stories) ->
                 console.count "google news story set returned"
                 console.log stories
                 stories = JSON.parse(stories)
@@ -124,53 +124,38 @@ $ ->
                 _.each stories, self.addStory
                 # Otherwise, call self and keep going
                 if start < 64 then self.getGoogleNews start + 8, done
-                @getGoogleNews(start, done)
-            )
-            .fail(=> 
-                console.log("timed out probably")
-                @getGoogleNews(start, done)
-            )
+            done
         getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
             start || (start = 0)
             self = @
-            $.get(@external_url,
+            $.get @external_url,
                 source: 'yahoo'
                 q: query
                 start: start
                 # analyze: false
-            , (stories) =>
+            , (stories) ->
                 stories = JSON.parse stories
                 console.count "yahoo news story set returned"
                 # get all news, including metadata
                 total = 10 #news.totalresults
-                _.each stories, @addStory
+                _.each stories, self.addStory
                 # if start <= 1000
-                if start <= total then @getYahooNews start + 50, done
+                if start <= total then self.getYahooNews start + 50, done
                 else if done? then done 0, null
                 return @
-            )
-            .fail(=> 
-                console.log("timed out probably")
-                @getYahooNews(start, done)
-            )
             done
         getFeedZilla: (done) ->
             self = @
-            $.get(@external_url, {
+            $.get @external_url, {
                 q: @get("title")
                 source: 'feedzilla'
                 # analyze: false
-            }, (stories) =>
+            }, (stories) ->
                 cc "done with feedzilla, calling next"
                 console.log "done fn is ", done
-                _.each stories, @addStory
+                _.each stories, self.addStory
                 if done? then done 0, null
-            )
-            .fail(=> 
-                console.log("timed out probably")
-                @getFeedZilla(done)
-            )
             done
 
     window.collections.Queries = Backbone.Collection.extend
