@@ -8,7 +8,7 @@ from itsdangerous import URLSafeTimedSerializer
 app = Flask(__name__)
 from sqlalchemy import create_engine
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/newsmaps'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://b556f79bd1c6a3:e3aab6da@us-cdbr-east-04.cleardb.com/heroku_478003e9c167242'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://b556f79bd1c6a3:e3aab6da@us-cdbr-east-04.cleardb.com/heroku_478003e9c167242'
 app.secret_key = "THISISASUPERSECRETKEY"
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=14)
 login_serializer = URLSafeTimedSerializer(app.secret_key)
