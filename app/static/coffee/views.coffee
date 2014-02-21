@@ -101,6 +101,7 @@ $ ->
                 window.destroyModal()
                 window.existingQueries.add queryobj
                 @timeline.reset().updateHandles(true).render()
+                queryobj.analyze()
               )  
             ) 
             )
@@ -640,6 +641,9 @@ $ ->
           @$el.addClass("highlighted")
         "unhighlight": ->
           @$el.removeClass("highlighted")
+        "change:hasLocation": (model, hasLocation)->
+            if hasLocation then @$el.removeClass("no-location-marker")
+            else @$el.addClass("no-location-marker")
     render: ->
       num = @options.left
       $el = @$el

@@ -62,7 +62,6 @@ $ ->
         addStory: (story) ->
             stories = @get("stories")
             story.date = new Date(story.date)
-            console.log story
             # ignore case for title
             try
                 title = story.title.toLowerCase().stripHTML()
@@ -80,24 +79,34 @@ $ ->
             @
         analyze: ->
             coll = @get("stories").models
-            cc "analyzings"
-            cc coll
-            $.ajax({
-              url: '/analyze',
-              type: 'POST',
-              dataType: 'json'
-              data: {stories: JSON.stringify(coll)},
-            })
-            .done( (resp) ->
-              console.log("success");
-              console.log(resp)
-            )
-            .fail( ->
-              console.log("error");
-            )
-            .always(->
-              console.log("complete");
-            )
+            console.log "ANALYZING"
+            _.each coll, (story) ->
+                if story.hasLocation() then return
+                console.log JSON.stringify(story.toJSON())
+                $.ajax({
+                  url: '/analyze/one',
+                  type: 'GET',
+                  contentType: 'application/json;charset=UTF-8',
+                  data: {"story": story.get("title") + story.get("content")}
+                })
+                .done((resp) ->
+                    resp = JSON.parse resp
+                    if resp.lng? and resp.lat?
+                        story.set({
+                            "lat": resp.lat
+                            "lng": resp.lng
+                            "hasLocation": true
+                        })
+                        story.plot()
+                    console.log("success");
+                    console.log(resp)
+                )
+                .fail( ->
+                    console.log("error");
+                )
+                .always(->
+                    console.log("complete");
+                )
         # desc: Issues a request to a curl script, retrieving google news stories
         # args: the query, the start index to search (0-56), and the done callback
         # rets: this
@@ -113,17 +122,18 @@ $ ->
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
-                # analyze: true
-            , (stories) ->
+                analyze: false
+            , (stories) =>
                 console.count "google news story set returned"
                 console.log stories
                 stories = JSON.parse(stories)
                 # Once google news is exhausted, execute callback 
-                if (start > 64 or !stories.length) and done? then done 0, null
+                # if (start > 64 or !stories.length) and done? 
                 # Get location data from OpenCalais for each story item
                 _.each stories, self.addStory
+                done 0, null
                 # Otherwise, call self and keep going
-                if start < 64 then self.getGoogleNews start + 8, done
+                # if start < 64 then self.getGoogleNews start + 8, done
             done
         getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
@@ -133,8 +143,8 @@ $ ->
                 source: 'yahoo'
                 q: query
                 start: start
-                # analyze: false
-            , (stories) ->
+                analyze: false
+            , (stories) =>
                 stories = JSON.parse stories
                 console.count "yahoo news story set returned"
                 # get all news, including metadata
@@ -142,7 +152,9 @@ $ ->
                 _.each stories, self.addStory
                 # if start <= 1000
                 if start <= total then self.getYahooNews start + 50, done
-                else if done? then done 0, null
+                else if done? 
+                    # @analyze(stories)
+                    done 0, null
                 return @
             done
         getFeedZilla: (done) ->
@@ -150,12 +162,14 @@ $ ->
             $.get @external_url, {
                 q: @get("title")
                 source: 'feedzilla'
-                # analyze: false
-            }, (stories) ->
+                analyze: false
+            }, (stories) =>
+                stories = JSON.parse(stories)
                 cc "done with feedzilla, calling next"
-                console.log "done fn is ", done
                 _.each stories, self.addStory
-                if done? then done 0, null
+                if done?
+                    # @analyze(stories)
+                    done 0, null
             done
 
     window.collections.Queries = Backbone.Collection.extend

@@ -128,7 +128,8 @@
           return queryobj.getGoogleNews(0, queryobj.getFeedZilla(queryobj.getYahooNews(0, function() {
             window.destroyModal();
             window.existingQueries.add(queryobj);
-            return _this.timeline.reset().updateHandles(true).render();
+            _this.timeline.reset().updateHandles(true).render();
+            return queryobj.analyze();
           })));
         }));
       },
@@ -858,6 +859,13 @@
           },
           "unhighlight": function() {
             return this.$el.removeClass("highlighted");
+          },
+          "change:hasLocation": function(model, hasLocation) {
+            if (hasLocation) {
+              return this.$el.removeClass("no-location-marker");
+            } else {
+              return this.$el.addClass("no-location-marker");
+            }
           }
         });
       },

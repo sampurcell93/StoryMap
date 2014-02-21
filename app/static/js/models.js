@@ -89,7 +89,6 @@
         var id, stories, title;
         stories = this.get("stories");
         story.date = new Date(story.date);
-        console.log(story);
         try {
           title = story.title.toLowerCase().stripHTML();
         } catch (_error) {
@@ -110,26 +109,41 @@
       analyze: function() {
         var coll;
         coll = this.get("stories").models;
-        cc("analyzings");
-        cc(coll);
-        return $.ajax({
-          url: '/analyze',
-          type: 'POST',
-          dataType: 'json',
-          data: {
-            stories: JSON.stringify(coll)
+        console.log("ANALYZING");
+        return _.each(coll, function(story) {
+          if (story.hasLocation()) {
+            return;
           }
-        }).done(function(resp) {
-          console.log("success");
-          return console.log(resp);
-        }).fail(function() {
-          return console.log("error");
-        }).always(function() {
-          return console.log("complete");
+          console.log(JSON.stringify(story.toJSON()));
+          return $.ajax({
+            url: '/analyze/one',
+            type: 'GET',
+            contentType: 'application/json;charset=UTF-8',
+            data: {
+              "story": story.get("title") + story.get("content")
+            }
+          }).done(function(resp) {
+            resp = JSON.parse(resp);
+            if ((resp.lng != null) && (resp.lat != null)) {
+              story.set({
+                "lat": resp.lat,
+                "lng": resp.lng,
+                "hasLocation": true
+              });
+              story.plot();
+            }
+            console.log("success");
+            return console.log(resp);
+          }).fail(function() {
+            return console.log("error");
+          }).always(function() {
+            return console.log("complete");
+          });
         });
       },
       getGoogleNews: function(start, done) {
-        var query, self;
+        var query, self,
+          _this = this;
         cc("calling gnews");
         self = this;
         query = this.get("title");
@@ -137,30 +151,28 @@
         $.get(this.external_url, {
           source: 'google',
           q: query.toLowerCase(),
-          start: start
+          start: start,
+          analyze: false
         }, function(stories) {
           console.count("google news story set returned");
           console.log(stories);
           stories = JSON.parse(stories);
-          if ((start > 64 || !stories.length) && (done != null)) {
-            done(0, null);
-          }
           _.each(stories, self.addStory);
-          if (start < 64) {
-            return self.getGoogleNews(start + 8, done);
-          }
+          return done(0, null);
         });
         return done;
       },
       getYahooNews: function(start, done) {
-        var query, self;
+        var query, self,
+          _this = this;
         query = '"' + this.get("title").toLowerCase() + '"';
         start || (start = 0);
         self = this;
         $.get(this.external_url, {
           source: 'yahoo',
           q: query,
-          start: start
+          start: start,
+          analyze: false
         }, function(stories) {
           var total;
           stories = JSON.parse(stories);
@@ -172,19 +184,21 @@
           } else if (done != null) {
             done(0, null);
           }
-          return this;
+          return _this;
         });
         return done;
       },
       getFeedZilla: function(done) {
-        var self;
+        var self,
+          _this = this;
         self = this;
         $.get(this.external_url, {
           q: this.get("title"),
-          source: 'feedzilla'
+          source: 'feedzilla',
+          analyze: false
         }, function(stories) {
+          stories = JSON.parse(stories);
           cc("done with feedzilla, calling next");
-          console.log("done fn is ", done);
           _.each(stories, self.addStory);
           if (done != null) {
             return done(0, null);

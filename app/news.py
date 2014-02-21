@@ -72,12 +72,16 @@ class News():
     def analyzeStories(self, stories):
         if stories is None: return []
         for story in stories:
-            aggregator = story.get("aggregator")
-            # Normalize and analyze the story
-            getCoords(story)
+            self.analyzeStory(story)
         # Return all the analyzed stories
         return stories
 
+    def analyzeStory(self, blob):
+        story = {
+            "title": blob,
+            "content": "Hello there, hackers."
+        }
+        return getCoords(story)
 
     def feedZilla(self, title=None, analyze=True):
         q = title
@@ -167,10 +171,19 @@ def getNews():
     pr(request.args.get("q"))
     return sources[request.args.get('source')](request.args.get("q"))
 
-@app.route("/analyze", methods=['POST'])
+@app.route("/analyze/one", methods=['GET'])
 @login_required
-def analyze():
-    stories = request.json.get("stories")
+# Pass in a text blob
+def analyzeOne():
+    print "here"
+    story = request.args['story']
+    print story
+    return json.dumps(News().analyzeStory(story), default=dthandler)
+
+@app.route("/analyze/many", methods=['GET'])
+@login_required
+def analyzeMany():
+    stories = request.args.get("stories")
     stories = json.loads(stories)
     return json.dumps(Manager.analyzeStories(stories), default=dthandler)
 
@@ -234,3 +247,4 @@ def getCoords (story, normalizeObj=None):
     story['lat'] = coordinates.get('lat')
     story['lng'] = coordinates.get('lng')
     story['location'] = coordinates.get('location')
+    return story

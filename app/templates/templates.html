@@ -71,6 +71,9 @@
     <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
     <% var title =  typeof title !== u ? title : "No title for this story." %>
     <% var content =  typeof content !== u ? content : "No blurb for this story." %>
+    <% var publisher =  typeof publisher !== u ? "Published by " + publisher + " on " : " " %>
+    <% var aggregator =  typeof aggregator !== u ? "Retrieved from " + aggregator : " " %>
+    <% var date = typeof date !== u ? date : new Date() %>
     <h3>
         <a target='_blank' href='<%= url %>'><%= title %></a>
     </h3>
@@ -81,10 +84,7 @@
     <%= content %></p>
     <hr>
     <p>
-    Published by 
-    <%= publisher %> on <a class='js-zoom-to-date'><%= cleanDate(new Date(date)) %></a>
-    | 
-    Retrieved from 
+    <%= publisher %> <a class='js-zoom-to-date'><%= cleanDate(new Date(date)) %></a>
     <%= aggregator %>
     </p>
 </script>

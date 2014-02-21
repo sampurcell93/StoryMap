@@ -96,9 +96,9 @@ class QueryManager():
     def createStory(self, title=None, publication=None, date=None, author=None, url=None,
                     lat=None, lng=None, content=None, query_id=None, aggregator='Yahoo', location=''):
         if title is None:
-            title = request.json['title']
-            content = request.json['content']
-            publication = request.json['publisher']
+            title = request.json.get('title')
+            content = request.json.get('content')
+            publication = request.json.get('publisher')
             date = parser.parse(request.json['date']).strftime('%Y-%m-%d %H:%M:%S')
             url = request.json.get('url')
             lat = request.json.get('lat')
@@ -376,7 +376,7 @@ def getQueryByTitle(title):
     return manager.getQueryByTitle(title)
 
 # Create a new query ##
-@app.route('/queries/<string:title>', methods=['POST'])
+@app.route('/queries/<string:title>', methods=['POST','PUT'])
 @login_required
 def createQuery(title=None):
     if title is None:
