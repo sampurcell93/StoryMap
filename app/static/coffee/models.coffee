@@ -159,8 +159,6 @@ $ ->
                     # @analyze(stories)
                     done 0, null
                 return @
-            ).fail(=>
-                do done if done?
             )
             done
         getFeedZilla: (done) ->

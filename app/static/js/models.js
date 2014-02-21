@@ -189,10 +189,6 @@
             done(0, null);
           }
           return _this;
-        }).fail(function() {
-          if (done != null) {
-            return done();
-          }
         });
         return done;
       },
