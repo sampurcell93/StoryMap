@@ -118,7 +118,7 @@ $ ->
             self = @
             query = @get("title")
             start || (start = 0)
-            $.get @external_url,
+            $.get(@external_url,
                 source: 'google'
                 q: query.toLowerCase()
                 start: start 
@@ -134,12 +134,15 @@ $ ->
                 done 0, null
                 # Otherwise, call self and keep going
                 # if start < 64 then self.getGoogleNews start + 8, done
+            ).fail(=>
+                do done if done?
+            )
             done
         getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
             start || (start = 0)
             self = @
-            $.get @external_url,
+            $.get(@external_url,
                 source: 'yahoo'
                 q: query
                 start: start
@@ -156,10 +159,13 @@ $ ->
                     # @analyze(stories)
                     done 0, null
                 return @
+            ).fail(=>
+                do done if done?
+            )
             done
         getFeedZilla: (done) ->
             self = @
-            $.get @external_url, {
+            $.get(@external_url, {
                 q: @get("title")
                 source: 'feedzilla'
                 analyze: false
@@ -170,6 +176,9 @@ $ ->
                 if done?
                     # @analyze(stories)
                     done 0, null
+            ).fail(=>
+                do done if done?
+            )
             done
 
     window.collections.Queries = Backbone.Collection.extend

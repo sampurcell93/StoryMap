@@ -159,6 +159,10 @@
           stories = JSON.parse(stories);
           _.each(stories, self.addStory);
           return done(0, null);
+        }).fail(function() {
+          if (done != null) {
+            return done();
+          }
         });
         return done;
       },
@@ -185,6 +189,10 @@
             done(0, null);
           }
           return _this;
+        }).fail(function() {
+          if (done != null) {
+            return done();
+          }
         });
         return done;
       },
@@ -202,6 +210,10 @@
           _.each(stories, self.addStory);
           if (done != null) {
             return done(0, null);
+          }
+        }).fail(function() {
+          if (done != null) {
+            return done();
           }
         });
         return done;
