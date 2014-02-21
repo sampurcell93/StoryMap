@@ -134,22 +134,28 @@
         self = this;
         query = this.get("title");
         start || (start = 0);
-        $.get(this.external_url, {
-          source: 'google',
-          q: query.toLowerCase(),
-          start: start
-        }, function(stories) {
-          console.count("google news story set returned");
-          console.log(stories);
-          stories = JSON.parse(stories);
-          if ((start > 64 || !stories.length) && (done != null)) {
-            done(0, null);
-          }
-          _.each(stories, self.addStory);
-          if (start < 64) {
-            return self.getGoogleNews(start + 8, done);
-          }
-        });
+        try {
+          $.get(this.external_url, {
+            source: 'google',
+            q: query.toLowerCase(),
+            start: start
+          }, function(stories) {
+            console.count("google news story set returned");
+            console.log(stories);
+            stories = JSON.parse(stories);
+            if ((start > 64 || !stories.length) && (done != null)) {
+              done(0, null);
+            }
+            _.each(stories, self.addStory);
+            if (start < 64) {
+              return self.getGoogleNews(start + 8, done);
+            }
+          });
+        } catch (_error) {
+          console.log(_error);
+          console.log("timeout error on heroku, restart google query");
+          this.getGoogleNews(start, done);
+        }
         return done;
       },
       getYahooNews: function(start, done) {

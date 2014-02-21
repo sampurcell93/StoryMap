@@ -78,12 +78,6 @@ $ ->
             else 
                 cc "story exists"
             @
-        # desc: Issues a request to a curl script, retrieving google news stories
-        # args: the query, the start index to search (0-56), and the done callback
-        # rets: this
-        # A note on infinitely chained callback sequences - 
-        # say we want to call google news, then yahoo, then reuters, then al jazeera:
-        # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
         analyze: ->
             coll = @get("stories").models
             cc "analyzings"
@@ -104,27 +98,37 @@ $ ->
             .always(->
               console.log("complete");
             )
-            
+        # desc: Issues a request to a curl script, retrieving google news stories
+        # args: the query, the start index to search (0-56), and the done callback
+        # rets: this
+        # A note on infinitely chained callback sequences - 
+        # say we want to call google news, then yahoo, then reuters, then al jazeera:
+        # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
         getGoogleNews: (start, done) ->
             cc "calling gnews"
             self = @
             query = @get("title")
             start || (start = 0)
-            $.get @external_url,
-                source: 'google'
-                q: query.toLowerCase()
-                start: start 
-                # analyze: true
-            , (stories) ->
-                console.count "google news story set returned"
-                console.log stories
-                stories = JSON.parse(stories)
-                # Once google news is exhausted, execute callback 
-                if (start > 64 or !stories.length) and done? then done 0, null
-                # Get location data from OpenCalais for each story item
-                _.each stories, self.addStory
-                # Otherwise, call self and keep going
-                if start < 64 then self.getGoogleNews start + 8, done
+            try
+                $.get @external_url,
+                    source: 'google'
+                    q: query.toLowerCase()
+                    start: start 
+                    # analyze: true
+                , (stories) ->
+                    console.count "google news story set returned"
+                    console.log stories
+                    stories = JSON.parse(stories)
+                    # Once google news is exhausted, execute callback 
+                    if (start > 64 or !stories.length) and done? then done 0, null
+                    # Get location data from OpenCalais for each story item
+                    _.each stories, self.addStory
+                    # Otherwise, call self and keep going
+                    if start < 64 then self.getGoogleNews start + 8, done
+            catch 
+                console.log _error
+                console.log("timeout error on heroku, restart google query")
+                @getGoogleNews(start, done)
             done
         getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
