@@ -183,13 +183,19 @@
           stories = toSave.get("stories");
           return toSave.save(null, {
             success: function(resp, b, c) {
+              var len;
               toSave.favorite();
               toSave.set("stories", stories);
-              _.each(stories.models, function(story) {
+              len = stories.length;
+              _.each(stories.models, function(story, i) {
                 story.set("query_id", toSave.id);
                 return story.save(null, {
                   success: function(resp) {
-                    return cc(resp);
+                    console.log(i);
+                    if (i === len - 1) {
+                      launchModal("<h2 class='center'>Saved Query!</h2>");
+                      return setTimeout(destroyModal, 1000);
+                    }
                   }
                 });
               });

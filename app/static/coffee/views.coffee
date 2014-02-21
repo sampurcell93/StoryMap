@@ -144,10 +144,17 @@ $ ->
           success: (resp,b, c) ->
             toSave.favorite()
             toSave.set("stories", stories)
-            _.each stories.models, (story) ->
+            len = stories.length
+            _.each stories.models, (story, i) ->
               story.set("query_id", toSave.id)
               # For now, just save one by one like an ASSHOLE. Screw network latency right?
-              story.save(null, { success: (resp) -> cc resp})
+              story.save(null, { 
+                success: (resp) -> 
+                  console.log i
+                  if i == len - 1
+                    launchModal("<h2 class='center'>Saved Query!</h2>")
+                    setTimeout(destroyModal, 1000)
+              })
             # stories.save({
             #   success: (model, resp) ->
             #     cc resp
