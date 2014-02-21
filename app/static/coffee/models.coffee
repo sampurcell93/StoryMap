@@ -104,7 +104,7 @@ $ ->
         # A note on infinitely chained callback sequences - 
         # say we want to call google news, then yahoo, then reuters, then al jazeera:
         # getGoogleNews "hello", 0, -> getYahooNews "hello", 0, -> getReutersNews 0, "nooo", -> getAlJazeeraNews "hello", 0, null
-        getGoogleNews: (start, done) =>
+        getGoogleNews: (start, done) ->
             cc "calling gnews"
             self = @
             query = @get("title")
@@ -114,7 +114,7 @@ $ ->
                 q: query.toLowerCase()
                 start: start 
                 # analyze: true
-            , (stories) ->
+            , (stories) =>
                 console.count "google news story set returned"
                 console.log stories
                 stories = JSON.parse(stories)
@@ -130,7 +130,7 @@ $ ->
                 console.log("timed out probably")
                 @getGoogleNews(start, done)
             )
-        getYahooNews: (start, done) =>
+        getYahooNews: (start, done) ->
             query = '"' + @get("title").toLowerCase() + '"'
             start || (start = 0)
             self = @
@@ -139,7 +139,7 @@ $ ->
                 q: query
                 start: start
                 # analyze: false
-            , (stories) ->
+            , (stories) =>
                 stories = JSON.parse stories
                 console.count "yahoo news story set returned"
                 # get all news, including metadata
@@ -155,13 +155,13 @@ $ ->
                 @getYahooNews(start, done)
             )
             done
-        getFeedZilla: (done) =>
+        getFeedZilla: (done) ->
             self = @
             $.get(@external_url, {
                 q: @get("title")
                 source: 'feedzilla'
                 # analyze: false
-            }, (stories) ->
+            }, (stories) =>
                 cc "done with feedzilla, calling next"
                 console.log "done fn is ", done
                 _.each stories, @addStory
