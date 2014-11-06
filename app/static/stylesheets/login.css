@@ -333,7 +333,7 @@
   background-image: -o-linear-gradient(top, #514266 0%, #172849 100%);
   background-image: linear-gradient(top, #514266 0%, #172849 100%);
   border: 1px solid #222;
-  color: #f9f9f9;
+  color: #000000;
   line-height: 2.2;
   font-size: 1.07em;
   padding: 0 10px;
@@ -391,7 +391,7 @@ body.active-modal::after {
   top: 3%;
   max-height: 94%;
   overflow: auto;
-  background: #f9f9f9;
+  background: #000000;
   padding: 0 20px 10px;
   -webkit-box-shadow: 0px 0px 7px #111111;
   -moz-box-shadow: 0px 0px 7px #111111;
@@ -607,7 +607,7 @@ body {
   background-image: -o-linear-gradient(top, #514266 0%, #172849 100%);
   background-image: linear-gradient(top, #514266 0%, #172849 100%);
   border: 1px solid #222;
-  color: #f9f9f9;
+  color: #000000;
   line-height: 2.1;
   font-size: 1.07em;
   padding: 0 10px;
@@ -664,7 +664,7 @@ input[type='text'], input[type='password'] {
   display: block;
   padding: 6px 8px;
   width: 100%;
-  color: #f9f9f9;
+  color: #000000;
   line-height: 30px;
   font-size: 1.14em;
   border: 1px solid transparent;
