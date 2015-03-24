@@ -96,7 +96,7 @@ $duration: .45s;
     @include background-image(linear-gradient(top,  rgba(81,66,102,1) 0%,rgba(23,40,73,1) 100%));
     border: 1px solid #222;
     color: #f9f9f9;
-    line-height: 2.2;
+    line-height: 2.55;
     font-size: 1.07em;
     padding: 0 10px;   
     cursor: pointer;
@@ -110,8 +110,103 @@ $duration: .45s;
     &:focus {
         background: #14213A;
     }
+    .spinner {
+        display: inline-block;
+        position: relative;
+        padding: 0;
+        margin: 0;
+
+        > div {
+
+        }
+    }
 }   
 
 a {
     &:hover { text-decoration: underline; }
+}
+
+@mixin no-user-select() {
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+    /* Rules below not implemented in browsers yet */
+    -o-user-select: none;
+    user-select: none;
+}
+
+input[type='text'], input[type='password'] {
+    outline: none;
+    @include border-radius(3px);
+    @include box-shadow(inset 0px 1px 3px #ccc);
+    display: block;
+    border: none;
+    padding: 0 10px;
+    height: 40px;
+    line-height: 30px;
+    font-family: $lato;
+    font-weight: 300;
+    font-size: 1.4em;
+    border: 1px solid transparent;
+}
+
+.spinner {
+    margin: 100px auto;
+    height: 30px;
+    text-align: center;
+    font-size: 10px;
+}
+
+.spinner > div {
+    // needs latest Compass, add '@import "compass"' to your scss
+    background-color: #ffffff; // Old browsers
+    @include filter-gradient(#ffffff, #dddddd, vertical); // IE6-9
+    @include background-image(linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#dddddd 100%));
+    border: 1px solid #eee;
+    border-bottom: 1px solid #333;
+    height: 30px;
+    width: 6px;
+    display: inline;
+    margin: 0 2px 0 1px;
+  
+  -webkit-animation: stretchdelay 1.2s infinite ease-in-out;
+  animation: stretchdelay 1.2s infinite ease-in-out;
+}
+
+.spinner .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+}
+
+.spinner .rect3 {
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+.spinner .rect4 {
+  -webkit-animation-delay: -0.9s;
+  animation-delay: -0.9s;
+}
+
+.spinner .rect5 {
+  -webkit-animation-delay: -0.8s;
+  animation-delay: -0.8s;
+}
+
+@-webkit-keyframes stretchdelay {
+  0%, 40%, 100% { -webkit-transform: scaleY(0.4) }  
+  20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes stretchdelay {
+  0%, 40%, 100% { 
+    transform: scaleY(0.4);
+    -webkit-transform: scaleY(0.4);
+  }  20% { 
+    transform: scaleY(1.0);
+    -webkit-transform: scaleY(1.0);
+  }
+}
+.morphext > .animated {
+    display: inline-block;
 }

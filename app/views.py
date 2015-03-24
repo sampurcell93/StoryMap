@@ -1,7 +1,9 @@
 from dateutil import parser
+from flask.ext.api import status
 import datetime
 from pprint import pprint
-from app import app, models, db, lm, login_serializer
+from app import app, models, db, lm, login_serializer, users, mailer
+from models import queries_has_stories
 import datetime
 import traceback
 import time
@@ -17,10 +19,15 @@ import urllib2
 import httplib2
 import json
 import pytz
+import os,binascii
 from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy import select
 from flask.ext.login import login_user, logout_user, current_user, login_required
+from app.mailer import send_email
+from string import Template
+
+port = app.config.get("port");
 
 bcrypt = Bcrypt(app)
 
@@ -99,7 +106,9 @@ class QueryManager():
             title = request.json.get('title')
             content = request.json.get('content')
             publication = request.json.get('publisher')
-            date = parser.parse(request.json['date']).strftime('%Y-%m-%d %H:%M:%S')
+            date = request.json.get('date');
+            if date is not None:
+                date = parser.parse(date).strftime('%Y-%m-%d %H:%M:%S')
             url = request.json.get('url')
             lat = request.json.get('lat')
             lng = request.json.get('lng')
@@ -167,21 +176,47 @@ class QueryManager():
             return json.dumps(to_json(query, True), default=dthandler)
         else:
             return self.getQueryByTitle(identifier)
-    def getQueryId(self, title):
+    def getStoryCountForQuery(self, title):
+        query = tryConnection(lambda: models.Queries.query.filter_by(title = title).first())
+        if not query:
+            return {"exists": False}
+        else:
+            id = query.id
+            sql = "select count(*) from queries_has_stories where queries_id = " + str(id)
+            result = db.engine.execute(sql)
+            for row in result:
+                return row[0];
+    def doesQueryExist(self, title):
         query = tryConnection(lambda: models.Queries.query.filter_by(title = title).all())
         if not query:
             return json.dumps({"exists": False})
-        return query[0].id
+        return json.dumps({"id": query[0].id, "exists": True});
 
+    def updateQueryRetrievalTime(self, identifier):
+        query = tryConnection(lambda: models.Queries.query.get(identifier))
+        query.last_query = datetime.datetime.now();
+        db.session.commit()
+        return True
 
 manager = QueryManager()
+
+def getTokenizedQueries():
+    queries = tryConnection(lambda: models.Queries.query.all())
+    tokens = []
+    if queries is not None:
+        for query in queries: 
+            tokens.append({
+                "val": query.title,
+                "tokens": [query.title]
+            })
+    return tokens
 
 ## User Interfaces ##
 @app.route('/')
 def index():
     if current_user.is_authenticated():
-        return redirect("/map")
-    return render_template("login.html", error=request.args.get('error'), args=request.args)
+        return redirect("./map")
+    return render_template("login.html", error=request.args.get('error'), args=request.args, success=request.args.get("success"))
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -190,26 +225,35 @@ def page_not_found(e):
 @app.route("/map")
 @login_required
 def map(): 
-    return render_template("map.html", user=getattr(current_user, "id"))
+    queries = getTokenizedQueries();
+    user = models.Users.query.get(getattr(current_user, "id"));
+    return render_template("mapv2.html", user=json.dumps({
+        "id": getattr(current_user, "id"),
+        "username": getattr(current_user, "email"),
+        "last_login": getattr(current_user, "last_login")
+    }, default=dthandler), 
+    tokens=json.dumps(queries, default=dthandler), 
+    preferences= users.getUserPrefs(),
+    saved_queries=json.dumps(to_json(user), default=dthandler));
 #######################
 ## User REST Methods ##
 #######################
 
 # Get all users ##
 
-@app.route('/users', methods=['GET'])
-@login_required
-def users():
-    users = tryConnection(lambda: models.Users.query.all())
-    return flask.jsonify(users=to_json_list(users))
+# @app.route('/users', methods=['GET'])
+# @login_required
+# def users():
+#     users = tryConnection(lambda: models.Users.query.all())
+#     return flask.jsonify(users=to_json_list(users))
 
 # Get one user by their id ##
 
 
-@app.route('/users/<string:id>', methods=['GET'])
+@app.route('/user', methods=['GET'])
 @login_required
-def getUser(id):
-    user = models.Users.query.get(id)
+def getUser():
+    user = models.Users.query.get(getattr(current_user, "id"));
     if(user is None):
         return 'User does not exist'
     del user.password
@@ -228,8 +272,6 @@ def deleteUser():
     return 'User successfully deleted'
 
 # Deactivate account ##
-
-
 @app.route('/deactive', methods=['POST'])
 def deactiveUser():
     user_id = request.args.get('user_id')
@@ -239,36 +281,37 @@ def deactiveUser():
     return 'User successfully deactivated\n'
 
 # Create new user ##
-
-
 @app.route('/users', methods=['POST'])
 def createUser():
     try:
-        username = request.form['username']
+        username = request.form['email']
         password = request.form['password']
         email = request.form['email']
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        print username
-        print password
-        print email
+        validation_token = binascii.b2a_hex(os.urandom(15))
+        # first_name = request.form['first_name']
+        # last_name = request.form['last_name']
         # The db only accepts a certain pass length
         user = tryConnection(lambda: models.Users(
-            username=username, email=email, first_name=first_name,
-            last_name=last_name, password=bcrypt.generate_password_hash(password),
-            last_login=datetime.datetime.now()))
+            username=username, email=email, first_name="",
+            last_name="", password=bcrypt.generate_password_hash(password),
+            last_login=datetime.datetime.now(), account_validation_token=validation_token))
         db.session.add(user)
         db.session.commit()
-        print "OK!"
-        return redirect("/");
+        message = Template(users.getValidationMessage())
+        send_email(["spurcell93@gmail.com"], "Welcome to the NewsMap!", message.substitute({
+            "port": port,
+            "token": validation_token,
+            "email": email,
+            "url" : app.config.get("url")
+        }));
+        return redirect("./?success=0");
     except IntegrityError as e:
         db.session.flush()
-        error = {'error_code': e.orig[0], 'error_string': e.orig[1]}
-        return redirect("/?error=2&username=" + username + "&email=" + email + "&first_name=" + first_name + "&last_name=" + last_name)
+        # error = {'error_code': e.orig[0], 'error_string': e.orig[1]}
+        return redirect("./?error=2&username=" + username + "&email=" + email)
     except Exception as e:
         db.session.flush()
         raise e
-        #return 'Error\n'
 
 # User login ##
 @lm.user_loader
@@ -299,43 +342,59 @@ def login():
     print password
     user = tryConnection(lambda: models.Users.query.filter_by(username=username).all()[0])
     if user is None:
-        return redirect("/?error=0")
+        return redirect("./?error=0");
     if not bcrypt.check_password_hash(getattr(user, 'password'), password):
-        return redirect("/?error=1")
+        return redirect("./?error=1");
+    if getattr(user, "active") == 0:
+        return redirect("./?error=3");
     user.last_login = datetime.datetime.now()
     db.session.commit()
     login_user(user, remember=True)
-    return redirect("/map")
+    return redirect("./map")
 
 @app.route('/logout', methods=['GET'])
 def logout():
     logout_user()
-    return redirect("/")
+    return redirect("./")
 
 # User 'liked' a query ##
-
-
 @app.route('/favorite', methods=['POST'])
 @login_required
 def favorite():
     try:
-        user_id = request.form.get('user_id')
+        user_id = getattr(current_user, "id");
         query_id = request.form.get('query_id')
+        if query_id is None:
+            query_id = json.loads(createQuery(request.form.get("name"))).get("id");
         user = models.Users.query.get(user_id)
         query = models.Queries.query.get(query_id)
         if query is not None:
             if not tryConnection(lambda: db.session.query(models.users_has_queries)
                 .filter_by(users_id=user_id, queries_id=query_id).all()):
-                print "adding"
                 user.queries.append(query)
                 db.session.commit()
-            return json.dumps({"success": True})
+            return json.dumps({"success": True, "id": query_id})
     except Exception, err:
         print traceback.format_exc()
         return json.dumps({"success": False})
 
-# User 'liked' a story ##
+@app.route("/unfavorite", methods=["POST"])
+@login_required
+def unFavorite():
+    user_id = getattr(current_user, "id");
+    query_id = request.form.get('id')
+    query = models.Queries.query.get(query_id)
+    if query is None:
+        return {"error": "No query by that name"}, status.HTTP_417_EXPECTATION_FAILED
+    else:
+        sql = "delete from users_has_queries where users_id = '" + str(user_id) + "' and queries_id = '" + str(query_id) + "'"
+        print sql
+        db.engine.execute(sql)
+        return json.dumps({"deleted": True}), status.HTTP_200_OK
+    # except Exception, err:
+        # return json.dumps({"error": "No query by that name"}), status.HTTP_417_EXPECTATION_FAILED
 
+# User 'liked' a story ##
 @app.route('/favoriteStory', methods=['POST'])
 @login_required
 def favoriteStory():
@@ -358,8 +417,6 @@ def favoriteStory():
 ########################
 
 # Get all queries ##
-
-
 @app.route('/queries', methods=['GET'])
 @login_required
 def queries():
@@ -393,6 +450,15 @@ def createQuery(title=None):
         query_id = existing[0].id
     # Return the ID of the query, whether new or old
     return json.dumps({'id': query_id})
+
+
+@app.route("/queryExists/<string:title>", methods=["GET"])
+@login_required
+def exists(title=None):
+    if title is None:
+        return json.dumps({"exists": False});
+    else: 
+        return manager.doesQueryExist(title);
 
 
 ########################
@@ -433,7 +499,8 @@ def createStory(title=None, publication=None, date=None, author=None, url=None,
 @app.route('/stories/many', methods=['POST'])
 @login_required
 def createManyStories():
-    stories = request.json.get("models")
+    stories = request.json
+    resultIds = []
     for story in stories:
         title = story.get('title')
         content = story.get('content')
@@ -446,7 +513,7 @@ def createManyStories():
         aggregator = story.get('aggregator')
         query_id = story.get('query_id')
         location = story.get('location')
-        createStory(title, publication, date, None, url, lat, lng, content, query_id, aggregator, location)
+        resultIds.append(createStory(title, publication, date, None, url, lat, lng, content, query_id, aggregator, location));
     return json.dumps({"success": True})
 
 @app.route('/stories/<string:id>', methods=['PUT'])

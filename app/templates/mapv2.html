@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>News That Moves</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:400,300,100|Roboto:300,100' rel='stylesheet' type='text/css'>
+    <link rel='stylesheet' media='screen' href='static/stylesheets/screen.css' />
+    <link rel='stylesheet' media='screen' href='static/icomoon/style.css' />
+  </head>
+  <body>
+    <div id='entryway-view'>
+      <input type='text' id='js-make-query' placeholder='Search...'/>
+      <button id='save-active-query'>
+        Save
+      </button>
+      <nav>
+        <ul>
+          <li class='js-saved'><i class='icon-th-large'></i><span class='action-text'>Saved</span></a></li>
+          <li class='js-preferences'><i class='icon-equalizer'></i><span class='action-text'>Preferences</span></a></li>
+          <li class='js-help'><i>?</i><span class='action-text'>Help</span></a></li>
+          <li>
+            <i class='icon-out'></i> Export As
+            <ul>
+              <li class='js-export-as' data-type='json'>JSON</li>
+              <li class='js-export-as' data-type='csv'>CSV</li>
+            </ul>
+          </li>
+          <li><a href="/logout"><i class='icon-logout'></i><span class='action-text'>Logout</span></a></li>
+        </ul>
+      </nav>
+    </div>
+    <span id ='overall-progress-number'></span>
+    <progress id='overall-progress' min='0' max='100' value='0' class='hidden'>
+    </progress>
+    <div class='all-stories away'>
+      <input type='text' placeholder='Filter by title' class='js-filter-stories' />
+        <!-- <i class='icon-arrow-down js-sort-options'></i> -->
+        <ul class='sort-options-list'>
+          <li class='header'>Hide...</li>
+          <li class='js-filter-param icon-sign-blank' data-param='nolocation' data-switch-icon='icon-check-sign'>Stories without locations</li>
+          <li class='js-filter-param icon-sign-blank' data-param='location' data-switch-icon='icon-check-sign'>Stories with locations</li>
+          <li class='js-filter-param icon-sign-blank' data-param='favorite' data-switch-icon='icon-check-sign'>Favorites</li>
+          <li class='js-filter-param icon-sign-blank' data-param='google' data-switch-icon='icon-check-sign'>Google News</li>
+          <li class='js-filter-param icon-sign-blank' data-param='yahoo' data-switch-icon='icon-check-sign'>Yahoo News</li>
+          <li class='header'>Sort by...</li>
+          <li class='js-sort icon-sign-blank' data-switch-icon='icon-check-sign' data-sort="newest">Newest first</li>
+          <li class='js-sort icon-sign-blank' data-switch-icon='icon-check-sign' data-sort="oldest">Oldest first</li>
+        </ul>
+          <i class='icon-uni65 js-toggle-view' data-switch-icon='icon-uni66'></i>
+      <ul class='story-list-wrapper'></ul>
+    </div>
+    <div id='all-map-wrapper' class='shift-to-full fullsize'>
+      <div id="all-feed-loaders"></div>
+    </div>
+    <footer id='timeline-wrapper' class='shift-to-full fullsize'>
+      <div class='slider-wrapper'>
+        <div class='slider'></div>
+      </div>
+      <ul class='timeline-controls'>
+          <li class='js-to-start icon-first js-speed-control'></li>
+          <li class='js-rewind icon-previous js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+          <li class='js-play-timeline icon-play2' data-switch-icon="icon-pause2" data-tooltip='Play Timeline'></li>
+          <li class='js-rewind icon-next js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+          <li class='js-to-end icon-last js-speed-control'></li>
+        </ul>
+    </footer>
+  
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoS1bfOyPBTbYH1GhtD4xRs9XrT17nGwg&sensor=true"></script>
+    <script type="text/javascript">
+    var require = {
+        baseUrl: "/static/modules/",
+        waitSeconds: 15,
+        urlArgs : "bust="+ new Date().getTime()
+    };
+    </script>
+    <script type='text/javascript'>
+      window.user = {{user|safe}}
+      window.tokens = {{tokens|safe}}
+      window.savedQueries = {{saved_queries|safe}}
+      window.prefs = {{preferences|safe}}
+    </script>
+    <script src='static/modules/require.min.js' data-main='app'></script>
+    {% include "templates.html" %}
+  </body>
+</html>
+  

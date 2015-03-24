@@ -1,0 +1,856 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
+
+@import "jqueryui";
+@import "compass/reset";
+@import "compass/css3";
+@import "compass/css3/user-interface";
+@import "compass/utilities/general/clearfix";
+@import "grid";
+@import "build";
+@import "overlays";
+@import "typeahead";
+@import "infowindow";
+
+
+@mixin placeholder($c: #999) {
+    &::-webkit-input-placeholder { /* WebKit browsers */
+        color:    #{$c};
+    }   
+    &:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        color:    #{$c};
+    }   
+    &::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color:    #{$c};
+    }   
+    &:-ms-input-placeholder { /* Internet Explorer 10+ */
+        color:    #{$c}; 
+	}   
+}
+
+.fr { float: right; }
+.fl {float: left;}
+.s9 { font-size: .9em; }
+
+* { 
+	margin: 0;
+	padding: 0;
+	@include box-sizing(border-box);
+}
+
+html { height: 100% }
+body { 
+	height: 100%;
+	position: relative;
+	font-size: 14px;
+	font-family: $lato;
+	background: url("../images/dark_matter.png");
+	overflow: hidden;
+}
+
+header, footer {
+	@extend .clearfix;
+	background: #222;
+	position: absolute;
+	background: rgba(60,67,84,.73);
+	min-height: 59px;
+	width: 100%;
+	left: 0%;
+	z-index: 999;
+}
+
+.search-bar { 
+	float: right;
+	width: 60%;
+
+	.icon-in {
+		float: left;
+		color: #f9f9f9;
+		font-size: 1.5em;
+		position: relative;
+		bottom: -14px;
+		padding: 0 10px;
+		cursor: pointer;
+
+		&.hidden { visibility: hidden; }
+
+		&:after {
+			display: block;
+			content: "Save";
+			font-size: .8rem;
+			font-family: $lato;
+			left: -3px;
+			position: relative;
+			padding: 3px 0;
+		}
+	}
+
+	input.js-news-search { 
+		width: 100%; 
+		margin: 0;
+	}
+	
+	button {
+		@include border-radius(0 4px 4px 0);
+		border: 1px solid #333;
+		line-height: 38px;
+		margin-left: 1%;
+		font-family: $lato;
+		font-weight: 300;
+
+		i {
+			padding-left: 7px;
+			vertical-align: -2px;
+		}
+	}
+}
+
+ul.control-panel{
+	@include transition(left $duration ease-in-out);
+	margin-left: 14px;
+	height: 100%;
+	width: 30%;
+	float: left;
+	padding: 0;
+	position: relative;
+
+	li {
+		display: inline-block;
+		min-width: 15%;
+		height: 100%;
+		margin: 0 5px;
+		font-size: 1.2em;
+
+		a {
+			@include border-radius(4px);
+			display: block;
+			text-align: center;
+			font-family: $open-sans;
+			font-size: 1.3em;
+			color: #f9f9f9;
+			margin: 5px 0;
+			height: 100%;
+			text-decoration: none;
+			cursor: pointer;
+			padding: 7px 10px;
+
+			&:hover {
+				@include box-shadow(0px 0px 9px rgba(0,0,0,.3) inset);
+				background: #000;
+				background: rgba(0,0,0,.4);
+			}
+
+			&:before { 
+				display: inline-block;
+				font-family: 'icomoon';
+				vertical-align: -3px;
+				padding: 0 6px 3px 6px;
+			}
+			&:after {
+				content: attr(title);
+				display: block;
+				width: 100%;
+				text-align: center;
+				font-size: .8rem;
+				line-height: 1;
+			}
+		}
+	}
+}
+
+section { 
+	height: 100%; 
+	white-space: nowrap;
+
+	> div {
+		vertical-align: top;
+		height: 100%;
+		margin: 0 -1px;	
+	}
+}
+
+.map-canvas { 
+	@include border-radius(0 0 3px 3px);
+	position: relative;
+	height: 100%;
+	width: 100%;
+	top: 0;
+	background: #7AA297 !important;
+}
+
+
+.main-content-wrap {
+	width: $main-content-width;
+	position: relative;
+	display: inline-block;
+	@include transition(left $duration ease-in-out, width $duration ease-in-out, right $duration ease-in-out);
+
+	.icon-untitled-6 {
+		position: absolute;
+		z-index: 9999;
+		top: 80px;
+		color: white;	
+		left: 10px;
+		display: none;
+	}
+}
+
+.all-articles {
+	// @include box-shadow(-2px 0px 5px $shadeblue inset);
+	@include transition(margin-left $duration ease-in-out, opacity $duration ease-in-out);
+	position: relative;
+	display: inline-block;
+	width: $article-list-width;
+	background: $mainblue;
+	color: #eee;
+	line-height: 1.8;
+	bottom: 0;
+
+	input.js-filter-articles {
+		width: 84%;
+		margin: 10px 0 12px 8px ;
+		padding-right: 30px ;
+	}
+
+	i.icon-arrow-down {
+		position: absolute;
+		left: 78%;
+		padding: 0 4px;
+		font-size: 1.2em;
+		top: 25px;
+		cursor: pointer;
+		color: #bbb;
+	} 
+	
+	i.js-toggle-view {
+		cursor: pointer;
+		position: absolute;
+		top: 20px;
+		right: 8px;
+		@include transition(right $duration ease-in-out, top $duration ease-in-out, color $duration ease-in-out);
+		font-size: 1.5em;
+		z-index: 1000;
+		color: #aaa;
+		text-shadow: 0px 1px 0px $highlightblue;
+
+		&:hover { color: #ddd; }
+	}
+	
+	&.away {
+		margin-left: -1*$article-list-width;
+
+		i.js-toggle-view {
+			cursor: pointer;
+			position: absolute;
+			right: -50px;
+			color: #f9f9f9;
+		}	
+
+		.article-list {
+			opacity: 0;
+			@include transform(scale(.8));
+		}
+	}
+
+	&.away + .main-content-wrap {
+		width: 100%;
+		// left: -1*$article-list-width;
+
+		ul.control-panel {
+			left: 40px;
+		}
+	}
+
+	.article-list {
+		@include transition(all $duration ease-in-out);
+		overflow: auto;
+		height: calc(100% - 30px);
+		@include box-shadow(0px 1px 6px #111 inset);
+
+
+		> li {
+			text-indent: .83em;
+			cursor: pointer;
+			border-bottom: 1px solid $shadeblue;
+			border-top: 1px solid $highlightblue;
+			position: relative;
+			overflow: hidden;
+
+			&:first-of-type { border-top: none; }
+			&:last-of-type { border-bottom: none; }
+
+			.article-title {
+				color: #aaa;
+				text-decoration: none;
+				display: block;
+				width: 100%;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				padding: 2px 0;
+			}
+
+			&.has-location {
+				a,.mask {
+					border-left: 4px solid $hasLocation;
+				}
+				.js-favorite-story { display: none; }
+			}
+
+			&.no-location {
+				a, .mask {
+					border-left: 4px solid #000;
+				}
+			}
+
+			&:hover  {
+				background: rgba(0,0,0,.2) ;
+
+				.icon-location-arrow {
+					visibility: visible;
+				}
+			}
+			&.highlighted {	
+				background: rgba(0,0,0,.5);
+			}
+			
+			.icon-location-arrow {
+				@include border-radius(3px);
+				@include box-shadow(0px 0px 0px 1px rgba(255,255,255,.1) inset, 0px 1px 4px #000);
+				position: absolute;
+				right: 10px;
+				top: 4px;
+				color: $hasLocation;
+				font-size: 1.1em;
+				text-indent: 0em !important;
+				display: block;
+				visibility: hidden;
+				border: 1px solid $mainblue;
+				border-top-color: $highlightblue;
+				border-bottom-color: #111;
+				text-align: center;
+				background: $shadeblue;
+				padding: 3px;
+				margin: 0;
+
+				&:hover { color: #f9f9f9; }
+			}
+
+		}
+
+		.placeholder { 
+			overflow: visible;
+			white-space: normal;
+			border-bottom: 1px solid $shadeblue;
+			font-size: 1.2em;
+		}
+
+		ul.story-tools {
+			@include transition(height .2s ease-in-out);
+			overflow: hidden;
+			height: 0;
+
+			li {
+				display: inline-block;
+				text-align: center;
+			}
+		}
+	}
+}
+
+.quick-story {
+	border-bottom: 1px solid #000;
+	width: 100%;
+	background: $shadeblue;
+	white-space: normal;
+	width: 100%;
+	position: relative;
+	max-height: 500px;
+	color: #ccc;
+	overflow: auto;
+
+	a {
+		font-size: 1em;
+		border-left: none !important;
+		text-decoration: none;
+
+	    &:hover { 
+	    	text-decoration: underline;
+	    	color: $hasLocation;
+	    }
+
+	    &.js-zoom-to-date {
+	    	border-bottom: 1px dotted $hasLocation;
+	    }
+	}
+
+	h3 {
+		font-size: 1.06em;
+		color: #aaa;
+		font-weight: 300;
+		text-align: center;
+		margin: 0;
+		display: block;
+		border-bottom: 1px solid $mainblue;
+
+		a {
+			display: block;
+			color: #ddd;
+		}
+	}
+
+	p {
+		color: #aaa;
+		padding: 10px;
+	}
+	
+	hr {
+		border: none;
+		border-top: 1px solid $mainblue;
+	}
+	
+	&:before {
+		content: "";
+		position: absolute;
+		display: block;
+		width: 0;
+		padding: 0;
+		border: 6px solid transparent;
+		border-bottom-color: rgba(0,0,0,.9);
+		top: -12px;
+		left: 50%;
+		margin-left: -6px;
+	}
+}
+
+.sort-options-list {
+	background: rgba(0,0,0,.8);
+	width: 84%;
+	margin: 10px 0 10px 8px ;
+	position: absolute;
+	top: 40px;
+	display: none;
+	color: #bbb;
+	z-index: 999;
+
+	li:not(.header){
+		text-indent: 1em;
+		cursor: pointer;
+		font-family: $lato;
+		font-weight: 600;
+		margin: 5px 0;
+	
+		&:before { 
+			font-family: 'icomoon';
+			vertical-align: middle;
+			margin: 0 10px 0 0;
+		}
+	}
+
+	li.header {	
+		border-bottom: 1px solid $mainblue;
+		font-size: 1.2em;
+		margin: 0 10px;
+		text-indent: .3em;
+	}
+}
+
+h2 {
+	font-size: 1.8em;
+	margin: 11px 0;
+    font-weight: 300;
+}
+
+h3 { 
+    font-weight: 100;
+	font-size: 1.3rem;
+	text-align: center;
+	border-bottom: 1px solid #888;
+	padding: 5px;
+	margin: 0 8px 8px;
+
+	a{
+		color: #74ac3d;
+	}
+}
+
+p { 
+	line-height: 1.5;
+	color: #414141;
+}
+
+.message {
+	background: #f9f9f9;
+	font-size: 1.1em;
+	margin: 10px auto;
+	@include border-radius(3px);
+	border: 1px solid #ddd;
+}
+
+input[type='text'], input[type='password'] {
+    outline: none;
+    @include border-radius(3px);
+    display: block;
+    border: none;
+    padding: 0 10px;
+    color: #f9f9f9;
+    height: 40px;
+    background: #111;
+    line-height: 30px;
+	font-family: $lato;
+    font-weight: 300;
+    font-size: 1.4em;
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+
+    &:focus {
+        border-bottom: 1px solid #3B4E77;
+    }
+}
+
+
+button {
+	background-color: rgb(116,172,61); // Old browsers
+	@include border-radius(0px 2px 2px 0);
+	// needs latest Compass, add '@import "compass"' to your scss
+	background-color: rgb(96,108,136); // Old browsers
+	@include filter-gradient(#606c88, #3f4c6b, vertical); // IE6-9
+	@include background-image(linear-gradient(top,  rgba(96,108,136,1) 0%,rgba(63,76,107,1) 100%));
+	@include transition(color .2s ease-in-out);
+	display: inline-block;
+	padding: 0 10px;	
+	margin: 10px 0;
+	border: 1px solid #444;
+	font-size: 1.4em;
+	color: #f9f9f9;
+	text-shadow: 0px 1px 4px #313131;
+	cursor: pointer;
+	font-family: $lato;
+	font-weight:300;
+
+	&:hover {
+		color: #fff;
+		// background: #578e37;
+	}
+	&:active {
+		// background: #517F35;
+	}
+}
+
+
+footer {
+	bottom: -30px;
+	height: 20px;
+	@include transition(height .1s ease-in-out);
+	// @include box-shadow(0px -1px 4px #222);
+
+	&:hover {
+		height: 115px;
+	}
+}
+
+.timeline-slider {
+	position: relative;
+	border: 1px solid #111;
+	@include box-shadow(0px 0px 0px 0px #666);
+	// needs latest Compass, add '@import "compass"' to your scss
+	background-color: rgb(0,0,0); // Old browsers
+	@include filter-gradient(#000000, #303534, vertical); // IE6-9
+	@include background-image(linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(48,53,52,1) 100%));
+	width: 100%;
+
+
+	.handle-display-value {
+		position: absolute;
+		top: -40px;
+		background: #222;
+		// needs latest Compass, add '@import "compass"' to your scss
+		// @include filter-gradient(#bf4548, #bf0000, vertical); // IE6-9
+		// @include background-image(linear-gradient(top,  rgba(69,72,77,0.75) 0%,rgba(0,0,0,0.75) 100%));
+		background: rgba(36,40,51,.7);
+		// needs latest Compass, add '@import "compass"' to your scss
+		@include filter-gradient(#b82428, #b84a4f, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(36,40,51,0.72) 0%,rgba(74,79,91,0.72) 100%));
+		padding: 3px 5px;
+		// border: 1px solid #bbb;
+		color: #f9f9f9;
+		line-height: 1.6;
+		text-align: center;
+		font-size: .9em;
+
+		&:before {
+			position: absolute;
+			top: 100%;
+			display: block;
+			content: "";
+			width: 0;
+			height: 0;
+			border: 10px solid transparent;
+			border-top-color: rgb(74,79,91);
+		}
+	}
+
+	.ui-slider-handle {
+		border: none;
+		width: 16px;
+		height: 19px;
+		z-index: 99;
+		border: 1px solid black;
+		border-top-color: #aaa;
+		cursor: -webkit-grab;
+		cursor: -moz-grab;
+		// needs latest Compass, add '@import "compass"' to your scss
+		background-color: rgb(0,0,0); // Old browsers
+		@include filter-gradient(#000000, #45484d, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(69,72,77,1) 100%));
+		@include border-radius(5px);
+		@include box-shadow(0px 2px 3px #222);
+		@include border-radius(3px);
+
+
+		&:focus { 
+			outline: none;
+		}
+		&:first-of-type  {
+			// background: none;
+			// background: url("../images/ui-slider-min.png") no-repeat center;
+			.handle-display-value {
+				left: -10px;
+				&:before { left: 10px;}
+			}
+		}
+		&:last-of-type {
+			// background: none;
+			// background: url("../images/ui-slider-max.png") no-repeat center;
+			.handle-display-value {
+				right: -10px;
+
+				&:before {
+					right: 10px;
+				}
+			}
+		}
+	}
+
+	.ui-slider-range {
+		border: 1px solid #111;
+		border-top-color: #00415B;
+		border-bottom: 1px solid #60ABCB;
+		@include box-shadow(0px 1px 3px 0px #00638D inset);
+		// needs latest Compass, add '@import "compass"' to your scss
+		background-color: rgb(0,91,129); // Old browsers
+		@include filter-gradient(#005b81, #0086bd, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(0,91,129,1) 0%,rgba(0,134,189,1) 100%));
+
+	}
+}
+
+.slider-wrap { 
+	@include transition(width $duration ease-in-out);
+	width: 80%;
+	margin: 10px auto;
+	position: relative;
+}
+
+.timeline-marker {
+	display: block;
+	height: 10px;
+	width: 3px;
+	// needs latest Compass, add '@import "compass"' to your scss
+background-color: rgb(114,229,94); // Old browsers
+@include filter-gradient(#72e55e, #72b068, vertical); // IE6-9
+@include background-image(linear-gradient(top,  rgba(114,229,94,1) 0%,rgba(114,176,104,1) 100%));
+
+	position: absolute;
+	top: 1px;
+	left: 200px;
+	cursor: pointer;
+	border: 1px solid $shadeblue;
+	border: 1px solid rgba(0,0,0,.6);
+	border-bottom: none;
+	z-index: 98;
+
+	&:hover, &.highlighted {
+		background: #fff !important;
+		z-index: 9999;
+	}
+
+	.date-bubble {
+		@include user-select(none);
+		pointer-events: none;
+		position: absolute;
+		// background: rgba(0,0,0,.8);
+		background: rgba(36,40,51,.7);
+		// needs latest Compass, add '@import "compass"' to your scss
+		@include filter-gradient(#b82428, #b84a4f, vertical); // IE6-9
+		@include background-image(linear-gradient(top,  rgba(36,40,51,0.72) 0%,rgba(74,79,91,0.72) 100%));
+		color: #f1f1f1;
+		padding: 5px;
+		text-align: center;
+		bottom: 11px;
+		@include border-radius(3px);
+	}
+
+	&.no-location-marker {
+		background: black;
+		border-color: $mainblue;
+	}
+}
+
+.timeline-controls {
+	@include transition(width $duration ease-in-out);
+	margin: 10px auto;
+	width: 30%;
+	height: 40px;
+	background: rgba(0,0,0,.3);
+	border-bottom: 1px solid #454545;
+	@include box-shadow(inset 0px 1px 3px #000);
+	@include border-radius(3px);
+	color: #f9f9f9;
+
+	li {
+		cursor: pointer;
+		line-height: 40px;
+		font-size: 1.3em;
+		display: inline-block;
+		text-align: center;
+		width: 20%;
+		margin: 0 -3px 0 0;
+		position: relative;
+		// outline: 1px solid red;
+
+		&.selected {
+			text-shadow: 0px 1px 2px #fff, 0px -1px 2px #fff;
+			&:after {
+				content: attr(speed);
+				position: absolute;
+				top: -10px;
+				right: 5px;
+				font-size: .6em;
+				font-family: $lato;
+				text-shadow: none;
+			}
+		}
+	}
+}
+$maskduration: .33s;
+.query-thumb-list {
+	li {
+		@include border-radius(3px);
+		display: inline-block;
+		width: 29.3333%;
+		margin: 10px 2%;
+		border: 1px solid #ccc;
+		height: 130px;
+		color: #f9f9f9;
+		text-shadow: 0px 1px 3px #222;
+		font-size: 1.4em;
+		vertical-align: top;
+		position: relative;
+		overflow: hidden;
+
+		.mask {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			@include transition(background $maskduration ease-in-out, color $maskduration ease-in-out);
+			cursor: pointer;
+
+			&:hover {
+				color: #666;
+				background: rgba(0,0,0,.55);
+
+				.icon-cw {
+					color: #fff;
+					pointer-events: auto;
+					opacity: 1;
+				}
+			}
+		}
+
+		.icon-cw {
+			@include transition( color $maskduration ease-in-out, opacity $maskduration ease-in-out);
+			pointer-events: none;
+			opacity: 0;
+			text-align: center;
+			display: block;
+			position: absolute;
+			height: 40px;
+			width: 40px;
+			left: 50%;
+			margin-left: -20px;
+			margin-top: -30px;
+			top: 50%;
+			font-family: $lato;
+			z-index: 99;
+
+			&:before { 
+				margin-left: -4px;
+				line-height: 40px;
+				font-family: 'icomoon';
+				font-size: 2.8em;
+			}
+		}
+
+		h2 {
+			border: none;
+			padding: 0;
+			padding-left: 20px;
+			margin-top: 5px;
+			font-weight: 300;
+		}
+
+		.created-date {
+			display: block;
+			background: rgba(0,0,0,.3);
+			position: absolute;
+			bottom: 0;
+			width: 100%;
+			line-height: 1.8;
+			font-size: .8em;
+			text-align: right;
+			padding-right: 10px;
+		}	
+		&.angle {
+			background: url("../images/angle.jpg")
+		}
+
+		&.green {
+			background: url("../images/green.jpg")
+		}
+		&.blueribbon {
+			background: url("../images/blueribbon.jpg")
+		}
+		&.orangestuff {
+			background: url("../images/orangestuff.jpg")
+		}
+		&.pink {
+			background: url("../images/pink.jpg")
+		}
+		&.purple {
+			background: url("../images/purple.jpg") 1000px 0px;
+		}
+		&.tendrils {
+			background: url("../images/tendrils.jpg")
+		}
+	}
+}
+
+.map-label {
+	display: block;
+	background: rgba(0,0,0,.7);
+	color: #f6f6f6;
+	padding: 5px;
+	text-align: center;
+	@include border-radius(3px);
+	@include transition(all .2s ease-in-out);
+
+	// &.hidden { color: red; }
+
+}
+
+@media screen and (max-width: 960px) {
+	header button .icon-search { display: none; }
+}

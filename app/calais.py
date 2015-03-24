@@ -84,7 +84,6 @@ class Calais():
         self.processing_directives["contentType"]=content_type
         if external_id:
             self.user_directives["externalID"] = external_id
-        pr("about to return response in calais.py")
         return CalaisResponse(self.rest_POST(content)).get_entities()
 
     def analyze_url(self, url):

@@ -1,0 +1,144 @@
+@import "compass/css3";
+@import "build";
+@import "overlays";
+// @import "compass/reset";
+
+* {
+    @include box-sizing(border-box);
+}
+
+html, body { height: 100%; }
+
+body {
+    font-family: $lato;
+    position: relative;
+    background: url("../images/flatmap.jpg") center fixed;
+    @include background-size(cover);
+    padding: 0;
+}
+
+.login-wrap {
+    @include border-radius(3px);
+    @include box-shadow(0px 0px 20px #111, 0px 0px 1px #fff inset);
+    width: 500px;
+    max-width: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -250px;
+    margin-top: -150px;
+    padding: 10px;
+    background: rgba(255,255,255,.65);
+    background: rgba(60,67,84,.73);
+
+    .button {
+        margin-left: -1px;
+    }
+
+    input[type='text'], [type='password'] {
+        @include box-shadow(none);
+        border: none;
+
+        &:focus { border: none; }
+    }
+}
+
+.button {
+    @include box-shadow(0px 0px 1px #fff inset);
+    @include border-radius(3px);
+    // needs latest Compass, add '@import "compass"' to your scss
+    background-color: rgb(81,66,102); // Old browsers
+    @include filter-gradient(#514266, #172849, vertical); // IE6-9
+    @include background-image(linear-gradient(top,  rgba(81,66,102,1) 0%,rgba(23,40,73,1) 100%));
+    border: 1px solid #222;
+    color: #f9f9f9;
+    line-height: 2.1;
+    font-size: 1.07em;
+    padding: 0 10px;   
+    cursor: pointer;
+    outline: none;
+
+    &:hover {
+        color: #fff;
+        text-decoration: underline;
+        background: #18305B;
+    } 
+
+    &:focus {
+        background: #14213A;
+    }
+}
+
+a {
+    float: right;
+    margin-top: 10px;
+    color: #5976B7;
+    padding: 0 10px;
+
+    &:hover {
+        color: #769AE8;
+    }
+}
+
+label span{
+    color: #769AE8;
+    display: block;
+    padding: 0px 0 5px 0;
+}
+
+.none {display: none;}
+
+input[type='text'], input[type='password'] {
+    outline: none;
+    @include border-radius(5px);
+    @include box-shadow(0px 2px 5px #aaa inset);
+    margin: 2px 0 6px;
+    display: block;
+    padding: 6px 8px;
+    width: 100%;
+    color: #f9f9f9;
+    line-height: 30px;
+    font-size: 1.14em;
+    border: 1px solid transparent;
+    border-top: 1px solid transparent;
+    background: #f8f8f8;
+
+    &:focus {
+        border: 1px solid #0075f2;
+    }
+}
+
+.modal {
+    p {
+        padding: 10px;
+        text-align: center;
+    }
+
+    label {
+        display: block;
+
+        span {
+            color: #222;
+        }
+    }
+
+    .inline {
+        margin: 0 15px 0 0;
+    }
+
+    .button {
+        margin: 0 0 0 10px;
+    }
+
+    input[type='text'], input[type='password'] {
+        color: #333;
+    }
+}
+
+.error {
+    @extend .login-wrap;
+    top: 100px;
+    margin-top: 0px;
+    text-align: center;
+    color: #B5C3E0;
+}

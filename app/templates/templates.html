@@ -1,22 +1,47 @@
-<script type="text/template" id="date-bubble">
-    <span class='date-bubble'>
-    <%= date %>
-    </span>
+<script type="text/template" id="preferences-view">
+
+    <h2> User Preferences </h2>
+    <ul class='active-feeds'>
+    </ul>
+    <label>
+        Change Email:
+        <input type='text', class='js-change-email' value="<%= username %>" />
+    </label>
+    <button class='fr js-save-preferences'>Save</button>
 </script>
 
-<script type="text/template" id='enter-loc'>
-    <p>We weren't able to get location data for this story. If you found some, however, type in the address and we'll geocode it for you so you can have it in the future.</p>
-    <div class='mauto w8'>
-        <label class='w75 fl'>
-            <input type='text' placeholder="Address for '<%= title %>'" class='w10 js-address-value'>
-        </label>
-        <button class='js-geocode-go'>Geocode</button>
+<script type="text/template" id="empty-query-item">
+    You don't have any queries saved. Search for some!
+</script>
+<script type="text/template" id="query-item">
+    <div class='mask'>
+        <span class='title'><%= title %></span>
+        <i class='icon-undo js-load-map fr button'>Load</i>
+        <i class='icon-minus js-remove-query fr button'>Unsave</i>
+        <i class='icon-plus js-add-to-map fr button'>Add</i>
+        <span class='created-date fr'>
+            Created: <%= created.format("MMM Do YYYY") %>
+        </span>
+        <span class='updated-date fr'>
+            Updated: <%= last_query.fromNow() %>
+        </span>
     </div>
-    <div class="clear"></div>
-    <ul class='geocode-choices'></ul>
-
 </script>
-<script type="text/template" id="article-item">
+
+<script type="text/template" id='storymarker'>
+    <% var u = "undefined" %>
+    <h3>
+        <a target='_blank' href='#'><%= title %></a>
+    </h3>
+    <p><%= typeof content !== u ? content : "Sorry, we don't have a snippet here" %></p>
+</script>
+
+<script type="text/template" id="empty-story-item">
+    No stories found.
+</script>
+
+
+<script type="text/template" id="story-item">
     <% var u = "undefined" %>
     <% var url = typeof unescapedUrl !== u ? unescapedUrl : url %>
     <% var title =  typeof title !== u ? title : "No title for this story." %>
@@ -33,13 +58,32 @@
         // </li> -->
     </ul>
 </script>
-<script type="text/template" id='storymarker'>
-    <% var u = "undefined" %>
-    <h3>
-        <a target='_blank' href='<%= typeof unescapedUrl !== u ? unescapedUrl : url %>'><%= title %></a>
-    </h3>
-    <p><%= typeof content !== u ? content : "Sorry, we don't have a snippet here" %></p>
+
+<script type="text/template" id='enter-loc'>
+    <p>We weren't able to get location data for this story. If you found some, however, type in the address and we'll geocode it for you so you can have it in the future.</p>
+    <div class='mauto w8'>
+        <label class='w75 fl'>
+            <input type='text' placeholder="Address for '<%= title %>'" class='w10 js-address-value'>
+        </label>
+        <button class='js-geocode-go'>Geocode</button>
+    </div>
+    <div class="clear"></div>
+    <ul class='geocode-choices'></ul>
 </script>
+
+<script type='text/template' id ='geocode-choice'>
+    <%= formatted_address %>
+</script>
+
+<!-- old shit -->
+
+
+<script type="text/template" id="date-bubble">
+    <span class='date-bubble'>
+    <%= date %>
+    </span>
+</script>
+
 <script type="text/template" id='main-loading-message'>
     <h2 class='center'>Fetching....</h2>
     <p class='center p10 message'>We are currently pulling news stories together from all over the internet and finding out where they occurred. Cool your jets!</p>
@@ -47,17 +91,6 @@
 </script>
 <script type="text/template" id='existing-query-item'>
     <%= value %>
-</script>
-<script type="text/template" id='query-thumb'>
-    <% cleanDate = function(date) {return date.getDate() + "/" + parseInt(date.getMonth() + 1) + "/" + date.getFullYear()} %>
-    <div class='mask'>
-        <h2><%= title %></h2>
-        <i class='icon-cw js-load-map'>
-        Load</i>
-        <div class='created-date'>
-            Created: <%= typeof created !== "undefined" && created !== null ? cleanDate(new Date(created)) : cleanDate(new Date())  %>
-        </div>
-    </div>
 </script>
 <script type="text/template" id='query-list-help'>
     <h2>Your Saved Queries</h2>
@@ -109,8 +142,4 @@
             <dd>Click on a marker on the map to see its associated story in the list.</dd>
     </dl>
 
-</script>
-
-<script type='text/template' id ='geocode-choice'>
-    <%= formatted_address %>
 </script>

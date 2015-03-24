@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Validated!</title>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+        <link rel='stylesheet' media='screen' href='{{base_dir}}static/stylesheets/login.css' />
+    </head>
+    <body>
+        <script type="text/javascript" src='{{base_dir}}static/modules/dist/bower_components/sweetalert/lib/sweet-alert.min.js'></script>
+        <style type='text/css'>
+            .sweet-alert .confirm {
+                visibility: hidden;
+                pointer-events: none;
+            }
+        </style>
+        <script type="text/javascript">
+            var box = swal({
+                type: 'success',
+                title: 'Account Validated!',
+                text: 'You validated your account! Redirecting you to login.',
+                showCancelButton: false
+            });
+
+            setTimeout(function() { 
+                window.location.href = "/?ce={{email}}"
+            }, 4000)
+        </script>
+    </body>
+</html>

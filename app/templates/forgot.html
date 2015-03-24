@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>News Map Login</title>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+        <link rel='stylesheet' media='screen' href='static/stylesheets/login.css' />
+        <link rel='stylesheet' media='screen' href='static/icomoon/style.css' />
+        
+    </head>
+    <body>
+        <div class="login-wrap">
+            <label>
+                <span>New Password:</span>
+                <input type="password" name='newpassword' placeholder='New Password' />
+            </label>
+            <label>
+                <span>Confirm Password:</span>
+                <input type="password" name='confirmpassword' placeholder='Confirm Password' />
+            </label>
+            <button class='button js-submit' name='submit'> Change Password </button>
+        </div>
+        <script type="text/javascript">
+            window.token = "{{token|string}}"
+            window.email = "{{email}}";
+        </script>
+        <script type='text/javascript' src='static/modules/require.min.js', data-main='static/modules/forgot'></script>
+        
+    </body>
+</html>

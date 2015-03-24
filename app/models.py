@@ -1,4 +1,5 @@
 from app import db, login_serializer
+import os,binascii
 from sqlalchemy.dialects.mysql import TINYINT, TIMESTAMP, DATETIME
 
 ACTIVE = 1
@@ -34,23 +35,32 @@ users_has_stories = db.Table('users_has_stories',
                                db.Column('active', TINYINT, default=ACTIVE)
                                )
 
+class Preferences(db.Model):
+  __tablename__ = "preferences";
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     username = db.Column(db.String(45), index=True, unique=True)
     email = db.Column(db.String(45), index=True, unique=True)
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
-    active = db.Column(TINYINT, default=ACTIVE)
+    active = db.Column(TINYINT, default=INACTIVE)
     password = db.Column(db.String(255))
     last_login = db.Column(DATETIME)
+    reset_password_token = db.Column(db.String(45), default=binascii.b2a_hex(os.urandom(15)));
+    account_validation_token = db.Column(db.String(45), default=binascii.b2a_hex(os.urandom(15)));
     queries = db.relationship('Queries', secondary=users_has_queries,
                               backref=db.backref('users', lazy='dynamic'))
+    preferences = db.relationship('Preferences', backref=db.backref('users', uselist=True, lazy='dynamic'));
 
+    # child = relationship("Child", backref=backref("parent", uselist=False))
     def is_authenticated(self):
         return True
 
     def is_active(self):
-        return True
+        return self.active
 
     def is_anonymous(self):
         return False
@@ -66,7 +76,7 @@ class Users(db.Model):
         return login_serializer.dumps(data)
 
     def __repr__(self):
-        return '<User %r>' % (self.nickname)
+        return '<User %r>' % (self.id)
 
 
 class Queries(db.Model):
