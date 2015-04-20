@@ -1,4 +1,4 @@
-define ["hub", "stories"], (hub, stories) ->
+define "loaders", ["hub", "stories"], (hub, stories) ->
 
     class SpinningLoader
         constructor: -> @

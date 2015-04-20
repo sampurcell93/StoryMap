@@ -1,4 +1,4 @@
-define ["hub", "themes", "stories"], (hub, themes, stories) ->
+define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
     dispatcher = hub.dispatcher
 
     blueIcon = "static/images/bluepoi.png"
@@ -13,7 +13,6 @@ define ["hub", "themes", "stories"], (hub, themes, stories) ->
             _.bindAll @, "render"
             @listenTo @model,
                 "hide": ->
-                    console.log("hiding")
                     if @icon? and @icon.getMap()?
                         @icon.setMap null
                 "show": ->
@@ -74,22 +73,27 @@ define ["hub", "themes", "stories"], (hub, themes, stories) ->
     class Map extends Backbone.View
         tagName: "div"
         className: "map-canvas"
-        filterByDate: (min, max, opts={}) ->
-            inrange = []
-            outrange = []
+        # Returns the indices where the lower and upper cuttoff are
+        # Return type: object
+        filterByDate: (min, max, cutoff=0, opts={}) ->
+            # console.log(cutoffIndices)
+            highCutoffIndex = cutoff
+            localCutoff = false
             if @collection?
-                @collection.each (model) ->
+                inrange = []
+                outrange = []
+                iterable = @collection.slice(highCutoffIndex, @collection.length - 1);
+                # console.log cutoffIndices, min, max
+                _.each iterable, (model) ->
                     date = model.get("date") 
                     if date >= min and date <= max
                         model.trigger "show", opts
-                    else 
+                    else if date >= max
+                        if localCutoff is false
+                            localCutoff = true
+                            highCutoffIndex = model.collection.indexOf(model)
                         model.trigger "hide", opts
-                # _.each markers.outrange, (outlier) ->
-                #     outlier.setMap null
-                # _.each markers.inrange, (inlier) ->
-                #     unless inlier.icon.getMap()?
-                #     inlier.setMap self.mapObj.map 
-                #     {inrange: inrange, outrange: outrange}
+            return highCutoffIndex
 
         initialize: (attrs) ->
             @id = attrs.id;

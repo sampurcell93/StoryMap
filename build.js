@@ -1,4 +1,5 @@
 ({
+    mainConfigFile : "./app/static/modules/app.js",
     baseUrl: "./app/static/modules",
     waitSeconds: 15,
     // urlArgs : "bust="+ new Date().getTime(),
@@ -6,7 +7,7 @@
         "backbone"      : "dist/bower_components/backbone/backbone",
         "underscore"    : "dist/bower_components/underscore/underscore-min",
         "jquery"        : "dist/bower_components/jquery/dist/jquery.min",
-        "jqueryUI"        : "dist/jquery-ui.min",
+        "jqueryUI"      : "dist/jquery-ui.min",
         "marionette"    : "dist/bower_components/marionette/lib/backbone.marionette.min",
         "moment"        : "dist/bower_components/moment/moment",
         "map"           : "dist/map",
@@ -22,6 +23,7 @@
         "sweetalert"    : "dist/bower_components/sweetalert/lib/sweet-alert"
     },
     name: "app",
+    findNestedDependencies: true,
     out: "./app/static/modules/app-built.js"
 
 })

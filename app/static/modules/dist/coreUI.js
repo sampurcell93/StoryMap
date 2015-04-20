@@ -2,7 +2,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub", "dist/typeahead", "dist/loaders", "modals", "queries", "stories", "map", "user", "sweetalert", "timeline"], function(hub, typeahead, loaders, Modal, queries, stories, maps, user, sweet, timeline) {
+  define("coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories", "map", "user", "sweetalert", "timeline"], function(hub, typeahead, loaders, Modal, queries, stories, maps, user, sweet, timeline) {
     var EntryWayView, dispatcher, entryWay, lFactory, tl, toggleSideBar, toggleSidebarAnimation;
     lFactory = new loaders();
     dispatcher = hub.dispatcher;
@@ -24,9 +24,34 @@
       };
 
       EntryWayView.prototype.initialize = function() {
+        this.queryInput = this.$('#js-make-query');
+        this.saveButton = this.$("#save-active-query");
         this.bindTypeahead();
         this.isModal = true;
-        return this.listenTo(dispatcher, "render:topbar", this.morphToTopBar);
+        return this.listenTo(dispatcher, "render:topbar", (function(_this) {
+          return function(query) {
+            _this.morphToTopBar();
+            if (query != null) {
+              _this.queryInput.typeahead('val', query);
+            }
+            _this.queryInput.blur();
+            return _this.checkCurrentQueryState();
+          };
+        })(this));
+      };
+
+      EntryWayView.prototype.checkCurrentQueryState = function() {
+        var request;
+        console.log(this.autoComplete.getCurrentInput());
+        request = queries.createRequest(this.autoComplete.getCurrentInput());
+        return request.doesExist((function(_this) {
+          return function(response) {
+            console.log(response);
+            if (response.exists === true) {
+              return _this.saveButton.hide();
+            }
+          };
+        })(this));
       };
 
       EntryWayView.prototype.morphToModal = function() {
@@ -35,26 +60,23 @@
       };
 
       EntryWayView.prototype.morphToTopBar = function(query) {
-        if (query != null) {
-          this.$('#js-make-query').typeahead('val', query);
-        }
-        this.$("#js-make-query").blur();
         if (this.isModal === false) {
           return this;
         }
         this.isModal = false;
         this.$el.addClass("top-bar");
-        this.$("#save-active-query").fadeIn("fast").attr("disabled", false);
+        this.saveButton.fadeIn("fast").attr("disabled", false);
+        toggleSideBar("show");
         return this;
       };
 
       EntryWayView.prototype.hideSaveButton = function() {
-        this.$("#save-active-query").fadeOut("fast").attr("disabled", true);
+        this.saveButton.fadeOut("fast").attr("disabled", true);
         return this;
       };
 
       EntryWayView.prototype.bindTypeahead = function() {
-        return new queries.QueryAutoComplete(this.$("#js-make-query"));
+        return this.autoComplete = new queries.QueryAutoComplete(this.$("#js-make-query"));
       };
 
       EntryWayView.prototype.showSaved = function() {
@@ -84,28 +106,42 @@
         return m.$el.css("top", 320 + "px");
       };
 
+      EntryWayView.prototype.saveSuccess = function(title) {
+        dispatcher.dispatch("navigate", "existing/" + title, {
+          replace: true,
+          trigger: false
+        });
+        return swal({
+          title: "Saved!",
+          text: "You saved this query! You can look at it any time, and we'll be updating it in the background.",
+          allowOutsideClick: true,
+          type: "success",
+          confirmButtonText: "OK",
+          timer: 4500
+        });
+      };
+
       EntryWayView.prototype.events = {
         "click .js-saved": "showSaved",
         "click .js-preferences": "showPreferences",
         "click .js-help": "showHelp",
+        "click #search-new-query": function(e) {
+          var request;
+          request = queries.createRequest(this.autoComplete.getCurrentInput());
+          return request.doesExist((function(_this) {
+            return function(response) {
+              if (response.exists === false) {
+                _this.autoComplete.query(true);
+                return _this.saveButton.show();
+              }
+            };
+          })(this));
+        },
         "click #save-active-query": function(e) {
           var $t, query, request, saveSuccess, spinner;
+          $t = $(e.currentTarget);
+          saveSuccess = this.saveSuccess;
           spinner = $(lFactory.get("spinner"));
-          saveSuccess = function(title) {
-            dispatcher.dispatch("navigate", "existing/" + title, {
-              replace: true,
-              trigger: false
-            });
-            spinner.remove();
-            return swal({
-              title: "Saved!",
-              text: "You saved this query! You can look at it any time, and we'll be updating it in the background.",
-              allowOutsideClick: true,
-              type: "success",
-              confirmButtonText: "OK",
-              timer: 4500
-            });
-          };
           $t = $(e.currentTarget);
           query = queries.getActiveQuery();
           $t.append(spinner);
@@ -117,10 +153,14 @@
                 if (response.exists === false) {
                   allStories = query.get("stories");
                   return allStories.create().success(function() {
-                    return saveSuccess(query.get("title"));
+                    saveSuccess(query.get("title"));
+                    spinner.remove();
+                    return $t.hide();
                   });
                 } else {
-                  return saveSuccess(query.get("title"));
+                  saveSuccess(query.get("title"));
+                  spinner.remove();
+                  return $t.show();
                 }
               }) : void 0;
             };
@@ -131,23 +171,8 @@
       return EntryWayView;
 
     })(Backbone.View);
-    entryWay = new EntryWayView();
+    entryWay = null;
     tl = null;
-    $(".js-filter-stories").keyup(function(e) {
-      var activeStories, filterer, key, val;
-      val = $(this).val();
-      key = e.keyCode || e.which;
-      activeStories = stories.getActiveSet();
-      if ((activeStories != null) && key !== 32) {
-        filterer = new stories.StoryFilter(activeStories);
-        return filterer.filter(val);
-      }
-    });
-    $("nav").on("click", function() {
-      if ($(window).width() < 1184) {
-        return $(this).toggleClass("showing-menu");
-      }
-    });
     toggleSidebarAnimation = function(count, map) {
       var frame;
       if (map != null) {
@@ -174,47 +199,67 @@
       map = (_ref = maps.getActiveMap()) != null ? _ref.map : void 0;
       return toggleSidebarAnimation(0, map);
     };
-    $(".js-toggle-view").click(function() {
-      return toggleSideBar();
-    });
-    dispatcher.on("show:sidebars", function() {
-      toggleSideBar("show");
-      if (tl != null) {
-        return tl.$el.slideDown("fast");
+    return {
+      load: function() {
+        entryWay = new EntryWayView();
+        tl = null;
+        $(".js-toggle-view").click(function() {
+          return toggleSideBar();
+        });
+        dispatcher.on("show:sidebars", function() {
+          toggleSideBar("show");
+          if (tl != null) {
+            return tl.$el.slideDown("fast");
+          }
+        });
+        dispatcher.on("add:feedLoader", function(name, loadingRequest) {
+          var activeStories, group;
+          if (loadingRequest != null) {
+            activeStories = stories.getActiveSet();
+            group = activeStories.getGroup(name);
+            return loadingRequest.on("retrieval_" + name + ":done", (function(_this) {
+              return function() {
+                return group.analyze();
+              };
+            })(this));
+          }
+        });
+        dispatcher.on("execute:query", function(q) {
+          return entryWay.morphToTopBar();
+        });
+        dispatcher.on("destroy:timeline", function(query) {
+          if (tl) {
+            return tl.destroy();
+          }
+        });
+        dispatcher.on("add:map", function(query) {
+          var _ref;
+          if (tl) {
+            tl.destroy();
+          }
+          tl = new timeline.TimelineView({
+            collection: query.get("stories"),
+            map: (_ref = maps.getActiveMap()) != null ? _ref.map : void 0
+          });
+          return tl.hide().reset().updateHandles().render();
+        });
+        $(".js-filter-stories").keyup(function(e) {
+          var activeStories, filterer, key, val;
+          val = $(this).val();
+          key = e.keyCode || e.which;
+          activeStories = stories.getActiveSet();
+          if ((activeStories != null) && key !== 32) {
+            filterer = new stories.StoryFilter(activeStories);
+            return filterer.filter(val);
+          }
+        });
+        return $("nav").on("click", function() {
+          if ($(window).width() < 1184) {
+            return $(this).toggleClass("showing-menu");
+          }
+        });
       }
-    });
-    dispatcher.on("add:feedLoader", function(name, loadingRequest) {
-      var activeStories, group;
-      if (loadingRequest != null) {
-        activeStories = stories.getActiveSet();
-        group = activeStories.getGroup(name);
-        return loadingRequest.on("retrieval_" + name + ":done", (function(_this) {
-          return function() {
-            return group.analyze();
-          };
-        })(this));
-      }
-    });
-    dispatcher.on("execute:query", function(q) {
-      return entryWay.morphToTopBar();
-    });
-    dispatcher.on("destroy:timeline", function(query) {
-      if (tl) {
-        return tl.destroy();
-      }
-    });
-    dispatcher.on("add:map", function(query) {
-      var _ref;
-      if (tl) {
-        tl.destroy();
-      }
-      tl = new timeline.TimelineView({
-        collection: query.get("stories"),
-        map: (_ref = maps.getActiveMap()) != null ? _ref.map : void 0
-      });
-      return tl.reset().updateHandles(true).render();
-    });
-    return function() {};
+    };
   });
 
 }).call(this);

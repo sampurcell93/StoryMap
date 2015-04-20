@@ -1,4 +1,4 @@
-define ["hub", "modals"], (hub, Modal) ->
+define "stories", ["hub", "modals"], (hub, Modal) ->
 
     _activeStories = null;
     dispatcher = hub.dispatcher;
@@ -21,9 +21,7 @@ define ["hub", "modals"], (hub, Modal) ->
             response.date = moment(response.date);
             response.created = moment(response.created);
             response
-        hasCoordinates: ->
-            @get("lat")? and @get("lng")?
-        hasLocation: -> @lat? and @lng?
+        hasCoordinates: -> @get("lat")? and @get("lng")?
 
     class GeoCoder
         constructor: (@address) ->

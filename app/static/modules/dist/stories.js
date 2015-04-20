@@ -2,7 +2,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub", "modals"], function(hub, Modal) {
+  define("stories", ["hub", "modals"], function(hub, Modal) {
     var GeoCoder, GeoCoderView, GeoList, GeoListItem, QuickStory, Stories, Story, StoryAnalyzer, StoryFilter, StoryItem, StoryList, dispatcher, stripHTML, _activeStories, _activeStoryList;
     _activeStories = null;
     dispatcher = hub.dispatcher;
@@ -42,10 +42,6 @@
 
       Story.prototype.hasCoordinates = function() {
         return (this.get("lat") != null) && (this.get("lng") != null);
-      };
-
-      Story.prototype.hasLocation = function() {
-        return (this.lat != null) && (this.lng != null);
       };
 
       return Story;

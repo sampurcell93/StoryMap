@@ -8,6 +8,7 @@ require.config({
         "sweetalert"    : "dist/bower_components/sweetalert/lib/sweet-alert",
         "hub"           : "dist/hub",
         "modals"        : "dist/modal",
+        "loaders"        : "dist/loaders",
         "stories"       : "dist/stories",
         "morphext"      : "dist/bower_components/Morphext/dist/morphext"
     }
@@ -15,7 +16,7 @@ require.config({
 
 define(["jquery", "underscore" ,"backbone", "marionette"], function($, _, Backbone, sweet) {
 
-    require(["sweetalert", "morphext", "modals", "dist/loaders"], function(sw, mx, Modal, loaders) {
+    require(["sweetalert", "morphext", "modals", "loaders"], function(sw, mx, Modal, loaders) {
 
         $("#mission-rotating").css("visibility", "visible").Morphext({
             // The [in] animation type. Refer to Animate.css for a list of available animations.

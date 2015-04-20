@@ -71,12 +71,13 @@ def updateAllQueries():
                     story.get("location")
                     )
             Manager.updateQueryRetrievalTime(id)
+        return True
     return True
 
 sched = Scheduler()
 sched.start()
 
 # updateAllQueries()
-@sched.cron_schedule(day_of_week='mon-sun', hour=0, minute=1)
+@sched.cron_schedule(day_of_week='mon-sun', hour=12, minute=57)
 def scheduled_job():
     updateAllQueries()

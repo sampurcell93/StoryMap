@@ -2,7 +2,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub"], function(hub) {
+  define("user", ["hub"], function(hub) {
     var Preferences, PreferencesView, User, _user;
     Preferences = (function(_super) {
       __extends(Preferences, _super);
@@ -13,7 +13,7 @@
 
       Preferences.prototype.defaults = function() {
         return {
-          activeFeeds: ["google", "yahoo"],
+          activeFeeds: ["google", "feedzilla"],
           inactiveFeeds: [],
           date_format: "MMM Do, YYYY"
         };

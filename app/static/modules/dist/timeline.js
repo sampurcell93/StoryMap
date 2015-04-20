@@ -5,8 +5,61 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub", "user"], function(hub, user) {
-    var Timeline, TimelineMarker, dispatcher;
+  define("timeline", ["hub", "user", "map"], function(hub, user, map) {
+    var DateRange, Timeline, TimelineMarker, TwoDatePicker, dispatcher;
+    DateRange = (function(_super) {
+      __extends(DateRange, _super);
+
+      function DateRange() {
+        return DateRange.__super__.constructor.apply(this, arguments);
+      }
+
+      DateRange.prototype.defaults = function() {
+        return {
+          absoluteMinimum: 0,
+          absoluteMaximum: Date.now(),
+          currentMinimum: 0,
+          currentMaximum: Date.now()
+        };
+      };
+
+      DateRange.prototype.init = function() {
+        return this.dates = [];
+      };
+
+      DateRange.prototype.getStartDate = function() {
+        return this.dates[0];
+      };
+
+      DateRange.prototype.getEndDate = function() {
+        return this.dates[1];
+      };
+
+      DateRange.prototype.setEndDate = function(end) {
+        end = new Date(end);
+        return this.dates[1] = end.getTime();
+      };
+
+      DateRange.prototype.setStartDate = function(start) {
+        start = new Date(start);
+        return this.dates[0] = start.getTime();
+      };
+
+      DateRange.prototype.setAbsoluteUpperBound = function(bound) {
+        this.$startElement.datepicker("option", "maxDate", new Date(bound));
+        this.$endElement.datepicker("option", "maxDate", new Date(bound));
+        return this.absoluteUpperBound = bound;
+      };
+
+      DateRange.prototype.setAbsoluteLowerBound = function(bound) {
+        this.$startElement.datepicker("option", "minDate", new Date(bound));
+        this.$endElement.datepicker("option", "minDate", new Date(bound));
+        return this.absoluteLowerBound = bound;
+      };
+
+      return DateRange;
+
+    })(Backbone.Model);
     dispatcher = hub.dispatcher;
     Timeline = (function(_super) {
       __extends(Timeline, _super);
@@ -25,21 +78,24 @@
       Timeline.prototype.dir = "forward";
 
       Timeline.prototype.initialize = function() {
-        var format, update_val, _ref;
+        var format, _ref;
         format = (_ref = user.getActiveUser()) != null ? _ref.get("preferences").get("date_format") : void 0;
         _.bindAll(this, "render", "addMarker", "changeValue", "play", "stop", "updateHandles");
-        update_val = (function(_this) {
+        this.previousCutoff = 0;
+        this.updateVisibleMarkers = (function(_this) {
           return function(e, ui) {
-            var cleaned, display, handle, pos, range;
+            var activeMap, cleaned, display, handle, pos, range;
             handle = $(ui.handle);
             pos = handle.index() - 1;
             range = ui.values;
             cleaned = moment(range[pos]).format(format);
             display = $("<div/>").addClass("handle-display-value").text(cleaned);
             handle.find("div").remove().end().append(display);
-            return dispatcher.dispatch("filter:markers", ui.values[0], ui.values[1], {
+            activeMap = map.getActiveMap();
+            _this.previousCutoff = activeMap.filterByDate(ui.values[0], ui.values[1], _this.previousCutoff, {
               hideTimelineMarkers: false
             });
+            return console.log(_this.previousCutoff);
           };
         })(this);
         this.$timeline = this.$(".slider");
@@ -47,13 +103,37 @@
           range: true,
           values: [0, 100],
           step: 10000,
-          slide: update_val,
-          change: update_val
+          slide: (function(_this) {
+            return function() {
+              return _this.updateVisibleMarkers.apply(_this, arguments);
+            };
+          })(this),
+          change: (function(_this) {
+            return function() {
+              return _this.updateVisibleMarkers.apply(_this, arguments);
+            };
+          })(this)
         });
+        return this.listenTo(dispatcher, "render:timeline", (function(_this) {
+          return function() {
+            _this.render().updateHandles();
+            return _this.show();
+          };
+        })(this));
+      };
+
+      Timeline.prototype.hide = function() {
+        this.$el.css("bottom", -400);
+        return this;
+      };
+
+      Timeline.prototype.show = function() {
+        this.$el.css("bottom", 0);
         return this;
       };
 
       Timeline.prototype.reset = function() {
+        this.previousCutoff = 0;
         this.min = this.max = void 0;
         return this;
       };
@@ -64,13 +144,45 @@
       };
 
       Timeline.prototype.render = function() {
+        this.previousCutoff = 0;
         this.clearMarkers();
         _.each(this.collection.models, (function(_this) {
           return function(story) {
             return _this.addMarker(story);
           };
         })(this));
+        this.updateDatePicker();
         return this;
+      };
+
+      Timeline.prototype.updateDatePicker = function() {
+        var absMax, absMin, range, _ref;
+        if ((_ref = this.twoDatePicker) != null) {
+          _ref.destroy();
+        }
+        this.date;
+        this.twoDatePicker = new TwoDatePicker(document.getElementById("start-date-picker"), document.getElementById("end-date-picker"));
+        range = this.twoDatePicker;
+        range.setAbsoluteLowerBound(absMin = this.min);
+        range.setAbsoluteUpperBound(absMax = this.max);
+        return range.setTimelineInterface({
+          render: (function(_this) {
+            return function() {
+              return _this.updateHandles();
+            };
+          })(this),
+          updateLowerBound: (function(_this) {
+            return function(bound) {
+              console.log(bound, _this);
+              return _this.min = bound;
+            };
+          })(this),
+          updateUpperBound: (function(_this) {
+            return function(bound) {
+              return _this.max = bound;
+            };
+          })(this)
+        });
       };
 
       Timeline.prototype.addMarker = function(model) {
@@ -106,6 +218,7 @@
       };
 
       Timeline.prototype.stop = function() {
+        this.previousCutoff = 0;
         this.isPlaying = false;
         this.$(".js-pause-timeline").trigger("switch");
         return this;
@@ -222,6 +335,11 @@
         return this;
       };
 
+      Timeline.prototype.destroy = function() {
+        this.undelegateEvents();
+        return this.$el.removeData().unbind();
+      };
+
       Timeline.prototype.events = {
         "click .js-play-timeline": function(e) {
           $(e.currentTarget).removeClass("js-play-timeline icon-play2").addClass("js-pause-timeline icon-pause2 playing");
@@ -244,11 +362,6 @@
           var $t;
           return $t = $(e.currentTarget);
         }
-      };
-
-      Timeline.prototype.destroy = function() {
-        this.undelegateEvents();
-        return this.$el.removeData().unbind();
       };
 
       return Timeline;
@@ -307,7 +420,7 @@
         $el.html(this.template({
           date: this.model.get("date").format(format)
         }));
-        if (!this.model.hasLocation()) {
+        if (!this.model.hasCoordinates()) {
           $el.addClass("no-location-marker");
         }
         this.$(".date-bubble").hide();
@@ -329,8 +442,66 @@
       return TimelineMarker;
 
     })(Backbone.View);
+    TwoDatePicker = (function() {
+      function TwoDatePicker(startElement, endElement, dateRange) {
+        this.startElement = startElement;
+        this.endElement = endElement;
+        this.dateRange = dateRange;
+        this.$startElement = $(this.startElement);
+        this.$endElement = $(this.endElement);
+        this.bindDatePicker(this.$startElement, "start");
+        this.bindDatePicker(this.$endElement, "end");
+        _.extend(this, Backbone.Events);
+        this.bindRangeListeners();
+      }
+
+      TwoDatePicker.prototype.bindRangeListeners = function() {
+        return this.listenTo(this.dateRange, {
+          "change:currentMinimum": this.updateCurrentMinimum,
+          "change:currentMaximum": this.updateCurrentMaximum
+        });
+      };
+
+      TwoDatePicker.prototype.updateCurrentMaximum = function(model, max) {
+        return this.$endElement.datepicker("setDate", max);
+      };
+
+      TwoDatePicker.prototype.updateCurrentMinimum = function(model, min) {
+        return this.$startElement.datepicker("setDate", min);
+      };
+
+      TwoDatePicker.prototype.bindDatePicker = function(el, which) {
+        return el.datepicker({
+          maxDate: this.absoluteUpperBound,
+          minDate: this.absoluteLowerBound,
+          showAnim: "fadeIn",
+          onSelect: (function(_this) {
+            return function(date, evt) {
+              if (which === "start") {
+                _this.timelineInterface.updateLowerBound(new Date(date));
+                _this.timelineInterface.render();
+                return false;
+              }
+            };
+          })(this)
+        });
+      };
+
+      TwoDatePicker.prototype.destroy = function() {
+        return this.stopListening();
+      };
+
+      TwoDatePicker.prototype.setTimelineInterface = function(timelineInterface) {
+        this.timelineInterface = timelineInterface;
+      };
+
+      return TwoDatePicker;
+
+    })();
     return {
-      TimelineView: Timeline
+      TimelineView: Timeline,
+      TwoDatePicker: TwoDatePicker,
+      DateRange: DateRange
     };
   });
 

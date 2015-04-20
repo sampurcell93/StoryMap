@@ -1,4 +1,4 @@
-define ["hub", "queries", "dist/loaders", "stories", "timeline", "user", "map"], (hub, queries, loaders, stories, timeline, user, map) ->
+define "router", ["hub", "queries", "loaders", "stories", "timeline", "user", "map"], (hub, queries, loaders, stories, timeline, user, map) ->
 
     dispatcher = hub.dispatcher;
 
@@ -23,6 +23,7 @@ define ["hub", "queries", "dist/loaders", "stories", "timeline", "user", "map"],
         _done: ->
             @stopListening @collection
             @hideBar()
+            dispatcher.dispatch("render:timeline");
             @done.call(@);
         done: ->
         listenToAnalysisProgress: ->
@@ -33,7 +34,8 @@ define ["hub", "queries", "dist/loaders", "stories", "timeline", "user", "map"],
                 @finishedAnalysisCount++
                 newVal = @currentProgressBarVal + ((@finishedAnalysisCount / @totalStoriesBeingAnalyzed) * 100)
                 @progressBar.set(newVal);
-                if newVal >= 100 then @_done()
+                console.log(newVal)
+                if newVal >= 95 then @_done()
             @
         listenToRetrievalProgress: (retrievalObj, feed, len, next=null, first=false) ->
             if first is true and !@progressBar.finalStage
@@ -50,12 +52,11 @@ define ["hub", "queries", "dist/loaders", "stories", "timeline", "user", "map"],
                         activeStories = stories.getActiveSet();
                         activeStories.analyze();
                 , 1000
-                @totalStoriesBeingAnalyzed += retrievalObj.totalStoriesRetrieved[feed].retrieved
+                @totalStoriesBeingAnalyzed += retrievalObj.totalStoriesRetrieved[feed]?.retrieved || 0
                 @finishedRetrievingCount++
                 # Multiply by .1 to reflect the relative insignificance 
                 # of retrieval as compared to analysis and parsing
-                @progressBar.set((@finishedRetrievingCount/len*100)*.1)
-                debugger
+                @progressBar.set((@finishedRetrievingCount/len*100)*.2)
         destroy: -> 
             @stopListening()
 
@@ -85,11 +86,13 @@ define ["hub", "queries", "dist/loaders", "stories", "timeline", "user", "map"],
         renderExistingQuery: (query) ->
             request = queries.createRequest(query);
             promise = request.fetchExistingQuery()
+
             promise.success (response) =>
                 @progressUpdater.hideBar()
                 dispatcher.dispatch "render:topbar", query
                 query = queries.setActiveQuery(response);
                 dispatcher.dispatch "add:map", query
+                dispatcher.dispatch "render:timeline"
                 dispatcher.dispatch "show:sidebars"
                 dispatcher.dispatch "clear:map"
                 stories.setActiveStories(query.get("stories"));

@@ -1,4 +1,4 @@
-define ->
+define "hub", ->
     class App extends Marionette.Application
         initialize: (options) ->
 

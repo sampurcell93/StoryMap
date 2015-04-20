@@ -2,7 +2,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub", "themes", "stories"], function(hub, themes, stories) {
+  define("map", ["hub", "themes", "stories"], function(hub, themes, stories) {
     var Map, MapFactory, MapMarker, blueIcon, dispatcher, map, redIcon;
     dispatcher = hub.dispatcher;
     blueIcon = "static/images/bluepoi.png";
@@ -23,7 +23,6 @@
         _.bindAll(this, "render");
         return this.listenTo(this.model, {
           "hide": function() {
-            console.log("hiding");
             if ((this.icon != null) && (this.icon.getMap() != null)) {
               return this.icon.setMap(null);
             }
@@ -121,24 +120,35 @@
 
       Map.prototype.className = "map-canvas";
 
-      Map.prototype.filterByDate = function(min, max, opts) {
-        var inrange, outrange;
+      Map.prototype.filterByDate = function(min, max, cutoff, opts) {
+        var highCutoffIndex, inrange, iterable, localCutoff, outrange;
+        if (cutoff == null) {
+          cutoff = 0;
+        }
         if (opts == null) {
           opts = {};
         }
-        inrange = [];
-        outrange = [];
+        highCutoffIndex = cutoff;
+        localCutoff = false;
         if (this.collection != null) {
-          return this.collection.each(function(model) {
+          inrange = [];
+          outrange = [];
+          iterable = this.collection.slice(highCutoffIndex, this.collection.length - 1);
+          _.each(iterable, function(model) {
             var date;
             date = model.get("date");
             if (date >= min && date <= max) {
               return model.trigger("show", opts);
-            } else {
+            } else if (date >= max) {
+              if (localCutoff === false) {
+                localCutoff = true;
+                highCutoffIndex = model.collection.indexOf(model);
+              }
               return model.trigger("hide", opts);
             }
           });
         }
+        return highCutoffIndex;
       };
 
       Map.prototype.initialize = function(attrs) {

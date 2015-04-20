@@ -336,12 +336,11 @@ def load_token(token):
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
-    print username
-    print password
-    user = tryConnection(lambda: models.Users.query.filter_by(username=username).all()[0])
-    if user is None:
+    username = request.form.get('username', "")
+    password = request.form.get("password", "")
+    user = tryConnection(lambda: models.Users.query.filter_by(username=username).first())
+    print type(user)
+    if user is None or not user:
         return redirect("./?error=0");
     if not bcrypt.check_password_hash(getattr(user, 'password'), password):
         return redirect("./?error=1");

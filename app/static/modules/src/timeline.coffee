@@ -1,5 +1,33 @@
 ### OLD CODE, needs to be refactored a LOT ###
-define ["hub", "user"], (hub, user) ->
+define "timeline", ["hub", "user", "map"], (hub, user, map) ->
+
+    class DateRange extends Backbone.Model
+      defaults: ->
+        return {
+          absoluteMinimum: 0
+          absoluteMaximum: Date.now()
+          currentMinimum: 0
+          currentMaximum: Date.now()
+        }
+      init: ->
+        @dates = []
+      getStartDate: -> @dates[0];
+      getEndDate: -> @dates[1];
+      setEndDate: (end) ->
+        end = new Date(end)
+        @dates[1] = end.getTime();
+      setStartDate: (start) ->
+        start = new Date(start)
+        @dates[0] = start.getTime();
+      setAbsoluteUpperBound: (bound) ->
+        @$startElement.datepicker("option", "maxDate", new Date(bound))
+        @$endElement.datepicker("option", "maxDate", new Date(bound))
+        @absoluteUpperBound = bound;
+      setAbsoluteLowerBound: (bound) ->
+        @$startElement.datepicker("option", "minDate", new Date(bound))
+        @$endElement.datepicker("option", "minDate", new Date(bound))
+        @absoluteLowerBound = bound;
+
 
     dispatcher = hub.dispatcher;
 
@@ -10,8 +38,9 @@ define ["hub", "user"], (hub, user) ->
         initialize: ->
           format = user.getActiveUser()?.get("preferences").get "date_format"
           _.bindAll @, "render", "addMarker", "changeValue", "play", "stop", "updateHandles"
+          @previousCutoff = 0
           # callback to run each time the timeline is changed
-          update_val = (e, ui) =>
+          @updateVisibleMarkers = (e, ui) =>
             handle = $ ui.handle
             pos = handle.index() - 1
             range  =  ui.values
@@ -20,30 +49,66 @@ define ["hub", "user"], (hub, user) ->
             # Display said string
             display = $("<div/>").addClass("handle-display-value").text cleaned 
             handle.find("div").remove().end().append display
-            dispatcher.dispatch "filter:markers", ui.values[0], ui.values[1], {
-              hideTimelineMarkers: false
-            }
-            # self.map.toggleMarkers self.collection.filterByDate(ui.values[0], ui.values[1])
+            activeMap = map.getActiveMap()
+            @previousCutoff = activeMap.filterByDate(ui.values[0], ui.values[1], @previousCutoff,
+              {
+                hideTimelineMarkers: false
+              });
+            console.log @previousCutoff
           # Make a jquery ui slider element
           @$timeline = @$(".slider")
           @$timeline.slider
             range: true
             values: [0, 100]
             step: 10000
-            slide: update_val
-            change: update_val
+            slide: => @updateVisibleMarkers.apply(@, arguments);
+            change: => @updateVisibleMarkers.apply(@, arguments);
+          @listenTo dispatcher, "render:timeline", =>
+            @render().updateHandles();
+            @show()
+        hide: ->
+          @$el.css "bottom", -400
+          @
+        show: ->
+          @$el.css "bottom", 0
+          # @listenTo @collection, "add", (story) =>
+            # @addMarker(story);
           @
         reset: ->
+          @previousCutoff = 0
           @min = @max = undefined
           @
         clearMarkers: ->
           @$(".timeline-marker").remove()
           @
         render: ->
+          @previousCutoff = 0
           @clearMarkers()
           _.each @collection.models, (story) =>
             @addMarker story
+          @updateDatePicker()
           @
+        updateDatePicker: ->
+          @twoDatePicker?.destroy()
+          @date
+          @twoDatePicker = new TwoDatePicker(
+              document.getElementById("start-date-picker"),
+              document.getElementById("end-date-picker"),
+
+          );
+          range = @twoDatePicker
+          range.setAbsoluteLowerBound(absMin = @min);
+          range.setAbsoluteUpperBound(absMax = @max);
+
+          range.setTimelineInterface({
+            render: =>
+              @updateHandles();
+            updateLowerBound: (bound) =>
+              console.log(bound, this)
+              @min = bound;
+            updateUpperBound: (bound) =>
+              @max = bound;
+          })
         addMarker: (model) ->
           console.log "appending a MARKR ONTO TIMELINE"
           # Get the slider and compute its pixel width so we can offset each marker (UI purposes)
@@ -75,6 +140,7 @@ define ["hub", "user"], (hub, user) ->
             locmp <= hicmp
           @
         stop: ->
+          @previousCutoff = 0
           @isPlaying = false
           @$(".js-pause-timeline").trigger "switch"
           @
@@ -159,7 +225,9 @@ define ["hub", "user"], (hub, user) ->
           $t.slider("values", 0, low)
           $t.slider("values", 1, high)
           @
-
+        destroy: ->
+            @undelegateEvents();
+            @$el.removeData().unbind(); 
         events: 
           "click .js-play-timeline": (e) ->
             $(e.currentTarget).removeClass("js-play-timeline icon-play2").addClass "js-pause-timeline icon-pause2 playing"
@@ -175,9 +243,6 @@ define ["hub", "user"], (hub, user) ->
           "click .js-to-start": "toStart"
           "mouseover .timeline-controls li": (e) ->
             $t = $ e.currentTarget  
-        destroy: ->
-            @undelegateEvents();
-            @$el.removeData().unbind(); 
 
 
     class TimelineMarker extends Backbone.View
@@ -203,7 +268,7 @@ define ["hub", "user"], (hub, user) ->
             $el = @$el
             $el.css('left', (num*100) + "%")
             $el.html(@template(date: @model.get("date").format(format)))
-            if !@model.hasLocation() then $el.addClass("no-location-marker")
+            if !@model.hasCoordinates() then $el.addClass("no-location-marker")
             @$(".date-bubble").hide()
             @
         events:
@@ -216,6 +281,44 @@ define ["hub", "user"], (hub, user) ->
             # $(".date-bubble").hide()
             # @$(".date-bubble").toggle('fast')
 
+
+    class TwoDatePicker
+        constructor: (@startElement, @endElement, @dateRange) ->
+          @$startElement = $(@startElement)
+          @$endElement = $(@endElement)
+          @bindDatePicker(@$startElement, "start");
+          @bindDatePicker(@$endElement, "end");
+          _.extend @, Backbone.Events
+          @bindRangeListeners()
+        bindRangeListeners: ->
+          @listenTo @dateRange, {
+            "change:currentMinimum": @updateCurrentMinimum
+            "change:currentMaximum": @updateCurrentMaximum
+          }
+        updateCurrentMaximum: (model, max) ->
+          @$endElement.datepicker("setDate", max);
+        updateCurrentMinimum: (model, min)->
+          @$startElement.datepicker("setDate", min);
+        # Takes in an element to bind datepicker to, and whether it is start or end
+        bindDatePicker: (el, which) ->
+          el.datepicker({
+            maxDate: @absoluteUpperBound
+            minDate: @absoluteLowerBound
+            showAnim: "fadeIn"
+            onSelect: (date, evt) =>
+              if which is "start"
+                @timelineInterface.updateLowerBound(new Date(date));
+                @timelineInterface.render();
+                return false
+
+          })
+        destroy: ->
+          @stopListening();
+        setTimelineInterface: (@timelineInterface) ->
+
+
     return {
         TimelineView: Timeline
+        TwoDatePicker: TwoDatePicker
+        DateRange: DateRange
     }

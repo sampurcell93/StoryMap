@@ -3,7 +3,7 @@
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub", "queries", "dist/loaders", "stories", "timeline", "user", "map"], function(hub, queries, loaders, stories, timeline, user, map) {
+  define("router", ["hub", "queries", "loaders", "stories", "timeline", "user", "map"], function(hub, queries, loaders, stories, timeline, user, map) {
     var Controller, ProgressBarUpdater, Router, dispatcher, _activeFeeds;
     dispatcher = hub.dispatcher;
     _activeFeeds = user.getActiveUser().getActiveFeeds();
@@ -32,6 +32,7 @@
       ProgressBarUpdater.prototype._done = function() {
         this.stopListening(this.collection);
         this.hideBar();
+        dispatcher.dispatch("render:timeline");
         return this.done.call(this);
       };
 
@@ -48,7 +49,8 @@
             _this.finishedAnalysisCount++;
             newVal = _this.currentProgressBarVal + ((_this.finishedAnalysisCount / _this.totalStoriesBeingAnalyzed) * 100);
             _this.progressBar.set(newVal);
-            if (newVal >= 100) {
+            console.log(newVal);
+            if (newVal >= 95) {
               return _this._done();
             }
           };
@@ -68,6 +70,7 @@
         }
         return this.listenToOnce(retrievalObj, "retrieval_" + feed + ":done", (function(_this) {
           return function() {
+            var _ref;
             _this.progressBar.setText("Done getting stories from " + feed + "...");
             setTimeout(function() {
               var activeStories;
@@ -81,10 +84,9 @@
                 return activeStories.analyze();
               }
             }, 1000);
-            _this.totalStoriesBeingAnalyzed += retrievalObj.totalStoriesRetrieved[feed].retrieved;
+            _this.totalStoriesBeingAnalyzed += ((_ref = retrievalObj.totalStoriesRetrieved[feed]) != null ? _ref.retrieved : void 0) || 0;
             _this.finishedRetrievingCount++;
-            _this.progressBar.set((_this.finishedRetrievingCount / len * 100) * .1);
-            debugger;
+            return _this.progressBar.set((_this.finishedRetrievingCount / len * 100) * .2);
           };
         })(this));
       };
@@ -141,6 +143,7 @@
             dispatcher.dispatch("render:topbar", query);
             query = queries.setActiveQuery(response);
             dispatcher.dispatch("add:map", query);
+            dispatcher.dispatch("render:timeline");
             dispatcher.dispatch("show:sidebars");
             dispatcher.dispatch("clear:map");
             stories.setActiveStories(query.get("stories"));

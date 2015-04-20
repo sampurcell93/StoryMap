@@ -19,6 +19,8 @@ from flask import Flask,redirect,request,render_template, g
 from flask.ext.login import login_user, logout_user, current_user, login_required
 
 dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime)  or isinstance(obj, datetime.date) else None
+CLAVIN_URL = "http://107.22.195.129/clavin/geocode"
+
 
 def RateLimited(maxPerSecond):
     minInterval = 1.0 / float(maxPerSecond)
@@ -39,16 +41,10 @@ def RateLimited(maxPerSecond):
 Manager = QueryManager()
 # Calais Rate limits our analysis requests, 
 # this throttles requests without needing to sleep
-AnalysisQueue = queue.Queue(.4);
-AnalysisQueue.execute()
+# AnalysisQueue = queue.Queue(.4);
+# AnalysisQueue.execute()
 key = "c3wjfrkfmrsft3r5wgxm5skr"
 CalaisObj = Calais(key, submitter="Sam Purcell")
-
-@app.route("/dev", methods=["GET"])
-def test():
-    key = "c3wjfrkfmrsft3r5wgxm5skr"
-    calais = Calais(key, submitter="Sam Purcell")
-    return json.dumps(coords("How High? Historically speaking, what does Kentucky's potentially undefeated season mean? The post How High? appeared first on SLAMonline .".encode("utf-8")));
 
 def pr(*args):
   print args[0] % (len(args) > 1 and args[1:] or [])
@@ -249,48 +245,32 @@ def handleEntities(entities):
     # if (not entities or isinstance(entities, list) is False):
         # return empty;
     for entity in entities:
-        resolutions = entity.get("resolutions")
-        if resolutions:
-            # pprint(entity.get("resolutions"))
-            for coords in resolutions:
-                lat      = coords.get("latitude")
-                lng      = coords.get("longitude")
-                location = coords.get("name")
-                if lat and lng:
-                    print("returning with %s,%s", lat, lng)
-                    return {'lat': float(lat), 'lng': float(lng), 'location': location}
+        r = entity["record"]
+        name = entity["matchedName"] 
+        lat = r["latitude"]
+        lng = r["longitude"]
+        if lat and lng:
+            print("returning with lat", lat, ", lng",  lng)
+            return {'lat': float(lat), 'lng': float(lng), 'location': name}
     return empty;
 
 # Takes in a content string, runs it through calais,
 # and returns coords if found as a {lat: x, lng: x} dict
 
-testme = 0
-
-@RateLimited(4)  # 2 per second at most
+# @RateLimited(4)  # 2 per second at most
 def coords(content=None):
-    print testme
-    global testme
-    testme += 1
-    # pr("IN COORDS")
     empty = {'lat': None, 'lng': None}
     if content is None: 
-        # pr("was none somehow")
         return empty;
-    # print "############################\n"
-    # print content.encode("utf-8");
-    # print "############################\n"
-    # pr("content was good")
-    entities = []
-    try: 
-        # def deferredAnalyze:
-            # calais.analyze(content.encode("utf-8"))
-        # pr("about to get calais resp")
-        # AnalysisQueue.push(deferredAnalyze)
-        entities = CalaisObj.analyze(content.encode("utf-8"))
-        print entities
-    except Exception as e: 
+    try:
+        entities = []
+        req = urllib2.Request(CLAVIN_URL, content.encode("utf-8"))
+        response = urllib2.urlopen(req)
+        entities = json.load(response)
+    except urllib2.URLERROR, e: 
+        if e.code != 200:
+            print "error in Clavin request: " + str(e.code)
         return empty;
-        # pr("resp failure")
     return handleEntities(entities);
 
 # Expects a normalized story, which it then maps coords onto
@@ -298,11 +278,7 @@ def getCoords (story, normalizeObj=None):
     if normalizeObj is not None: 
         normalize(story, normalizeObj)
     content = story.get("content", '') + ' ' + story.get("title", '')
-    print "before sleep"
-    # time.sleep(.2);
     coordinates = coords(content)
-    # time.sleep(.2);
-    print "waking up"
     story['lat'] = coordinates.get('lat')
     story['lng'] = coordinates.get('lng')
     story['location'] = coordinates.get('location')

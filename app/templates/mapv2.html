@@ -10,7 +10,10 @@
   <body>
     <div id='entryway-view'>
       <input type='text' id='js-make-query' placeholder='Search...'/>
-      <button id='save-active-query'>
+      <button id='search-new-query' class='action-button'>
+        Search
+      </button>
+      <button id='save-active-query' class='action-button'>
         Save
       </button>
       <nav>
@@ -18,14 +21,14 @@
           <li class='js-saved'><i class='icon-th-large'></i><span class='action-text'>Saved</span></a></li>
           <li class='js-preferences'><i class='icon-equalizer'></i><span class='action-text'>Preferences</span></a></li>
           <li class='js-help'><i>?</i><span class='action-text'>Help</span></a></li>
-          <li>
+          <!-- <li>
             <i class='icon-out'></i> Export As
             <ul>
               <li class='js-export-as' data-type='json'>JSON</li>
               <li class='js-export-as' data-type='csv'>CSV</li>
             </ul>
-          </li>
-          <li><a href="/logout"><i class='icon-logout'></i><span class='action-text'>Logout</span></a></li>
+          </li> -->
+          <li><a href="./logout"><i class='icon-logout'></i><span class='action-text'>Logout</span></a></li>
         </ul>
       </nav>
     </div>
@@ -56,19 +59,21 @@
       <div class='slider-wrapper'>
         <div class='slider'></div>
       </div>
+      <input type="text" id='start-date-picker' class='date-range-picker'>
       <ul class='timeline-controls'>
-          <li class='js-to-start icon-first js-speed-control'></li>
-          <li class='js-rewind icon-previous js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
-          <li class='js-play-timeline icon-play2' data-switch-icon="icon-pause2" data-tooltip='Play Timeline'></li>
-          <li class='js-rewind icon-next js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
-          <li class='js-to-end icon-last js-speed-control'></li>
-        </ul>
+        <li class='js-to-start icon-first js-speed-control'></li>
+        <li class='js-rewind icon-previous js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+        <li class='js-play-timeline icon-play2' data-switch-icon="icon-pause2" data-tooltip='Play Timeline'></li>
+        <li class='js-rewind icon-next js-speed-control' dir='back' speed='1x' data-tooltip='Rewind Timeline'></li>
+        <li class='js-to-end icon-last js-speed-control'></li>
+      </ul>
+      <input type="text" id='end-date-picker' class='date-range-picker'>
     </footer>
   
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoS1bfOyPBTbYH1GhtD4xRs9XrT17nGwg&sensor=true"></script>
     <script type="text/javascript">
     var require = {
-        baseUrl: "/static/modules/",
+        baseUrl: "./static/modules/",
         waitSeconds: 15,
         urlArgs : "bust="+ new Date().getTime()
     };

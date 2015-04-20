@@ -3,7 +3,7 @@
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(["hub", "stories", "map", "dist/typeahead"], function(hub, stories, map) {
+  define("queries", ["hub", "stories", "map", "typeahead"], function(hub, stories, map) {
     var EmptyQueryItem, Queries, Query, QueryAutoComplete, QueryItem, QueryList, QueryRequest, StoryRetrievalCounter, dispatcher, searchEngine, _activeQuery, _savedQueries;
     _activeQuery = null;
     _savedQueries = null;
@@ -57,22 +57,37 @@
       QueryAutoComplete.prototype.bindEvents = function() {
         return this.el.on("keydown", (function(_this) {
           return function(e) {
-            var key, query, request;
+            var key;
             key = e.keyCode || e.which;
             if (key === 13) {
-              query = _this.el.typeahead("val");
-              request = new QueryRequest(query);
-              return request.doesExist(function(response) {
-                if (response.exists === true) {
-                  return dispatcher.dispatch("navigate", "existing/" + query, true);
-                } else {
-                  console.log("not exists, help");
-                  return dispatcher.dispatch("navigate", "fetch/" + query, true);
-                }
-              });
+              return _this.query();
             }
           };
         })(this));
+      };
+
+      QueryAutoComplete.prototype.getCurrentInput = function() {
+        return this.el.typeahead("val") || this.el.val();
+      };
+
+      QueryAutoComplete.prototype.query = function(force) {
+        var query, request;
+        if (force == null) {
+          force = false;
+        }
+        query = this.getCurrentInput();
+        request = new QueryRequest(query);
+        if (force === true) {
+          return dispatcher.dispatch("navigate", "fetch/" + query, true);
+        } else {
+          return request.doesExist(function(response) {
+            if (response.exists === true) {
+              return dispatcher.dispatch("navigate", "existing/" + query, true);
+            } else {
+              return dispatcher.dispatch("navigate", "fetch/" + query, true);
+            }
+          });
+        }
       };
 
       return QueryAutoComplete;
@@ -177,10 +192,11 @@
           return function(responseStories) {
             var total;
             console.log(responseStories);
-            _this.totalStoriesRetrieved.addToTotal("yahoo", responseStories.length);
-            stories.addToActiveSet(responseStories);
+            if (responseStories == null) {
+              _this.totalStoriesRetrieved.addToTotal("yahoo", responseStories != null ? responseStories.length : void 0);
+              stories.addToActiveSet(responseStories);
+            }
             total = 60;
-            debugger;
             return _this;
           };
         })(this)).fail((function(_this) {

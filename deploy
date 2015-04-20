@@ -1,0 +1,22 @@
+#!/bin/bash
+
+deploy() {
+    r.js -o build.js;
+    echo "Transferring frontend javascript modules...."
+    scp ./app/static/modules/app-built.js proto:/usr/local/htdocs/proto.atech.tufts.edu/StoryMap/app/static/modules/;
+    echo "Transferring compiled css files"
+    scp -r ./app/static/stylesheets proto:/usr/local/htdocs/proto.atech.tufts.edu/StoryMap/app/static/
+
+    if [ "$1" = "-backend" ]; then
+        echo "deploying backend python files...."
+        cd app
+        mv __init__.py __init__.bak
+        scp *.py proto:/usr/local/htdocs/proto.atech.tufts.edu/StoryMap/app
+        mv __init__.bak __init__.py
+        cd ../
+    fi
+
+}
+
+deploy $1
+

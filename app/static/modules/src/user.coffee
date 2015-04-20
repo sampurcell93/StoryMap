@@ -1,9 +1,9 @@
-define ["hub"], (hub) ->
+define "user", ["hub"], (hub) ->
 
     class Preferences extends Backbone.Model
         defaults: ->
             return {
-                activeFeeds: ["google", "yahoo" ]
+                activeFeeds: ["google", "feedzilla"]
                 inactiveFeeds: []
                 date_format: "MMM Do, YYYY"
             }

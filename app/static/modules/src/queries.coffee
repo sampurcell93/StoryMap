@@ -1,4 +1,4 @@
-define ["hub", "stories", "map", "dist/typeahead"], (hub, stories, map) ->
+define "queries", ["hub", "stories", "map", "typeahead"], (hub, stories, map) ->
 
     _activeQuery = null;
     _savedQueries = null;
@@ -49,15 +49,19 @@ define ["hub", "stories", "map", "dist/typeahead"], (hub, stories, map) ->
         bindEvents: ->
             @el.on "keydown", (e) =>
                 key = e.keyCode or e.which;
-                if key is 13
-                    query = @el.typeahead("val");
-                    request = new QueryRequest(query);
-                    request.doesExist (response) ->
-                        if response.exists is true
-                            dispatcher.dispatch("navigate", "existing/#{query}", true);
-                        else 
-                            console.log("not exists, help")
-                            dispatcher.dispatch("navigate", "fetch/#{query}", true);
+                if key is 13 then @query()
+        getCurrentInput: -> @el.typeahead("val") || @el.val();
+        query: (force =false) ->
+            query = @getCurrentInput();
+            request = new QueryRequest(query);
+            if force is true 
+                dispatcher.dispatch("navigate", "fetch/#{query}", true);
+            else
+                request.doesExist (response) ->
+                    if response.exists is true
+                        dispatcher.dispatch("navigate", "existing/#{query}", true);
+                    else 
+                        dispatcher.dispatch("navigate", "fetch/#{query}", true);
 
     class StoryRetrievalCounter
         constructor: ->
@@ -130,15 +134,15 @@ define ["hub", "stories", "map", "dist/typeahead"], (hub, stories, map) ->
                 analyze: false
             , (responseStories) =>
                 console.log(responseStories)
-                @totalStoriesRetrieved.addToTotal("yahoo", responseStories.length)
-                stories.addToActiveSet(responseStories)
+                if !responseStories?
+                    @totalStoriesRetrieved.addToTotal("yahoo", responseStories?.length)
+                    stories.addToActiveSet(responseStories)
                 # get all news, including metadata
                 total = 60 #news.totalresults
                 # if start <= total then @getYahooNews start + 50, done
                 # else 
                 # @totalStoriesRetrieved.trigger("retrieval_yahoo:done") 
                 # done()
-                debugger
                 return @
             ).fail =>
                 console.log(arguments);
