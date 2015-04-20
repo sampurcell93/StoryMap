@@ -107,7 +107,7 @@ define "queries", ["hub", "stories", "map", "typeahead"], (hub, stories, map) ->
                 start: start 
                 analyze: false
             , (responseStories) =>
-                console.log(responseStories)
+                # console.log(responseStories)
                 @totalStoriesRetrieved.addToTotal("google", responseStories.length)
                 # Once google news is exhausted, execute callback 
                 # if (start > 64 or !responseStories.length) and done? 
@@ -133,7 +133,6 @@ define "queries", ["hub", "stories", "map", "typeahead"], (hub, stories, map) ->
                 start: start
                 analyze: false
             , (responseStories) =>
-                console.log(responseStories)
                 if !responseStories?
                     @totalStoriesRetrieved.addToTotal("yahoo", responseStories?.length)
                     stories.addToActiveSet(responseStories)
@@ -194,16 +193,12 @@ define "queries", ["hub", "stories", "map", "typeahead"], (hub, stories, map) ->
                 name: @get("title")
             }, (resp) =>
                 try resp = JSON.parse(resp)
-                console.log resp
                 if resp.id?
                     @id = resp.id
                     @set("id", resp.id);
     class Queries extends Backbone.Collection
         model: Query
         comparator: (m) -> -m.get("last_query");
-        parse: (resp) ->
-            console.log resp
-            resp
 
     class EmptyQueryItem extends Marionette.ItemView
         template: "#empty-query-item"

@@ -157,7 +157,6 @@
           analyze: false
         }, (function(_this) {
           return function(responseStories) {
-            console.log(responseStories);
             _this.totalStoriesRetrieved.addToTotal("google", responseStories.length);
             stories.addToActiveSet(responseStories);
             debugger;
@@ -191,7 +190,6 @@
         }, (function(_this) {
           return function(responseStories) {
             var total;
-            console.log(responseStories);
             if (responseStories == null) {
               _this.totalStoriesRetrieved.addToTotal("yahoo", responseStories != null ? responseStories.length : void 0);
               stories.addToActiveSet(responseStories);
@@ -297,7 +295,6 @@
             try {
               resp = JSON.parse(resp);
             } catch (_error) {}
-            console.log(resp);
             if (resp.id != null) {
               _this.id = resp.id;
               return _this.set("id", resp.id);
@@ -320,11 +317,6 @@
 
       Queries.prototype.comparator = function(m) {
         return -m.get("last_query");
-      };
-
-      Queries.prototype.parse = function(resp) {
-        console.log(resp);
-        return resp;
       };
 
       return Queries;

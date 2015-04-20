@@ -32,7 +32,7 @@
       ProgressBarUpdater.prototype._done = function() {
         this.stopListening(this.collection);
         this.hideBar();
-        dispatcher.dispatch("render:timeline");
+        dispatcher.dispatch("show:timeline");
         return this.done.call(this);
       };
 

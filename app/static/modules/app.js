@@ -8,6 +8,7 @@ require.config({
         "marionette"    : "dist/bower_components/marionette/lib/backbone.marionette.min",
         "moment"        : "dist/bower_components/moment/moment",
         "map"           : "dist/map",
+        "BST"           : "dist/bst",
         "stories"       : "dist/stories",
         "queries"       : "dist/queries",
         "timeline"      : "dist/timeline",
@@ -30,9 +31,6 @@ define("app", ["jquery", "underscore", "backbone", "marionette", "moment", "jque
         var router = new Router();
         Backbone.history.start()
         coreUI.load();
-        r = new timeline.DateRange()
-        v = new timeline.TwoDatePicker(null, null, r);
-        console.log(r)
     })
 });
 

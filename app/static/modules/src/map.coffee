@@ -75,25 +75,25 @@ define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
         className: "map-canvas"
         # Returns the indices where the lower and upper cuttoff are
         # Return type: object
-        filterByDate: (min, max, cutoff=0, opts={}) ->
-            # console.log(cutoffIndices)
-            highCutoffIndex = cutoff
-            localCutoff = false
-            if @collection?
-                inrange = []
-                outrange = []
-                iterable = @collection.slice(highCutoffIndex, @collection.length - 1);
-                # console.log cutoffIndices, min, max
-                _.each iterable, (model) ->
-                    date = model.get("date") 
-                    if date >= min and date <= max
-                        model.trigger "show", opts
-                    else if date >= max
-                        if localCutoff is false
-                            localCutoff = true
-                            highCutoffIndex = model.collection.indexOf(model)
-                        model.trigger "hide", opts
-            return highCutoffIndex
+        # filterByDate: (min, max, cutoff=0, opts={}) ->
+        #     # console.log(cutoffIndices)
+        #     highCutoffIndex = cutoff
+        #     localCutoff = false
+        #     if @collection?
+        #         inrange = []
+        #         outrange = []
+        #         iterable = @collection.slice(highCutoffIndex, @collection.length - 1);
+        #         # console.log cutoffIndices, min, max
+        #         _.each iterable, (model) ->
+        #             date = model.get("date") 
+        #             if date >= min and date <= max
+        #                 model.trigger "show", opts
+        #             else if date >= max
+        #                 if localCutoff is false
+        #                     localCutoff = true
+        #                     highCutoffIndex = model.collection.indexOf(model)
+        #                 model.trigger "hide", opts
+        #     return highCutoffIndex
 
         initialize: (attrs) ->
             @id = attrs.id;
@@ -202,9 +202,9 @@ define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
         map.setCollection(stories);
         map.plotAll();
 
-    dispatcher.on "filter:markers", (min, max, opts={}) ->
-        _.extend {hideTimelineMarkers: true, hideMapMarker: true}, opts
-        map.filterByDate min, max, opts
+    # dispatcher.on "filter:markers", (min, max, opts={}) ->
+        # _.extend {hideTimelineMarkers: true, hideMapMarker: true}, opts
+        # map.filterByDate min, max, opts
 
     return {
         getActiveMap: -> map

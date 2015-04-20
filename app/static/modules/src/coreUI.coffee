@@ -22,10 +22,8 @@ define "coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories",
                 @queryInput.blur()
                 @checkCurrentQueryState();
         checkCurrentQueryState: ->
-            console.log(@autoComplete.getCurrentInput())
             request = queries.createRequest(@autoComplete.getCurrentInput());
             request.doesExist (response) =>
-                console.log response
                 if response.exists is true
                     @saveButton.hide()
         morphToModal: ->
@@ -100,7 +98,6 @@ define "coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories",
 
 
     entryWay = null;
-    tl = null;
 
     toggleSidebarAnimation = (count, map) ->
         if map?
@@ -128,7 +125,10 @@ define "coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories",
     return {
         load: ->
             entryWay = new EntryWayView()
-            tl = null;
+            timelineFactory = timeline.TimelineFactory();
+            twoDatePickerFactory = timeline.TwoDatePickerFactory()
+            timeline = null;
+            twoDatePicker = null;
 
             $(".js-toggle-view").click -> toggleSideBar()
 
@@ -138,8 +138,8 @@ define "coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories",
 
             dispatcher.on "show:sidebars", -> 
                 toggleSideBar("show");
-                if tl?
-                    tl.$el.slideDown("fast");
+                # if tl?
+                    # tl.$el.slideDown("fast");
 
 
 
@@ -156,14 +156,28 @@ define "coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories",
                 entryWay.morphToTopBar();
 
             dispatcher.on "destroy:timeline", (query) ->
-                if tl
-                    tl.destroy()
+                if timeline
+                    timeline.destroy()
+
+
+            dispatcher.on "show:timeline", (query) ->
+                if timeline
+                    timeline.show()
 
             dispatcher.on "add:map", (query) ->
-                if tl
-                    tl.destroy()
-                tl = new timeline.TimelineView({collection: query.get("stories"), map: maps.getActiveMap()?.map})
-                tl.hide().reset().updateHandles().render()
+                if timeline
+                    timeline.destroy()
+                timeline = timelineFactory();
+                dateRange = timeline.dateRange;
+                timeline.setCollection(query.get("stories"));
+                dateRange.setCollection(query.get("stories"));
+                twoDatePicker = twoDatePickerFactory({
+                    dateRange: dateRange,
+                    startElement: document.getElementById("start-date-picker")
+                    endElement: document.getElementById("end-date-picker")
+                })
+                timeline.show()
+                # tl.hide().reset().updateHandles().render()
 
              $(".js-filter-stories").keyup (e) ->
                 val = $(@).val()

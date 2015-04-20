@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define("coreUI", ["hub", "typeahead", "loaders", "modals", "queries", "stories", "map", "user", "sweetalert", "timeline"], function(hub, typeahead, loaders, Modal, queries, stories, maps, user, sweet, timeline) {
-    var EntryWayView, dispatcher, entryWay, lFactory, tl, toggleSideBar, toggleSidebarAnimation;
+    var EntryWayView, dispatcher, entryWay, lFactory, toggleSideBar, toggleSidebarAnimation;
     lFactory = new loaders();
     dispatcher = hub.dispatcher;
     EntryWayView = (function(_super) {
@@ -42,11 +42,9 @@
 
       EntryWayView.prototype.checkCurrentQueryState = function() {
         var request;
-        console.log(this.autoComplete.getCurrentInput());
         request = queries.createRequest(this.autoComplete.getCurrentInput());
         return request.doesExist((function(_this) {
           return function(response) {
-            console.log(response);
             if (response.exists === true) {
               return _this.saveButton.hide();
             }
@@ -172,7 +170,6 @@
 
     })(Backbone.View);
     entryWay = null;
-    tl = null;
     toggleSidebarAnimation = function(count, map) {
       var frame;
       if (map != null) {
@@ -201,16 +198,17 @@
     };
     return {
       load: function() {
+        var timelineFactory, twoDatePicker, twoDatePickerFactory;
         entryWay = new EntryWayView();
-        tl = null;
+        timelineFactory = timeline.TimelineFactory();
+        twoDatePickerFactory = timeline.TwoDatePickerFactory();
+        timeline = null;
+        twoDatePicker = null;
         $(".js-toggle-view").click(function() {
           return toggleSideBar();
         });
         dispatcher.on("show:sidebars", function() {
-          toggleSideBar("show");
-          if (tl != null) {
-            return tl.$el.slideDown("fast");
-          }
+          return toggleSideBar("show");
         });
         dispatcher.on("add:feedLoader", function(name, loadingRequest) {
           var activeStories, group;
@@ -228,20 +226,30 @@
           return entryWay.morphToTopBar();
         });
         dispatcher.on("destroy:timeline", function(query) {
-          if (tl) {
-            return tl.destroy();
+          if (timeline) {
+            return timeline.destroy();
+          }
+        });
+        dispatcher.on("show:timeline", function(query) {
+          if (timeline) {
+            return timeline.show();
           }
         });
         dispatcher.on("add:map", function(query) {
-          var _ref;
-          if (tl) {
-            tl.destroy();
+          var dateRange;
+          if (timeline) {
+            timeline.destroy();
           }
-          tl = new timeline.TimelineView({
-            collection: query.get("stories"),
-            map: (_ref = maps.getActiveMap()) != null ? _ref.map : void 0
+          timeline = timelineFactory();
+          dateRange = timeline.dateRange;
+          timeline.setCollection(query.get("stories"));
+          dateRange.setCollection(query.get("stories"));
+          twoDatePicker = twoDatePickerFactory({
+            dateRange: dateRange,
+            startElement: document.getElementById("start-date-picker"),
+            endElement: document.getElementById("end-date-picker")
           });
-          return tl.hide().reset().updateHandles().render();
+          return timeline.show();
         });
         $(".js-filter-stories").keyup(function(e) {
           var activeStories, filterer, key, val;

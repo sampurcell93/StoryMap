@@ -120,37 +120,6 @@
 
       Map.prototype.className = "map-canvas";
 
-      Map.prototype.filterByDate = function(min, max, cutoff, opts) {
-        var highCutoffIndex, inrange, iterable, localCutoff, outrange;
-        if (cutoff == null) {
-          cutoff = 0;
-        }
-        if (opts == null) {
-          opts = {};
-        }
-        highCutoffIndex = cutoff;
-        localCutoff = false;
-        if (this.collection != null) {
-          inrange = [];
-          outrange = [];
-          iterable = this.collection.slice(highCutoffIndex, this.collection.length - 1);
-          _.each(iterable, function(model) {
-            var date;
-            date = model.get("date");
-            if (date >= min && date <= max) {
-              return model.trigger("show", opts);
-            } else if (date >= max) {
-              if (localCutoff === false) {
-                localCutoff = true;
-                highCutoffIndex = model.collection.indexOf(model);
-              }
-              return model.trigger("hide", opts);
-            }
-          });
-        }
-        return highCutoffIndex;
-      };
-
       Map.prototype.initialize = function(attrs) {
         this.id = attrs.id;
         this.markers = [];
@@ -280,16 +249,6 @@
     dispatcher.on("set:activeStories", function(stories) {
       map.setCollection(stories);
       return map.plotAll();
-    });
-    dispatcher.on("filter:markers", function(min, max, opts) {
-      if (opts == null) {
-        opts = {};
-      }
-      _.extend({
-        hideTimelineMarkers: true,
-        hideMapMarker: true
-      }, opts);
-      return map.filterByDate(min, max, opts);
     });
     return {
       getActiveMap: function() {

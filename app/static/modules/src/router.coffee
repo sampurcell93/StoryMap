@@ -23,7 +23,7 @@ define "router", ["hub", "queries", "loaders", "stories", "timeline", "user", "m
         _done: ->
             @stopListening @collection
             @hideBar()
-            dispatcher.dispatch("render:timeline");
+            dispatcher.dispatch("show:timeline");
             @done.call(@);
         done: ->
         listenToAnalysisProgress: ->

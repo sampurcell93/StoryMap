@@ -5,8 +5,9 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define("timeline", ["hub", "user", "map"], function(hub, user, map) {
-    var DateRange, Timeline, TimelineMarker, TwoDatePicker, dispatcher;
+  define("timeline", ["hub", "user", "map", "BST"], function(hub, user, map, BST) {
+    var DateRange, TimelineFactory, TimelineMarker, TimelineView, TwoDatePicker, TwoDatePickerFactory, dispatcher, _format, _ref;
+    _format = (_ref = user.getActiveUser()) != null ? _ref.get("preferences").get("date_format") : void 0;
     DateRange = (function(_super) {
       __extends(DateRange, _super);
 
@@ -15,11 +16,16 @@
       }
 
       DateRange.prototype.defaults = function() {
+        var epoch, now;
+        now = moment().valueOf();
+        epoch = moment(0).valueOf();
         return {
-          absoluteMinimum: 0,
-          absoluteMaximum: Date.now(),
-          currentMinimum: 0,
-          currentMaximum: Date.now()
+          absoluteMinimum: epoch,
+          absoluteMaximum: now,
+          activeUpperValue: now,
+          activeLowerValue: epoch,
+          currentMinimum: epoch,
+          currentMaximum: now
         };
       };
 
@@ -46,155 +52,229 @@
       };
 
       DateRange.prototype.setAbsoluteUpperBound = function(bound) {
-        this.$startElement.datepicker("option", "maxDate", new Date(bound));
-        this.$endElement.datepicker("option", "maxDate", new Date(bound));
-        return this.absoluteUpperBound = bound;
+        return this.set("absoluteMaximum", bound);
       };
 
       DateRange.prototype.setAbsoluteLowerBound = function(bound) {
-        this.$startElement.datepicker("option", "minDate", new Date(bound));
-        this.$endElement.datepicker("option", "minDate", new Date(bound));
-        return this.absoluteLowerBound = bound;
+        return this.set("absoluteMinimum", bound);
+      };
+
+      DateRange.prototype.setCollection = function(collection) {
+        var max, min;
+        if (collection == null) {
+          throw Error("Invalid or null collection passed to Date Range.");
+        }
+        if (_.isEqual(collection, this.collection)) {
+          return this;
+        }
+        this.collection = collection;
+        min = max = collection.first().get("date").valueOf();
+        collection.each((function(_this) {
+          return function(model) {
+            var date;
+            date = model.get("date").valueOf();
+            if (date > max) {
+              max = date;
+            }
+            if (date < min) {
+              return min = date;
+            }
+          };
+        })(this));
+        return this.set({
+          "absoluteMinimum": min,
+          "absoluteMaximum": max,
+          "activeLowerValue": min,
+          "activeUpperValue": max,
+          "currentMinimum": min,
+          "currentMaximum": max
+        });
       };
 
       return DateRange;
 
     })(Backbone.Model);
     dispatcher = hub.dispatcher;
-    Timeline = (function(_super) {
-      __extends(Timeline, _super);
+    TimelineView = (function(_super) {
+      __extends(TimelineView, _super);
 
-      function Timeline() {
-        return Timeline.__super__.constructor.apply(this, arguments);
+      function TimelineView() {
+        return TimelineView.__super__.constructor.apply(this, arguments);
       }
 
-      Timeline.prototype.el = 'footer';
+      TimelineView.prototype.el = "footer";
 
-      Timeline.prototype.speeds = {
-        forward: 32,
-        back: 32
+      TimelineView.prototype.initialize = function(attrs) {
+        this.format = _format;
+        this.isPlaying = false;
+        _.extend(this, attrs);
+        _.bindAll(this, "updateVisibleMarkers");
+        if (this.collection != null) {
+          this.setCollection(this.collection);
+        }
+        this.bindJqueryUIRangeSlider();
+        this.listenToDateRange();
+        return this;
       };
 
-      Timeline.prototype.dir = "forward";
-
-      Timeline.prototype.initialize = function() {
-        var format, _ref;
-        format = (_ref = user.getActiveUser()) != null ? _ref.get("preferences").get("date_format") : void 0;
-        _.bindAll(this, "render", "addMarker", "changeValue", "play", "stop", "updateHandles");
-        this.previousCutoff = 0;
-        this.updateVisibleMarkers = (function(_this) {
-          return function(e, ui) {
-            var activeMap, cleaned, display, handle, pos, range;
-            handle = $(ui.handle);
-            pos = handle.index() - 1;
-            range = ui.values;
-            cleaned = moment(range[pos]).format(format);
-            display = $("<div/>").addClass("handle-display-value").text(cleaned);
-            handle.find("div").remove().end().append(display);
-            activeMap = map.getActiveMap();
-            _this.previousCutoff = activeMap.filterByDate(ui.values[0], ui.values[1], _this.previousCutoff, {
-              hideTimelineMarkers: false
-            });
-            return console.log(_this.previousCutoff);
-          };
-        })(this);
-        this.$timeline = this.$(".slider");
-        this.$timeline.slider({
-          range: true,
-          values: [0, 100],
-          step: 10000,
-          slide: (function(_this) {
-            return function() {
-              return _this.updateVisibleMarkers.apply(_this, arguments);
-            };
-          })(this),
-          change: (function(_this) {
-            return function() {
-              return _this.updateVisibleMarkers.apply(_this, arguments);
+      TimelineView.prototype.listenToDateRange = function() {
+        return this.listenTo(this.dateRange, {
+          "change:absoluteMinimum change:currentMinimum change:activeLowerValue change:activeUpperValue change:absoluteMaximum change:currentMaximum": (function(_this) {
+            return function(range, date, obj) {
+              return _this.updateRenderedBounds();
             };
           })(this)
         });
-        return this.listenTo(dispatcher, "render:timeline", (function(_this) {
-          return function() {
-            _this.render().updateHandles();
-            return _this.show();
-          };
-        })(this));
       };
 
-      Timeline.prototype.hide = function() {
+      TimelineView.prototype.bindJqueryUIRangeSlider = function() {
+        var dataApplicator;
+        this.$timeline = this.$(".slider");
+        dataApplicator = (function(_this) {
+          return function(e, ui) {
+            var $handle, cleanedDate, pos, range;
+            $handle = $(ui.handle);
+            pos = $handle.index() - 1;
+            range = ui.values;
+            cleanedDate = moment(range[pos]).format(_this.format);
+            _this.updateDateHandle($handle, cleanedDate);
+            return _this.updateVisibleMarkers(ui.values[0], ui.values[1]);
+          };
+        })(this);
+        return this.$timeline.slider({
+          range: true,
+          values: [this.dateRange.get("absoluteMinimum"), this.dateRange.get("absoluteMaximum")],
+          step: 10000,
+          slide: (function(_this) {
+            return function(e, ui) {
+              return dataApplicator.apply(_this, arguments);
+            };
+          })(this),
+          change: (function(_this) {
+            return function(e, ui) {
+              return dataApplicator.apply(_this, arguments);
+            };
+          })(this)
+        });
+      };
+
+      TimelineView.prototype.updateDateHandle = function(handle, date) {
+        var display;
+        display = $("<div/>").addClass("handle-display-value").text(date);
+        return handle.find("div").remove().end().append(display);
+      };
+
+      TimelineView.prototype.updateVisibleMarkers = function(lowBound, highBound) {
+        var inBounds, outBounds;
+        inBounds = this.BST.betweenBounds({
+          $gte: lowBound,
+          $lte: highBound
+        });
+        outBounds = this.BST.betweenBounds({
+          $lt: lowBound
+        }).concat(this.BST.betweenBounds({
+          $gt: highBound
+        }));
+        _.each(inBounds, (function(_this) {
+          return function(inbound) {
+            return inbound.trigger("show");
+          };
+        })(this));
+        _.each(outBounds, (function(_this) {
+          return function(outbound) {
+            return outbound.trigger("hide");
+          };
+        })(this));
+        return this.prevHighBound = highBound;
+      };
+
+      TimelineView.prototype.setRange = function(range) {
+        if (range == null) {
+          throw Error("Invalid range supplied to Timeline View.");
+        }
+        this.dateRange = range;
+        return this;
+      };
+
+      TimelineView.prototype.getRange = function() {
+        return this.dateRange;
+      };
+
+      TimelineView.prototype.setCollection = function(collection) {
+        if (collection == null) {
+          throw Error("Invalid or null collection passed to Timeline View.");
+        }
+        if (_.isEqual(collection, this.collection)) {
+          return this;
+        }
+        this.collection = collection;
+        this._constructBST();
+        this.updateRenderedBounds();
+        return this;
+      };
+
+      TimelineView.prototype.updateRenderedBounds = function() {
+        var $timeline, activeMax, activeMin, currMax, currMin, handles;
+        $timeline = this.$timeline;
+        currMin = this.dateRange.get("currentMinimum");
+        currMax = this.dateRange.get("currentMaximum");
+        activeMin = this.dateRange.get("activeLowerValue");
+        activeMax = this.dateRange.get("activeUpperValue");
+        if (currMin < activeMin) {
+          this.dateRange.set("activeLowerValue", currMin);
+          activeMin = this.dateRange.get("activeLowerValue");
+        }
+        if (currMax < activeMax) {
+          this.dateRange.set("activeUpperValue", currMax);
+          activeMax = this.dateRange.get("activeUpperValue");
+        }
+        console.log("currMin", new Date(currMin), "currMax", new Date(currMax));
+        console.log("activemin", new Date(activeMin), "activeMax", new Date(activeMax));
+        handles = $timeline.find(".ui-slider-handle");
+        $timeline.slider("option", {
+          min: currMin,
+          max: currMax
+        });
+        $timeline.slider("values", 0, activeMin);
+        $timeline.slider("values", 1, activeMax);
+        return this;
+      };
+
+      TimelineView.prototype._constructBST = function() {
+        this.BST = new BST.BST({
+          compareKeys: function(a, b) {
+            if (a < b) {
+              return -1;
+            }
+            if (a > b) {
+              return 1;
+            }
+            return 0;
+          }
+        });
+        this.collection.each((function(_this) {
+          return function(model) {
+            var _ref1;
+            return _this.BST.insert((_ref1 = model.get(_this.index)) != null ? _ref1.toDate() : void 0, model);
+          };
+        })(this));
+        return this;
+      };
+
+      TimelineView.prototype.hide = function() {
         this.$el.css("bottom", -400);
         return this;
       };
 
-      Timeline.prototype.show = function() {
-        this.$el.css("bottom", 0);
-        return this;
+      TimelineView.prototype.show = function() {
+        return this.$el.fadeIn("fast").css("bottom", 0);
       };
 
-      Timeline.prototype.reset = function() {
-        this.previousCutoff = 0;
-        this.min = this.max = void 0;
-        return this;
-      };
-
-      Timeline.prototype.clearMarkers = function() {
-        this.$(".timeline-marker").remove();
-        return this;
-      };
-
-      Timeline.prototype.render = function() {
-        this.previousCutoff = 0;
-        this.clearMarkers();
-        _.each(this.collection.models, (function(_this) {
-          return function(story) {
-            return _this.addMarker(story);
-          };
-        })(this));
-        this.updateDatePicker();
-        return this;
-      };
-
-      Timeline.prototype.updateDatePicker = function() {
-        var absMax, absMin, range, _ref;
-        if ((_ref = this.twoDatePicker) != null) {
-          _ref.destroy();
-        }
-        this.date;
-        this.twoDatePicker = new TwoDatePicker(document.getElementById("start-date-picker"), document.getElementById("end-date-picker"));
-        range = this.twoDatePicker;
-        range.setAbsoluteLowerBound(absMin = this.min);
-        range.setAbsoluteUpperBound(absMax = this.max);
-        return range.setTimelineInterface({
-          render: (function(_this) {
-            return function() {
-              return _this.updateHandles();
-            };
-          })(this),
-          updateLowerBound: (function(_this) {
-            return function(bound) {
-              console.log(bound, _this);
-              return _this.min = bound;
-            };
-          })(this),
-          updateUpperBound: (function(_this) {
-            return function(bound) {
-              return _this.max = bound;
-            };
-          })(this)
-        });
-      };
-
-      Timeline.prototype.addMarker = function(model) {
-        var $slider, pixeladdition, pos, range, view, width;
-        console.log("appending a MARKR ONTO TIMELINE");
+      TimelineView.prototype.addMarker = function(model) {
+        var $slider, pos, view;
         $slider = this.$(".slider-wrapper");
-        width = $slider.width();
-        pos = model.get("date").unix() * 1000;
-        range = this.max - this.min;
-        pos -= this.min;
-        pos /= range;
-        pixeladdition = 10 / width;
+        pos = new Date(model.get(this.index)).getTime();
+        pos = (pos(-this.min)) / (this.max - this.min);
         view = new TimelineMarker({
           model: model,
           left: pos
@@ -203,149 +283,56 @@
         return this;
       };
 
-      Timeline.prototype.play = function() {
-        var dir, hi, inc, lo, values;
-        values = this.$timeline.slider("values");
-        lo = values[0];
-        hi = values[1];
-        this.isPlaying = true;
-        dir = this.dir === "forward" ? 1 : 1;
-        inc = dir * Math.ceil(Math.abs((hi - lo) / 300));
-        this.changeValue(lo, hi, inc, function(locmp, hicmp) {
-          return locmp <= hicmp;
-        });
-        return this;
+      TimelineView.prototype.getPlayer = function() {
+        var highBound, increment, lowBound, play;
+        lowBound = this.dateRange.get("currentMinimum");
+        highBound = this.dateRange.get("currentMaximum");
+        increment = Math.ceil(Math.abs((highBound - lowBound) / 300));
+        play = (function(_this) {
+          return function() {
+            var newVal;
+            newVal = _this.dateRange.get("activeUpperValue") + increment;
+            _this.dateRange.set("activeUpperValue", newVal);
+            if (newVal >= _this.dateRange.get("currentMaximum")) {
+              _this.$(".js-pause-timeline").trigger("click");
+              return;
+            }
+            return _this.player = requestAnimationFrame(play);
+          };
+        })(this);
+        return (function(_this) {
+          return function() {
+            _this.dateRange.set("activeUpperValue", lowBound);
+            return _this.player = requestAnimationFrame(play);
+          };
+        })(this);
       };
 
-      Timeline.prototype.stop = function() {
-        this.previousCutoff = 0;
-        this.isPlaying = false;
-        this.$(".js-pause-timeline").trigger("switch");
-        return this;
-      };
-
-      Timeline.prototype.toEnd = function() {
-        var $tl, end;
+      TimelineView.prototype.toEnd = function() {
+        var $tl;
         $tl = this.$timeline;
         this.stop();
-        end = $tl.slider("option", "max");
-        $tl.slider("values", 1, end);
-        return end;
+        return $tl.slider("values", 1, this.dateRange.get("absoluteMaximum"));
       };
 
-      Timeline.prototype.toStart = function() {
+      TimelineView.prototype.toStart = function() {
         var $tl, start;
         $tl = this.$timeline;
         this.stop();
-        start = $tl.slider("values", 0);
-        $tl.slider("values", 1, start);
-        return start;
+        return start = $tl.slider("values", 1, this.dateRange.get("absoluteMinimum"));
       };
 
-      Timeline.prototype.changeValue = function(lo, hi, increment, comparator) {
-        window.setTimeout((function(_this) {
-          return function() {
-            var newlo;
-            if (comparator(lo, hi) === true && _this.isPlaying === true) {
-              newlo = lo + increment;
-              _this.$timeline.slider("values", 1, newlo);
-              return _this.changeValue(newlo, hi, increment, comparator);
-            } else {
-              return _this.stop();
-            }
-          };
-        })(this), this.speeds[this.dir]);
+      TimelineView.prototype.stop = function() {
+        cancelAnimationFrame(this.player);
         return this;
       };
 
-      Timeline.prototype.updateHandles = function() {
-        var $timeline, format, handles, max, maxdate, min, mindate, prevcomparator, _ref;
-        if (this.collection.length < 2) {
-          return this;
-        }
-        prevcomparator = this.collection.comparator;
-        this.collection.comparator = function(model) {
-          return model.get("date");
-        };
-        format = (_ref = user.getActiveUser()) != null ? _ref.get("preferences").get("date_format") : void 0;
-        this.collection.sort();
-        this.min = min = this.collection.first().get("date");
-        this.max = max = this.collection.last().get("date");
-        if (max.toDate == null) {
-          this.max = max = moment(max);
-        }
-        if (min.toDate == null) {
-          this.min = min = moment(min);
-        }
-        mindate = parseInt(min.unix() * 1000);
-        maxdate = parseInt(max.unix() * 1000);
-        $timeline = this.$timeline;
-        handles = $timeline.find(".ui-slider-handle");
-        handles.first().data("display-date", min.format(format));
-        handles.last().data("display-date", max.format(format));
-        $timeline.slider("option", {
-          min: mindate,
-          max: maxdate
-        });
-        $timeline.slider("values", 0, mindate);
-        $timeline.slider("values", 1, maxdate);
-        this.max = this.max.unix() * 1000;
-        this.min = this.min.unix() * 1000;
-        return this;
-      };
-
-      Timeline.prototype.setSpeed = function(dir) {
-        var rel, speed;
-        rel = Math.pow(2, 5);
-        speed = this.speeds[dir];
-        if (speed > 1) {
-          speed /= 2;
-        } else {
-          speed = 32;
-        }
-        this.speeds[dir] = speed;
-        this.dir = dir;
-        return rel / speed;
-      };
-
-      Timeline.prototype.renderSpeed = function(e) {
-        var $t, speed;
-        if (e != null) {
-          $t = $(e.currentTarget);
-          speed = this.setSpeed($t.attr("dir" || "forward"));
-          $t.attr("speed", speed + "x");
-          return $t.addClass("selected").siblings(".js-speed-control").removeClass("selected");
-        }
-      };
-
-      Timeline.prototype.zoomTo = function(date) {
-        var $t, center, high, low, offset, offsetH, offsetL;
-        if (!this.min || !this.max) {
-          return this;
-        }
-        center = moment(date).unix() * 1000;
-        offsetL = (this.max - center) / 2;
-        offsetH = (center - this.min) / 2;
-        offset = offsetL > offsetH ? offsetH : offsetL;
-        $t = this.$timeline;
-        low = parseInt(center - offset);
-        high = parseInt(center + offset);
-        $t.slider("values", 0, low);
-        $t.slider("values", 1, high);
-        return this;
-      };
-
-      Timeline.prototype.destroy = function() {
-        this.undelegateEvents();
-        return this.$el.removeData().unbind();
-      };
-
-      Timeline.prototype.events = {
+      TimelineView.prototype.events = {
         "click .js-play-timeline": function(e) {
+          var play;
           $(e.currentTarget).removeClass("js-play-timeline icon-play2").addClass("js-pause-timeline icon-pause2 playing");
-          if (!this.isPlaying) {
-            return this.play();
-          }
+          play = this.getPlayer();
+          return play();
         },
         "click .js-pause-timeline": function(e) {
           $(e.currentTarget).removeClass("js-pause-timeline icon-pause2 playing").addClass("js-play-timeline icon-play2");
@@ -364,7 +351,7 @@
         }
       };
 
-      return Timeline;
+      return TimelineView;
 
     })(Backbone.View);
     TimelineMarker = (function(_super) {
@@ -412,8 +399,8 @@
       };
 
       TimelineMarker.prototype.render = function() {
-        var $el, format, num, _ref;
-        format = (_ref = user.getActiveUser()) != null ? _ref.get("preferences").get("date_format") : void 0;
+        var $el, format, num, _ref1;
+        format = (_ref1 = user.getActiveUser()) != null ? _ref1.get("preferences").get("date_format") : void 0;
         num = this.left;
         $el = this.$el;
         $el.css('left', (num * 100) + "%");
@@ -443,47 +430,62 @@
 
     })(Backbone.View);
     TwoDatePicker = (function() {
-      function TwoDatePicker(startElement, endElement, dateRange) {
-        this.startElement = startElement;
-        this.endElement = endElement;
-        this.dateRange = dateRange;
+      function TwoDatePicker(opts) {
+        if (opts == null) {
+          opts = {};
+        }
+        _.extend(this, opts);
         this.$startElement = $(this.startElement);
         this.$endElement = $(this.endElement);
         this.bindDatePicker(this.$startElement, "start");
         this.bindDatePicker(this.$endElement, "end");
         _.extend(this, Backbone.Events);
         this.bindRangeListeners();
+        this.updateCurrentMinimum(null, this.dateRange.get("currentMinimum"));
+        this.updateCurrentMaximum(null, this.dateRange.get("currentMaximum"));
       }
 
       TwoDatePicker.prototype.bindRangeListeners = function() {
         return this.listenTo(this.dateRange, {
-          "change:currentMinimum": this.updateCurrentMinimum,
-          "change:currentMaximum": this.updateCurrentMaximum
+          "change:currentMaximum": this.updateCurrentMaximum,
+          "change:currentMinimum": this.updateCurrentMinimum
         });
       };
 
       TwoDatePicker.prototype.updateCurrentMaximum = function(model, max) {
-        return this.$endElement.datepicker("setDate", max);
+        return this.$endElement.datepicker("setDate", new Date(max));
       };
 
       TwoDatePicker.prototype.updateCurrentMinimum = function(model, min) {
-        return this.$startElement.datepicker("setDate", min);
+        return this.$startElement.datepicker("setDate", new Date(min));
       };
 
       TwoDatePicker.prototype.bindDatePicker = function(el, which) {
         return el.datepicker({
-          maxDate: this.absoluteUpperBound,
-          minDate: this.absoluteLowerBound,
+          maxDate: this.dateRange.get("absoluteMaximum"),
+          minDate: this.dateRange.get("absoluteMinimum"),
           showAnim: "fadeIn",
+          inline: true,
+          showOtherMonths: true,
+          dayNamesMin: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
           onSelect: (function(_this) {
             return function(date, evt) {
+              var currentMaximum, currentMinimum;
+              date = moment(date).valueOf();
+              console.log(moment(date).format("M/D/YY"));
+              currentMinimum = _this.dateRange.get("currentMinimum");
+              currentMaximum = _this.dateRange.get("currentMaximum");
+              el.blur();
               if (which === "start") {
-                _this.timelineInterface.updateLowerBound(new Date(date));
-                _this.timelineInterface.render();
-                return false;
+                return _this.dateRange.set("currentMinimum", date);
+              } else {
+                return _this.dateRange.set("currentMaximum", date);
               }
             };
-          })(this)
+          })(this),
+          onClose: function() {
+            return el.blur();
+          }
         });
       };
 
@@ -498,10 +500,37 @@
       return TwoDatePicker;
 
     })();
+    TimelineFactory = function() {
+      return function(opts) {
+        if (opts == null) {
+          opts = {};
+        }
+        opts = _.extend({
+          index: "date",
+          dateRange: new DateRange(),
+          collection: new Backbone.Collection
+        }, opts);
+        return new TimelineView(opts);
+      };
+    };
+    TwoDatePickerFactory = function() {
+      return function(opts) {
+        var picker, range;
+        if (opts == null) {
+          opts = {};
+        }
+        opts = _.extend({
+          dateRange: new DateRange(),
+          startElement: document.getElementById("start-date-picker"),
+          endElement: document.getElementById("end-date-picker")
+        }, opts);
+        range = range || new DateRange();
+        return picker = new TwoDatePicker(opts);
+      };
+    };
     return {
-      TimelineView: Timeline,
-      TwoDatePicker: TwoDatePicker,
-      DateRange: DateRange
+      TimelineFactory: TimelineFactory,
+      TwoDatePickerFactory: TwoDatePickerFactory
     };
   });
 
