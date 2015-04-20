@@ -2,6 +2,7 @@
 define "timeline", ["hub", "user", "map", "BST"], (hub, user, map, BST) ->
 
   _format = user.getActiveUser()?.get("preferences").get "date_format"
+  console.log _format
 
   class DateRange extends Backbone.Model
     defaults: ->
@@ -83,6 +84,8 @@ define "timeline", ["hub", "user", "map", "BST"], (hub, user, map, BST) ->
         range = ui.values
         cleanedDate = moment(range[pos]).format(@format)
         @updateDateHandle($handle, cleanedDate)
+        @dateRange.set("activeLowerValue", ui.values[0], {silent: true})
+        @dateRange.set("activeUpperValue", ui.values[1], {silent: true})
         @updateVisibleMarkers(ui.values[0], ui.values[1]);
       @$timeline.slider
         range: true
@@ -133,8 +136,8 @@ define "timeline", ["hub", "user", "map", "BST"], (hub, user, map, BST) ->
         @dateRange.set("activeUpperValue", currMax)
         activeMax = @dateRange.get("activeUpperValue")
 
-      console.log "currMin", new Date(currMin), "currMax", new Date(currMax)
-      console.log "activemin", new Date(activeMin), "activeMax", new Date(activeMax)
+      # console.log "currMin", new Date(currMin), "currMax", new Date(currMax)
+      # console.log "activemin", new Date(activeMin), "activeMax", new Date(activeMax)
       # get handles and set their display data to clean dates
       handles = $timeline.find(".ui-slider-handle")
       # handles.first().data("display-date", moment(min).format(@format))
@@ -166,29 +169,28 @@ define "timeline", ["hub", "user", "map", "BST"], (hub, user, map, BST) ->
       $slider.append view.render().el
       @
     getPlayer: ->
-      lowBound = @dateRange.get("currentMinimum");
+      lowBound = @dateRange.get("activeLowerValue");
       highBound = @dateRange.get("currentMaximum");
       increment = Math.ceil(Math.abs (highBound - lowBound) / 300)
       play = =>
         newVal = @dateRange.get("activeUpperValue") + increment
         @dateRange.set("activeUpperValue", newVal)
         if newVal >= @dateRange.get("currentMaximum")
-          @$(".js-pause-timeline").trigger("click");
+          @stop()
           return;
         @player = requestAnimationFrame(play);
       return =>
-        @dateRange.set("activeUpperValue", lowBound);
+        console.log(new Date(lowBound))
+        @dateRange.set("activeUpperValue", lowBound, {silent: true});
         @player = requestAnimationFrame(play);
     toEnd: ->
-      $tl = @$timeline
       @stop()
-      $tl.slider("values", 1, @dateRange.get("absoluteMaximum"))
+      @$timeline.slider("values", 1, @dateRange.get("absoluteMaximum"))
     toStart: ->
-      $tl = @$timeline
       @stop()
-      start = $tl.slider("values", 1, @dateRange.get("absoluteMinimum"))
+      @$timeline.slider("values", 1, @dateRange.get("absoluteMinimum"))
     stop: -> 
-      cancelAnimationFrame(@player);
+      @$(".js-pause-timeline").trigger("click")
       @
     events: 
       "click .js-play-timeline": (e) ->
@@ -197,7 +199,7 @@ define "timeline", ["hub", "user", "map", "BST"], (hub, user, map, BST) ->
         play()
       "click .js-pause-timeline": (e) ->
         $(e.currentTarget).removeClass("js-pause-timeline icon-pause2 playing").addClass "js-play-timeline icon-play2"
-        @stop();
+        cancelAnimationFrame(@player);
       "switch .js-pause-timeline": (e) ->
         $(e.currentTarget).removeClass("js-pause-timeline icon-pause2 playing").addClass "js-play-timeline icon-play2"
       "click .js-fast-forward": "renderSpeed"
@@ -273,10 +275,11 @@ define "timeline", ["hub", "user", "map", "BST"], (hub, user, map, BST) ->
           showAnim: "fadeIn"
           inline: true,
           showOtherMonths: true,
+          hideIfNoPrevNext: true
+          numberOfMonths: [1,2]
           dayNamesMin: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
           onSelect: (date, evt) =>
             date = moment(date).valueOf();
-            console.log moment(date).format("M/D/YY")
             currentMinimum = @dateRange.get("currentMinimum")
             currentMaximum = @dateRange.get("currentMaximum")
             el.blur()

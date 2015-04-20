@@ -8,6 +8,7 @@
   define("timeline", ["hub", "user", "map", "BST"], function(hub, user, map, BST) {
     var DateRange, TimelineFactory, TimelineMarker, TimelineView, TwoDatePicker, TwoDatePickerFactory, dispatcher, _format, _ref;
     _format = (_ref = user.getActiveUser()) != null ? _ref.get("preferences").get("date_format") : void 0;
+    console.log(_format);
     DateRange = (function(_super) {
       __extends(DateRange, _super);
 
@@ -138,6 +139,12 @@
             range = ui.values;
             cleanedDate = moment(range[pos]).format(_this.format);
             _this.updateDateHandle($handle, cleanedDate);
+            _this.dateRange.set("activeLowerValue", ui.values[0], {
+              silent: true
+            });
+            _this.dateRange.set("activeUpperValue", ui.values[1], {
+              silent: true
+            });
             return _this.updateVisibleMarkers(ui.values[0], ui.values[1]);
           };
         })(this);
@@ -228,8 +235,6 @@
           this.dateRange.set("activeUpperValue", currMax);
           activeMax = this.dateRange.get("activeUpperValue");
         }
-        console.log("currMin", new Date(currMin), "currMax", new Date(currMax));
-        console.log("activemin", new Date(activeMin), "activeMax", new Date(activeMax));
         handles = $timeline.find(".ui-slider-handle");
         $timeline.slider("option", {
           min: currMin,
@@ -285,7 +290,7 @@
 
       TimelineView.prototype.getPlayer = function() {
         var highBound, increment, lowBound, play;
-        lowBound = this.dateRange.get("currentMinimum");
+        lowBound = this.dateRange.get("activeLowerValue");
         highBound = this.dateRange.get("currentMaximum");
         increment = Math.ceil(Math.abs((highBound - lowBound) / 300));
         play = (function(_this) {
@@ -294,7 +299,7 @@
             newVal = _this.dateRange.get("activeUpperValue") + increment;
             _this.dateRange.set("activeUpperValue", newVal);
             if (newVal >= _this.dateRange.get("currentMaximum")) {
-              _this.$(".js-pause-timeline").trigger("click");
+              _this.stop();
               return;
             }
             return _this.player = requestAnimationFrame(play);
@@ -302,28 +307,27 @@
         })(this);
         return (function(_this) {
           return function() {
-            _this.dateRange.set("activeUpperValue", lowBound);
+            console.log(new Date(lowBound));
+            _this.dateRange.set("activeUpperValue", lowBound, {
+              silent: true
+            });
             return _this.player = requestAnimationFrame(play);
           };
         })(this);
       };
 
       TimelineView.prototype.toEnd = function() {
-        var $tl;
-        $tl = this.$timeline;
         this.stop();
-        return $tl.slider("values", 1, this.dateRange.get("absoluteMaximum"));
+        return this.$timeline.slider("values", 1, this.dateRange.get("absoluteMaximum"));
       };
 
       TimelineView.prototype.toStart = function() {
-        var $tl, start;
-        $tl = this.$timeline;
         this.stop();
-        return start = $tl.slider("values", 1, this.dateRange.get("absoluteMinimum"));
+        return this.$timeline.slider("values", 1, this.dateRange.get("absoluteMinimum"));
       };
 
       TimelineView.prototype.stop = function() {
-        cancelAnimationFrame(this.player);
+        this.$(".js-pause-timeline").trigger("click");
         return this;
       };
 
@@ -336,7 +340,7 @@
         },
         "click .js-pause-timeline": function(e) {
           $(e.currentTarget).removeClass("js-pause-timeline icon-pause2 playing").addClass("js-play-timeline icon-play2");
-          return this.stop();
+          return cancelAnimationFrame(this.player);
         },
         "switch .js-pause-timeline": function(e) {
           return $(e.currentTarget).removeClass("js-pause-timeline icon-pause2 playing").addClass("js-play-timeline icon-play2");
@@ -467,12 +471,13 @@
           showAnim: "fadeIn",
           inline: true,
           showOtherMonths: true,
+          hideIfNoPrevNext: true,
+          numberOfMonths: [1, 2],
           dayNamesMin: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
           onSelect: (function(_this) {
             return function(date, evt) {
               var currentMaximum, currentMinimum;
               date = moment(date).valueOf();
-              console.log(moment(date).format("M/D/YY"));
               currentMinimum = _this.dateRange.get("currentMinimum");
               currentMaximum = _this.dateRange.get("currentMaximum");
               el.blur();

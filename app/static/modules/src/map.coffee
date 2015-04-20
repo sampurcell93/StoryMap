@@ -1,4 +1,4 @@
-define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
+define "map", ["hub", "themes", "stories", "clusterer"], (hub, themes, stories) ->
     dispatcher = hub.dispatcher
 
     blueIcon = "static/images/bluepoi.png"
@@ -73,28 +73,6 @@ define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
     class Map extends Backbone.View
         tagName: "div"
         className: "map-canvas"
-        # Returns the indices where the lower and upper cuttoff are
-        # Return type: object
-        # filterByDate: (min, max, cutoff=0, opts={}) ->
-        #     # console.log(cutoffIndices)
-        #     highCutoffIndex = cutoff
-        #     localCutoff = false
-        #     if @collection?
-        #         inrange = []
-        #         outrange = []
-        #         iterable = @collection.slice(highCutoffIndex, @collection.length - 1);
-        #         # console.log cutoffIndices, min, max
-        #         _.each iterable, (model) ->
-        #             date = model.get("date") 
-        #             if date >= min and date <= max
-        #                 model.trigger "show", opts
-        #             else if date >= max
-        #                 if localCutoff is false
-        #                     localCutoff = true
-        #                     highCutoffIndex = model.collection.indexOf(model)
-        #                 model.trigger "hide", opts
-        #     return highCutoffIndex
-
         initialize: (attrs) ->
             @id = attrs.id;
             @markers = []
@@ -113,6 +91,7 @@ define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
         render: ->
             @$el.attr("id", @id).appendTo(hub.getRegion("mapWrapper").$el)
             @map = new google.maps.Map(@el, @mapOptions);
+            @clusterer = new MarkerClusterer(@map, @markers, {gridSize: 50, maxZoom: 15})
             @
         setCollection: (collection) ->
             if @collection
@@ -132,7 +111,9 @@ define "map", ["hub", "themes", "stories"], (hub, themes, stories) ->
                 markerIcon = story.marker.icon
                 @bindEventsOnMarker story.marker
                 markerIcon.setMap @map
+                @clusterer.addMarker(story.marker.icon);
                 @markers.push markerIcon
+
                 story.set("hasLocation", true)
             else 
                 story.set("hasLocation", false)

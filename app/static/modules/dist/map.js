@@ -2,7 +2,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define("map", ["hub", "themes", "stories"], function(hub, themes, stories) {
+  define("map", ["hub", "themes", "stories", "clusterer"], function(hub, themes, stories) {
     var Map, MapFactory, MapMarker, blueIcon, dispatcher, map, redIcon;
     dispatcher = hub.dispatcher;
     blueIcon = "static/images/bluepoi.png";
@@ -141,6 +141,10 @@
       Map.prototype.render = function() {
         this.$el.attr("id", this.id).appendTo(hub.getRegion("mapWrapper").$el);
         this.map = new google.maps.Map(this.el, this.mapOptions);
+        this.clusterer = new MarkerClusterer(this.map, this.markers, {
+          gridSize: 50,
+          maxZoom: 15
+        });
         return this;
       };
 
@@ -173,6 +177,7 @@
           markerIcon = story.marker.icon;
           this.bindEventsOnMarker(story.marker);
           markerIcon.setMap(this.map);
+          this.clusterer.addMarker(story.marker.icon);
           this.markers.push(markerIcon);
           story.set("hasLocation", true);
         } else {

@@ -7,6 +7,7 @@ require.config({
         "jqueryUI"      : "dist/jquery-ui.min",
         "marionette"    : "dist/bower_components/marionette/lib/backbone.marionette.min",
         "moment"        : "dist/bower_components/moment/moment",
+        "clusterer"     : "dist/bower_components/clusterer/src/markerclusterer_compiled",
         "map"           : "dist/map",
         "BST"           : "dist/bst",
         "stories"       : "dist/stories",
